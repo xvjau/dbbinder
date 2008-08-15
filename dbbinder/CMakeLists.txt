@@ -1,5 +1,5 @@
 
-project(dbbuilder)
+project(dbbinder)
 
 add_subdirectory(./TinyXML)
 
