@@ -10,9 +10,9 @@
 		
 		<sql>
 			select
-				U."NAME" as "name",
-				F."TITLE" as "festival",
-				F."DATE" as "date"
+				U."NAME" as "Name",
+				F."TITLE" as "Festival",
+				F."DATE" as "Date"
 			from
 				"USERS" U join "USERS_FESTIVALS" UF on
 					U."IDUSER" = UF."IDUSER"
@@ -33,7 +33,7 @@
 			<namespace>TestApp</namespace>
 		</namespaces>
 		<headers>
-			<header>#include &lt;string&lt;</header>
+			<header>#include &lt;string&gt;</header>
 			<header>typedef std::string String;</header>
 		</headers>
 	</extra>
