@@ -44,6 +44,7 @@ const char * const tpl_DBENGINE_CONNECTION_NULL = "DBENGINE_CONNECTION_NULL";
 
 const char * const tpl_SELECT = "SELECT";
 const char * const tpl_SELECT_SQL = "SELECT_SQL";
+const char * const tpl_SELECT_SQL_LEN = "SELECT_SQL_LEN";
 
 const char * const tpl_SEL_IN_FIELDS = "SEL_IN_FIELDS";
 const char * const tpl_SEL_IN_FIELD_TYPE = "SEL_IN_FIELD_TYPE";
@@ -642,6 +643,7 @@ void AbstractGenerator::loadDictionary()
 
 			str = String("\"") + cescape(it->second->select.sql) + String("\"");
 			classDict->SetValue( tpl_SELECT_SQL, str );
+			classDict->SetIntValue( tpl_SELECT_SQL_LEN, it->second->select.sql.length() );
 
 			int index = 0;
 			subDict = 0;

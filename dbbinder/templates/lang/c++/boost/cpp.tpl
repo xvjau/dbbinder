@@ -15,6 +15,7 @@
 {{#CLASS}}
 {{#SELECT}}
 const char * const {{CLASSNAME}}::s_selectSQL = {{SELECT_SQL}};
+const int {{CLASSNAME}}::s_selectSQL_len = {{SELECT_SQL_LEN}};
 
 {{CLASSNAME}}::{{CLASSNAME}}({{DBENGINE_CONNECTION_TYPE}} _conn):
 		m_conn( _conn ), m_needCloseConn( false ), m_selectIsActive( false ), m_iterator(0)
