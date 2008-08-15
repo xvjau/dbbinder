@@ -67,7 +67,7 @@ void SQLiteGenerator::addSelect(SelectElements _elements)
 	const char *tail = 0;
 	sqlite3_stmt *stmt = 0;
 
-	int ret = sqlite3_prepare(m_db, _elements.sql.c_str(), 1, &stmt,  &tail);
+	int ret = sqlite3_prepare(m_db, _elements.sql.c_str(), _elements.sql.length(), &stmt,  &tail);
 	SQLCHECK("SQL statement error: " << _elements.sql << " :");
 
 	int i = 1;
@@ -186,8 +186,8 @@ String SQLiteGenerator::getReadValue(const ListElements::iterator & _item, int _
 		case stDate:
 		case stText:
 		{
-			str << "const char *str = reinterpret_cast<const char*>( sqlite3_column_text(_stmt, " << _index << ") );\n"
-				<< "if ( str ) m_" << _item->name << " = str;";
+			str << "{ const char *str = reinterpret_cast<const char*>( sqlite3_column_text(_stmt, " << _index << ") );\n"
+				<< "if ( str ) m_" << _item->name << " = str; }";
 			break;
 		}
 	}
