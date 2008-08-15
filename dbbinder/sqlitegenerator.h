@@ -21,7 +21,7 @@
 #define DBBUILDERSQLITEGENERATOR_H
 
 #include "abstractgenerator.h"
-#include "sqlite3.h"
+#include <sqlite3.h>
 
 namespace DBBuilder
 {
