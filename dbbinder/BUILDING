@@ -1,0 +1,18 @@
+DBBinder++
+
+Dependencies:
+
+- TinyXML++ (included)
+  http://code.google.com/p/ticpp/
+
+- ctemplate
+  http://code.google.com/p/google-ctemplate/
+
+- gperf
+  http://www.gnu.org/software/gperf/gperf.html
+
+- SQLite3
+  http://www.sqlite.org/
+
+- Boost
+  http://www.boost.org/

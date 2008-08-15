@@ -1,0 +1,4 @@
+<xml>
+	<interface file="h.tpl"/>
+	<implementation file="cpp.tpl" />
+</xml>
