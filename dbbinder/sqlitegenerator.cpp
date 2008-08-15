@@ -29,6 +29,8 @@ SQLiteGenerator::SQLiteGenerator(): AbstractGenerator(),
 								 m_db( 0 )
 {
 	m_dbengine = "sqlite3";
+
+	std::cout << "Using SQLite version: " << sqlite3_libversion() << std::endl;
 }
 
 SQLiteGenerator::~SQLiteGenerator()
@@ -62,10 +64,10 @@ void SQLiteGenerator::addSelect(SelectElements _elements)
 {
 	checkConnection();
 	
-	const char *tail;
-	sqlite3_stmt *stmt;
+	const char *tail = 0;
+	sqlite3_stmt *stmt = 0;
 
-	int ret = sqlite3_prepare(m_db, _elements.sql.c_str(), 0, &stmt,  &tail);
+	int ret = sqlite3_prepare(m_db, _elements.sql.c_str(), 1, &stmt,  &tail);
 	SQLCHECK("SQL statement error: " << _elements.sql << " :");
 
 	int i = 1;
@@ -75,14 +77,15 @@ void SQLiteGenerator::addSelect(SelectElements _elements)
 	{
 		if ( !it->defaultValue.empty() )
 		{
-			sqlite3_bind_text( stmt, i, it->defaultValue.c_str(), -1, 0 );
+			ret = sqlite3_bind_text( stmt, i, it->defaultValue.c_str(), -1, 0 );
+			SQLCHECK("SQL bind error: " << ret << " ");
 		}
 	}
 
 	ret = sqlite3_step( stmt );
 	if (!(( ret == SQLITE_ROW ) || ( ret == SQLITE_DONE )))
 	{
-		FATAL( "fetch error: " << _elements.sql << " :" << sqlite3_errmsg(m_db) );
+		FATAL( "fetch error: " << _elements.sql << " :" << ret << " " << sqlite3_errmsg(m_db) );
 	}
 	
 	int count = sqlite3_column_count( stmt );
