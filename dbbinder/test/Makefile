@@ -6,9 +6,13 @@ CFLAGS        = -pipe -Wall -W
 INCPATH       = -I/usr/include -I/home/gianni/Projetos/stb/libloretta/ -I/home/gianni/Projetos/stb/libloretta/include
 LFLAGS        = 
 LIBS          = -lsqlite3
+SQLITE        = sqlite3
 
-test.o: test.xml
-	../dbbuilder -i test.xml -d /home/gianni/Projetos/DBBuilder/templates
+test.db: test.sql
+	$(SQLITE) -init test.sql test.db
+
+test.o: test.xml test.db
+	../dbbinder -i test.xml -d ../templates
 	$(CXX) -c $(CFLAGS) $(INCPATH) -o test.o -c test.cpp
 
 main.o: main.cpp test.o

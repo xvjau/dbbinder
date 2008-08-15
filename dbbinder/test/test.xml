@@ -1,86 +1,30 @@
 <xml>
 	<database>
-		<type>Sqlite3</type>
+		<type>SQLite3</type>
 		<file>test.db</file>
 	</database>
 	
-	<select name="SelMenuItems">
-		<param name="idMenu" type="int" default="7" />
-		<param name="idItemParent" type="int" default="0" />
+	<select name="selFestival">
+		<param name="idUser" type="int" default="2" />
+		<param name="minDate" type="int" default="0" />
 		
 		<sql>
-			select 
-				MI."IDMENU_ITEM" as "IdMenuItem",
-				MI."IDPROFILES" as "IdProfiles",
-				MI.TITLE as "Name"
-			from 
-				"MENU_ITEMS" MI left join "MEDIAS" ME on
-					MI."IDMENU_ITEM" = ME."IDMEDIA" and 
-					MI."TYPE" = ME."INDEX" 
+			select
+				U."NAME" as "name",
+				F."TITLE" as "festival",
+				F."DATE" as "date"
+			from
+				"USERS" U join "USERS_FESTIVALS" UF on
+					U."IDUSER" = UF."IDUSER"
+				join "FESTIVALS" F on
+					UF."IDFESTIVAL" = F."IDFESTIVAL"
 			where 
-				MI."IDMENU" = ? and
-				MI."IDITEM_PARENT" = ? and
-				MI."AVAILABLE" = 1 and
-				(( (MI."MESSAGE_TYPE" = 1) or
-					((MI."MEDIA_TYPE" != 'MMEDIAS') and 
-						(  
-							select  
-								COUNT(*)
-							from
-								"MENU_ITEMS" MIP join "MEDIAS" MEP on 
-									MIP."IDMENU_ITEM" = MEP."IDMEDIA" and 
-									MIP."TYPE" = MEP."INDEX" 
-							where  
-								MIP."IDITEM_PARENT" = MI."IDMENU_ITEM" and 
-								MEP."STATUS" != 3 
-						) = 0  
-						and 
-						(
-							select
-								COUNT(*)
-							from  
-								"MENU_ITEMS" MIP join "MEDIAS" MEP on 
-									MIP."IDMENU_ITEM" = MEP."IDMEDIA" and 
-									MIP."TYPE" = MEP."INDEX" 
-							where  
-								MIP."IDITEM_PARENT" = MI."IDMENU_ITEM" and 
-								MEP."STATUS" = 3 
-						) > 0 
-					) or 
-				( ME."STATUS" = 3 )))
-			</sql> 
-			
-			<select>
-			</select>
+				U."IDUSER" = ? and
+				F."DATE" > ?
+			order by
+				F."DATE"
+		</sql>
 	</select>
-	<update name="UpdUsersMedias">
-		<param name="status" type="int" />
-		<param name="idUser" type="int" />
-		<param name="idMedia" type="int" />
-		<param name="index" type="int" />
-		
-		<sql>
-			update 
-				"USERS_MEDIAS"
-			set
-				"STATUS" = ? 
-			where
-				"IDUSER" = ? and 
-				"IDMEDIA" = ? and 
-				"INDEX" = ?
-		</sql>
-	</update>
-	<insert name="InsProfiles">
-		<param name="idProfile" type="int" />
-		<param name="configurationItems" type="string" />
-		
-		<sql>
-			insert or replace into 
-				"PROFILES" ("IDPROFILE", "CONFIGURATION_ITEMS")
-			values 
-				(?, ?)
-		</sql>
-	</insert>
 	<extra>
 		<types>
 			<string>String</string>
@@ -89,6 +33,7 @@
 			<namespace>TestApp</namespace>
 		</namespaces>
 		<headers>
+			<header>#include &lt;string&lt;</header>
 			<header>typedef std::string String;</header>
 		</headers>
 	</extra>
