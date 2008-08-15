@@ -1,4 +1,4 @@
-add_definitions(-DTIXML_USE_TICPP)
+add_definitions(-DTIXML_USE_TICPP -O3)
 
 add_library(ticpp STATIC
 	ticpp.cpp
