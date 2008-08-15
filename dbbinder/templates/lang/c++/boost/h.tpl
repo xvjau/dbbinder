@@ -7,11 +7,8 @@
 #ifndef __INCLUDE_{{HEADER_NAME}}
 #define __INCLUDE_{{HEADER_NAME}}
 
-{{#DBENGINE_INCLUDES}}
-{{DBENGINE_INCLUDE_NAME}}
-{{/DBENGINE_INCLUDES}}
-{{#EXTRA_HEADERS}}{{EXTRA_HEADERS_HEADER}}
-{{/EXTRA_HEADERS}}
+#include <boost/shared_ptr.hpp>
+#include <iostream>
 
 #ifdef DEBUG
 #define ASSERT(cond) { assert(cond);}
@@ -20,6 +17,12 @@
 #define ASSERT(cond)
 #define ASSERT_MSG(cond, msg) { if (!(cond)) { std::cerr << __FILE__ << "." << __LINE__ << " WARNING: " << msg << std::endl; } }
 #endif
+
+{{#DBENGINE_INCLUDES}}
+{{DBENGINE_INCLUDE_NAME}}
+{{/DBENGINE_INCLUDES}}
+{{#EXTRA_HEADERS}}{{EXTRA_HEADERS_HEADER}}
+{{/EXTRA_HEADERS}}
 
 
 {{#NAMESPACES}}namespace {{NAMESPACE}} {
@@ -43,6 +46,7 @@ class {{CLASSNAME}}
 
 	private:
 		static const char* const s_selectSQL;
+		static const int s_selectSQL_len;
 
 		{{DBENGINE_STATEMENT_TYPE}} m_selectStmt;
 		bool						m_selectIsActive;
