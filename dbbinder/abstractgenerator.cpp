@@ -317,7 +317,7 @@ void AbstractGenerator::generate()
 		out << str;
 		str.clear();
 	}
-	str = "astyle ";
+	str = "astyle --style=ansi -n ";
 	str += m_outIntFile;
 	system( str.c_str() );
 	str.clear();
@@ -329,7 +329,7 @@ void AbstractGenerator::generate()
 		str.clear();
 	}
 
-	str = "astyle --style=ansi ";
+	str = "astyle --style=ansi -n ";
 	str += m_outImplFile;
 	system( str.c_str() );
 	str.clear();
