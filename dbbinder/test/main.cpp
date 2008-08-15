@@ -18,37 +18,39 @@
 */
 
 #include <iostream>
+#include <list>
 
 #include "test.h"
 
 using namespace std;
-
+using namespace TestApp;
+	
 int main()
 {
 	{
-		SelMenuItems stmt(7, 0);
+		selFestival stmt(2, 0);
 		
-		for( SelMenuItems::iterator it = stmt.begin(); it != stmt.end(); ++it )
+		for( selFestival::iterator it = stmt.begin(); it != stmt.end(); ++it )
 		{
-			cout << it->getIdMenuItem() << " "
-					<< it->getIdProfiles() << " "
-					<< it->getName() << endl;
+			cout << it->getName() << " "
+					<< it->getFestival() << " "
+					<< it->getDate() << endl;
 		}
 	}
 	
 	{
-		SelMenuItems stmt(7, 0);
+		selFestival stmt(1, 0);
 		
-		typedef std::list<SelMenuItems::row> MyListType;
+		typedef std::list<selFestival::row> MyListType;
 		MyListType myList;
 		
 		myList.assign( stmt.begin(), stmt.end() );
 		
 		for( MyListType::iterator it = myList.begin(); it != myList.end(); ++it )
 		{
-			cout << (*it)->getIdMenuItem() << " "
-					<< (*it)->getIdProfiles() << " "
-					<< (*it)->getName() << endl;
+			cout << (*it)->getName() << " "
+					<< (*it)->getFestival() << " "
+					<< (*it)->getDate() << endl;
 		}
 	}
 }
