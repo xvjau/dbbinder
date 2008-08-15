@@ -3,7 +3,7 @@ default_target: testapp
 CXX           = g++
 LINK          = g++
 CFLAGS        = -pipe -Wall -W
-INCPATH       = -I/usr/include -I/home/gianni/Projetos/stb/libloretta/ -I/home/gianni/Projetos/stb/libloretta/include
+INCPATH       = -I/usr/include -I/usr/local/include
 LFLAGS        = 
 LIBS          = -lsqlite3
 SQLITE        = sqlite3
