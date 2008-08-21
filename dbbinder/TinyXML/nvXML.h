@@ -1,7 +1,7 @@
 #include "ticpp.h"
 #include <boost/shared_ptr.hpp>
 
-namespace DBBuilder
+namespace DBBinder
 {
 
 // XML Stuff
