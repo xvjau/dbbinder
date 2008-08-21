@@ -6,6 +6,9 @@ endif(COMMAND cmake_policy)
 
 project(dbbinder)
 
+link_directories($ENV{ORACLE_HOME}/lib)
+include_directories($ENV{ORACLE_HOME}/include)
+
 add_subdirectory(./TinyXML)
 
 add_definitions(-Wall -Wno-parentheses -g -DTIXML_USE_TICPP)
@@ -16,4 +19,4 @@ add_executable(dbbinder main.cpp abstractgenerator sqlitegenerator oraclegenerat
 
 set_source_files_properties(main.cpp PROPERTIES OBJECT_DEPENDS options.h)
 
-target_link_libraries(dbbinder ticpp ctemplate_nothreads sqlite3)
+target_link_libraries(dbbinder ticpp ctemplate_nothreads sqlite3 ociei)

@@ -21,6 +21,7 @@
 #define DBBUILDERORACLEGENERATOR_H
 
 #include "abstractgenerator.h"
+#include <oci.h>
 
 namespace DBBuilder
 {
@@ -35,11 +36,18 @@ class OracleGenerator : public AbstractGenerator
 	protected:
 		OracleGenerator();
 		virtual ~OracleGenerator();
+
+		OCIEnv		*m_env;
+		OCIError	*m_err;
+		OCISvcCtx	*m_svc;
 		
 		virtual bool checkConnection();
 
 		virtual String getBind(const ListElements::iterator& _item, int _index);
 		virtual String getReadValue(const ListElements::iterator& _item, int _index);
+
+	public:
+		virtual void addSelect(SelectElements _elements);
 };
 
 }
