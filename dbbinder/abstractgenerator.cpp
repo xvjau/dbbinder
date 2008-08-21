@@ -19,6 +19,7 @@
 
 #include "abstractgenerator.h"
 #include "sqlitegenerator.h"
+#include "oraclegenerator.h"
 #include "main.h"
 
 namespace DBBuilder
@@ -155,6 +156,13 @@ AbstractGenerator* AbstractGenerator::getGenerator(const String & _type)
 		String type = stringToLower( _type );
 		switch ( type[0] )
 		{
+			case 'o':
+			{
+				if ( type == "oracle" )
+				{
+					return new OracleGenerator();
+				}
+			}
 			case 's':
 			{
 				if ( type == "sqlite" || type == "sqlite3" )
