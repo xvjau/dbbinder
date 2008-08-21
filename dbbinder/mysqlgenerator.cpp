@@ -19,7 +19,7 @@
 
 #include "mysqlgenerator.h"
 
-namespace DBBuilder {
+namespace DBBinder {
 
 MySQLGenerator::MySQLGenerator()
  : AbstractGenerator()

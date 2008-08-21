@@ -17,8 +17,8 @@
     along with DBBinder++.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __DBBUILDER_MAIN_H
-#define __DBBUILDER_MAIN_H
+#ifndef __DBBINDER_MAIN_H
+#define __DBBINDER_MAIN_H
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -34,7 +34,7 @@
 
 #include "TinyXML/nvXML.h"
 
-namespace DBBuilder
+namespace DBBinder
 {
 
 typedef std::string String;
@@ -105,8 +105,8 @@ inline ListString stringTok(const String &_string, const char _sep)
 
 }
 
-#define FATAL(MSG) { std::cerr << DBBuilder::appName << ": " << MSG << std::endl; exit( 1 ); }
-#define WARNING(MSG) { std::cerr << DBBuilder::appName << ": " << MSG << std::endl; }
+#define FATAL(MSG) { std::cerr << DBBinder::appName << ": " << MSG << std::endl; exit( 1 ); }
+#define WARNING(MSG) { std::cerr << DBBinder::appName << ": " << MSG << std::endl; }
 
 #define GET_TEXT_OR_ATTR( str, elem, attr ) { str = elem->GetText(false); if ( str.empty() ) elem->GetAttribute(attr, &str, false); }
 
@@ -114,4 +114,4 @@ inline ListString stringTok(const String &_string, const char _sep)
 #include <boost/foreach.hpp>
 #define foreach(X, Y) BOOST_FOREACH(X, Y)
 
-#endif // __DBBUILDER_MAIN_H
+#endif // __DBBINDER_MAIN_H

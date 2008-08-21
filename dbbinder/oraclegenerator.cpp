@@ -19,7 +19,7 @@
 
 #include "oraclegenerator.h"
 
-namespace DBBuilder
+namespace DBBinder
 {
 
 #define oraCheckErr(ERROR, STATUS) oraCheckErrFn(ERROR, STATUS, __FILE__, __LINE__)

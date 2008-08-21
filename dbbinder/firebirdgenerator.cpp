@@ -19,7 +19,7 @@
 
 #include "firebirdgenerator.h"
 
-namespace DBBuilder {
+namespace DBBinder {
 
 FirebirdGenerator::FirebirdGenerator()
  : AbstractGenerator()

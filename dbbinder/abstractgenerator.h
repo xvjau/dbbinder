@@ -17,12 +17,12 @@
     along with DBBinder++.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DBBUILDERABSTRACTGENERATOR_H
-#define DBBUILDERABSTRACTGENERATOR_H
+#ifndef DBBINDERABSTRACTGENERATOR_H
+#define DBBINDERABSTRACTGENERATOR_H
 
 #include "main.h"
 
-namespace DBBuilder
+namespace DBBinder
 {
 
 enum SQLTypes

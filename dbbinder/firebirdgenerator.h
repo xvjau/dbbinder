@@ -17,12 +17,12 @@
     along with DBBinder++.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DBBUILDERFIREBIRDGENERATOR_H
-#define DBBUILDERFIREBIRDGENERATOR_H
+#ifndef DBBINDERFIREBIRDGENERATOR_H
+#define DBBINDERFIREBIRDGENERATOR_H
 
 #include "abstractgenerator.h"
 
-namespace DBBuilder {
+namespace DBBinder {
 
 /**
 	@author 

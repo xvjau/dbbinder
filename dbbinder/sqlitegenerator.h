@@ -17,13 +17,13 @@
     along with DBBinder++.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DBBUILDERSQLITEGENERATOR_H
-#define DBBUILDERSQLITEGENERATOR_H
+#ifndef DBBINDERSQLITEGENERATOR_H
+#define DBBINDERSQLITEGENERATOR_H
 
 #include "abstractgenerator.h"
 #include <sqlite3.h>
 
-namespace DBBuilder
+namespace DBBinder
 {
 
 class SQLiteGenerator : public AbstractGenerator

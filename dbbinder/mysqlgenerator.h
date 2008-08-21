@@ -17,12 +17,12 @@
     along with DBBinder++.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DBBUILDERMYSQLGENERATOR_H
-#define DBBUILDERMYSQLGENERATOR_H
+#ifndef DBBINDERMYSQLGENERATOR_H
+#define DBBINDERMYSQLGENERATOR_H
 
 #include "abstractgenerator.h"
 
-namespace DBBuilder {
+namespace DBBinder {
 
 /**
 	@author 

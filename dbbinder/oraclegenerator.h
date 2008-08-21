@@ -17,13 +17,13 @@
     along with DBBinder++.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DBBUILDERORACLEGENERATOR_H
-#define DBBUILDERORACLEGENERATOR_H
+#ifndef DBBINDERORACLEGENERATOR_H
+#define DBBINDERORACLEGENERATOR_H
 
 #include "abstractgenerator.h"
 #include <oci.h>
 
-namespace DBBuilder
+namespace DBBinder
 {
 
 /**

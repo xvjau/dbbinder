@@ -23,7 +23,7 @@
 
 #define DEFAULT_TEMLPATE "c++,boost"
 
-namespace DBBuilder
+namespace DBBinder
 {
 
 String		appName;
@@ -36,9 +36,9 @@ bool		optYAML = false;
 
 static const char*	defaultTemplateDirs[] = 
 {
-	"/usr/share/dbbuilder/templates",
-	"/usr/local/share/dbbuilder/templates",
-	"~/share/dbbuilder/templates",
+	"/usr/share/dbbinder/templates",
+	"/usr/local/share/dbbinder/templates",
+	"~/share/dbbinder/templates",
 	0
 };
 
@@ -230,7 +230,7 @@ void parseXML()
 void printHelp()
 {
 	std::cout <<
-			"Usage " << DBBuilder::appName << " [options]\n"
+			"Usage " << DBBinder::appName << " [options]\n"
 			"Options:\n"
 			"	-h, --help	print this help message\n"
 			"	-i FILE		set the input file\n"
@@ -244,7 +244,7 @@ void printHelp()
 
 int main(int argc, char *argv[])
 {
-	DBBuilder::appName = DBBuilder::extractFileName( argv[0] );
+	DBBinder::appName = DBBinder::extractFileName( argv[0] );
 
 	if ( argc <= 1 )
 	{
@@ -283,7 +283,7 @@ int main(int argc, char *argv[])
 								FATAL( argv[i] << ": must be a regular file");
 						}
 						
-						DBBuilder::optFileName = argv[i];
+						DBBinder::optFileName = argv[i];
 					}
 					else
 						FATAL("missing input file name");
@@ -292,23 +292,23 @@ int main(int argc, char *argv[])
 				}
 				case commandOptionCode::XML:
 				{
-					if ( DBBuilder::optYAML )
+					if ( DBBinder::optYAML )
 						FATAL("cannot set both XML and YAML flags");
 					
-					DBBuilder::optXML = true;
+					DBBinder::optXML = true;
 					break;
 				}
 				case commandOptionCode::YAML:
 				{
-					if ( DBBuilder::optXML )
+					if ( DBBinder::optXML )
 						FATAL("cannot set both XML and YAML flags");
 
-					DBBuilder::optYAML = true;
+					DBBinder::optYAML = true;
 					break;
 				}
 				case commandOptionCode::TEMPLATE:
 				{
-					DBBuilder::optTemplate = argv[i];
+					DBBinder::optTemplate = argv[i];
 					break;
 				}
 				case commandOptionCode::TEMPLATE_DIR:
@@ -328,7 +328,7 @@ int main(int argc, char *argv[])
 							}
 						}
 						
-						DBBuilder::optTemplateDirs.push_back( argv[i] );
+						DBBinder::optTemplateDirs.push_back( argv[i] );
 					}
 					else
 						FATAL("missing directory name");
@@ -339,7 +339,7 @@ int main(int argc, char *argv[])
 				{
 					if ( ++i < argc )
 					{
-						DBBuilder::optOutput = argv[i];
+						DBBinder::optOutput = argv[i];
 					}
 					else
 						FATAL("missing output file name");
@@ -354,15 +354,15 @@ int main(int argc, char *argv[])
 		}
 	}
 	
-	if ( !DBBuilder::optFileName )
+	if ( !DBBinder::optFileName )
 		FATAL("missing input file name");
 
-	if ( !DBBuilder::optTemplate )
-		DBBuilder::optTemplate = DEFAULT_TEMLPATE;
+	if ( !DBBinder::optTemplate )
+		DBBinder::optTemplate = DEFAULT_TEMLPATE;
 
-	if ( DBBuilder::optOutput.empty() )
+	if ( DBBinder::optOutput.empty() )
 	{
-		using namespace DBBuilder;
+		using namespace DBBinder;
 		optOutput = optFileName;
 		size_t pos = optOutput.find_last_of('.');
 		if ( pos == String::npos )
@@ -376,16 +376,16 @@ int main(int argc, char *argv[])
 	}
 	
 	i = -1;
-	while ( DBBuilder::defaultTemplateDirs[++i] )
+	while ( DBBinder::defaultTemplateDirs[++i] )
 	{
 		// Check to see if default dirs exists before adding them
 		struct stat fs;
-		if (( stat(DBBuilder::defaultTemplateDirs[i], &fs) == 0 ) && (( fs.st_mode & S_IFMT ) != S_IFDIR ))
-			DBBuilder::optTemplateDirs.push_back( DBBuilder::defaultTemplateDirs[i] );
+		if (( stat(DBBinder::defaultTemplateDirs[i], &fs) == 0 ) && (( fs.st_mode & S_IFMT ) != S_IFDIR ))
+			DBBinder::optTemplateDirs.push_back( DBBinder::defaultTemplateDirs[i] );
 	}
 
-	if ( DBBuilder::optXML || !DBBuilder::optYAML )
-		DBBuilder::parseXML();
+	if ( DBBinder::optXML || !DBBinder::optYAML )
+		DBBinder::parseXML();
 	else
 		FATAL("YAML parser not implemented yet. sorry.");
 	

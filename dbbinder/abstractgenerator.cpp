@@ -24,7 +24,7 @@
 #include "firebirdgenerator.h"
 #include "main.h"
 
-namespace DBBuilder
+namespace DBBinder
 {
 
 const char * const tpl_INTF_FILENAME = "INTF_FILENAME";

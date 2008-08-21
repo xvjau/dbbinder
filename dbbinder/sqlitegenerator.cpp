@@ -22,7 +22,7 @@
 #define SQLFATAL(STR) FATAL( "SQLite3: " << STR << sqlite3_errmsg(m_db) )
 #define SQLCHECK(STR) { if ( ret != SQLITE_OK ) FATAL( STR << sqlite3_errmsg(m_db) ) }
 
-namespace DBBuilder
+namespace DBBinder
 {
 
 SQLiteGenerator::SQLiteGenerator(): AbstractGenerator(),
