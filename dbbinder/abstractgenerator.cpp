@@ -20,6 +20,8 @@
 #include "abstractgenerator.h"
 #include "sqlitegenerator.h"
 #include "oraclegenerator.h"
+#include "mysqlgenerator.h"
+#include "firebirdgenerator.h"
 #include "main.h"
 
 namespace DBBuilder
@@ -156,6 +158,21 @@ AbstractGenerator* AbstractGenerator::getGenerator(const String & _type)
 		String type = stringToLower( _type );
 		switch ( type[0] )
 		{
+			case 'f':
+			case 'i':
+			{
+				if ( type == "firebird" || type == "interbase" )
+				{
+					return new FirebirdGenerator();
+				}
+			}
+			case 'm':
+			{
+				if ( type == "mysql" )
+				{
+					return new MySQLGenerator();
+				}
+			}
 			case 'o':
 			{
 				if ( type == "oracle" )
