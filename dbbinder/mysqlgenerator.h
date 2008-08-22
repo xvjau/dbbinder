@@ -21,26 +21,30 @@
 #define DBBINDERMYSQLGENERATOR_H
 
 #include "abstractgenerator.h"
+#include <mysql/mysql.h>
 
-namespace DBBinder {
+namespace DBBinder
+{
 
-/**
-	@author 
-*/
 class MySQLGenerator : public AbstractGenerator
 {
-	public:
+	friend class AbstractGenerator; //wtf??
+	
+	protected:
 		MySQLGenerator();
 		virtual ~MySQLGenerator();
 
+		MYSQL *m_conn;
+		
+		virtual bool checkConnection();
+		virtual String getBind(const ListElements::iterator& _item, int _index);
+		virtual String getReadValue(const ListElements::iterator& _item, int _index);
+		
+	public:
 		virtual void addInsert(InsertElements _elements);
 		virtual void addSelect(SelectElements _elements);
 		virtual void addUpdate(UpdateElements _elements);
 
-	protected:
-		virtual bool checkConnection();
-		virtual String getBind(const ListElements::iterator& _item, int _index);
-		virtual String getReadValue(const ListElements::iterator& _item, int _index);
 };
 
 }
