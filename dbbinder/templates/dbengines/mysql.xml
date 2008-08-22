@@ -1,0 +1,66 @@
+<xml>
+	<lang type="c++">
+		<includes>
+			<file name="mysql/mysql.h" />
+		</includes>
+		<extra_headers>
+			<define>
+				#define SQLCHECK( FN ) if( FN != SQLITE_OK ) { std::cerr &lt;&lt; __FILE__ &lt;&lt; __LINE__ &lt;&lt; " SQL error: " &lt;&lt; sqlite3_errmsg(m_conn) &lt;&lt; std::endl; assert(false); };
+			</define>
+		</extra_headers>
+		<types>
+			<connection>
+				<type value="sqlite3*"/>
+				<null value="0"/>
+			</connection>
+			<statement>
+				<type value="sqlite3_stmt*"/>
+				<null value="0"/>
+			</statement>
+		</types>
+		<connect>
+			SQLCHECK( sqlite3_open(s_dbparam_file, &amp;m_conn) );
+		</connect>
+		<disconnect>
+			sqlite3_close( m_conn );
+		</disconnect>
+		<select>
+			<create>
+			</create>
+			<destroy>
+				sqlite3_finalize( m_selectStmt );
+			</destroy>
+			<prepare>
+				{
+					const char *tail;
+					SQLCHECK( sqlite3_prepare(m_conn, s_selectSQL, s_selectSQL_len, &amp;m_selectStmt,  &amp;tail ));
+				}
+			</prepare>
+			<fetch>
+				int ret = sqlite3_step( m_selectStmt );
+				switch ( ret )
+				{
+					case SQLITE_ROW:
+					{
+						m_currentRow.reset( new _row_type( m_selectStmt ));
+						return true;
+					}
+					case SQLITE_DONE:
+					{
+						m_currentRow.reset();
+						return false;
+					}
+					default:
+					{
+						m_currentRow.reset();
+						std::cerr &lt;&lt; "SQL error: " &lt;&lt; sqlite3_errmsg(m_conn) &lt;&lt; std::endl;
+						return false;
+					}
+				}
+			</fetch>
+			<reset>
+				SQLCHECK( sqlite3_reset(m_selectStmt));
+			</reset>
+		</select>
+	</lang>
+</xml>
