@@ -40,8 +40,8 @@ SQLTypes typeNameToSQLType(String _name);
 	
 struct SQLElement
 {
-	SQLElement( const String& _name, SQLTypes _type, int _index = -1 ):
-			name( _name ), type( _type ), index( _index ), length(0)
+	SQLElement( const String& _name, SQLTypes _type, int _index = -1, int _length = 0 ):
+			name( _name ), type( _type ), index( _index ), length( _length )
 	{}
 	SQLElement( const String& _name, SQLTypes _type, int _index, const String& _default ):
 			name( _name ), type( _type ), index( _index ), length(0), defaultValue( _default )

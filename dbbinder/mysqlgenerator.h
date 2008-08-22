@@ -39,6 +39,11 @@ class MySQLGenerator : public AbstractGenerator
 		virtual bool checkConnection();
 		virtual String getBind(const ListElements::iterator& _item, int _index);
 		virtual String getReadValue(const ListElements::iterator& _item, int _index);
+
+		virtual bool   needIOBuffers() const;
+		
+		virtual String getSelInBuffers(const SelectElements* _select);
+		virtual String getSelOutBuffers(const SelectElements* _select);
 		
 	public:
 		virtual void addInsert(InsertElements _elements);
