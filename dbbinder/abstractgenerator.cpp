@@ -48,6 +48,8 @@ const char * const tpl_DBENGINE_CONNECTION_NULL = "DBENGINE_CONNECTION_NULL";
 const char * const tpl_SELECT = "SELECT";
 const char * const tpl_SELECT_SQL = "SELECT_SQL";
 const char * const tpl_SELECT_SQL_LEN = "SELECT_SQL_LEN";
+const char * const tpl_SELECT_FIELD_COUNT = "SELECT_FIELD_COUNT";
+const char * const tpl_SELECT_PARAM_COUNT = "SELECT_PARAM_COUNT";
 
 const char * const tpl_SEL_IN_FIELDS = "SEL_IN_FIELDS";
 const char * const tpl_SEL_IN_FIELD_TYPE = "SEL_IN_FIELD_TYPE";
@@ -55,6 +57,8 @@ const char * const tpl_SEL_IN_FIELD_NAME = "SEL_IN_FIELD_NAME";
 const char * const tpl_SEL_IN_FIELD_COMMA = "SEL_IN_FIELD_COMMA";
 const char * const tpl_SEL_IN_FIELD_INIT = "SEL_IN_FIELD_INIT";
 const char * const tpl_SEL_IN_FIELD_BIND = "SEL_IN_FIELD_BIND";
+const char * const tpl_SEL_IN_FIELDS_BUFFERS = "SEL_IN_FIELDS_BUFFERS";
+const char * const tpl_SEL_IN_FIELDS_BUFFER = "tpl_SEL_IN_FIELDS_BUFFER";
 
 const char * const tpl_SEL_OUT_FIELDS = "SEL_OUT_FIELDS";
 const char * const tpl_SEL_OUT_FIELD_TYPE = "SEL_OUT_FIELD_TYPE";
@@ -62,6 +66,8 @@ const char * const tpl_SEL_OUT_FIELD_NAME = "SEL_OUT_FIELD_NAME";
 const char * const tpl_SEL_OUT_FIELD_COMMA = "SEL_OUT_FIELD_COMMA";
 const char * const tpl_SEL_OUT_FIELD_INIT = "SEL_OUT_FIELD_INIT";
 const char * const tpl_SEL_OUT_FIELD_GETVALUE = "SEL_OUT_FIELD_GETVALUE";
+const char * const tpl_SEL_OUT_FIELDS_BUFFERS = "SEL_OUT_FIELDS_BUFFERS";
+const char * const tpl_SEL_OUT_FIELDS_BUFFER = "tpl_SEL_OUT_FIELDS_BUFFER";
 
 
 const char * const tpl_DBENGINE_STATEMENT_TYPE = "DBENGINE_STATEMENT_TYPE";
@@ -669,7 +675,9 @@ void AbstractGenerator::loadDictionary()
 			str = String("\"") + cescape(it->second->select.sql) + String("\"");
 			classDict->SetValue( tpl_SELECT_SQL, str );
 			classDict->SetIntValue( tpl_SELECT_SQL_LEN, it->second->select.sql.length() );
-
+			classDict->SetIntValue( tpl_SELECT_PARAM_COUNT, it->second->select.input.size() );
+			classDict->SetIntValue( tpl_SELECT_FIELD_COUNT, it->second->select.output.size() );
+			
 			int index = 0;
 			subDict = 0;
 			ListElements::iterator elit;
@@ -698,6 +706,17 @@ void AbstractGenerator::loadDictionary()
 			}
 			if ( subDict )
 				subDict->SetValue( tpl_SEL_OUT_FIELD_COMMA, "" );
+
+			if ( needIOBuffers() )
+			{
+				String str = getSelInBuffers( &it->second->select );
+				if ( !str.empty() )
+					m_dict->SetValueAndShowSection(tpl_SEL_IN_FIELDS_BUFFER, str, tpl_SEL_IN_FIELDS_BUFFERS);
+
+				str = getSelOutBuffers( &it->second->select );
+				if ( !str.empty() )
+					m_dict->SetValueAndShowSection(tpl_SEL_OUT_FIELDS_BUFFER, str, tpl_SEL_OUT_FIELDS_BUFFERS);
+			}
 		}
 
 		// ----- UPDATE -----
@@ -722,5 +741,19 @@ void AbstractGenerator::loadDictionary()
 	}
 }
 
+bool AbstractGenerator::needIOBuffers() const
+{
+	return false;
 }
 
+String AbstractGenerator::getSelInBuffers(const SelectElements* _select)
+{
+	return "";
+}
+
+String AbstractGenerator::getSelOutBuffers(const SelectElements* _select)
+{
+	return "";
+}
+
+}

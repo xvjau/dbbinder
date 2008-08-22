@@ -125,6 +125,11 @@ class AbstractGenerator
 		virtual bool loadXMLTemplate(const String& _path);
 		virtual bool loadYAMLTemplate(const String& _path);
 
+		virtual bool needIOBuffers() const;
+		
+		virtual String getSelInBuffers(const SelectElements* _select);
+		virtual String getSelOutBuffers(const SelectElements* _select);
+		
 		virtual String getBind(const ListElements::iterator& _item, int _index) = 0;
 		virtual String getReadValue(const ListElements::iterator& _item, int _index) = 0;
 	public:
