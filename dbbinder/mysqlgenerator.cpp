@@ -99,10 +99,12 @@ bool MySQLGenerator::checkConnection()
 
 String MySQLGenerator::getBind(const ListElements::iterator& _item, int _index)
 {
+	return String("m_param") + _item->name + " = _" + _item->name + ";";
 }
 
 String MySQLGenerator::getReadValue(const ListElements::iterator& _item, int _index)
 {
+	return String("m_buff") + _item->name + ";";
 }
 
 void MySQLGenerator::addInsert(InsertElements _elements)
@@ -191,75 +193,112 @@ bool MySQLGenerator::needIOBuffers() const
 	return true;
 }
 
-String MySQLGenerator::getSelInBuffers(const SelectElements* _select)
+void getMySQLTypes(SQLTypes _type, String& _lang, String& _mysql)
 {
-	String result;
+	switch( _type )
+	{
+		case stUnknown:
+			FATAL("BUG BUG BUG! " << __FILE__ << __LINE__);
+			
+		case stInt:
+			_lang = "int";
+			_mysql = "MYSQL_TYPE_LONG";
+			break;
+			
+		case stFloat:
+			_lang = "float";
+			_mysql = "MYSQL_TYPE_FLOAT";
+			break;
+			
+		case stDouble:
+			_lang = "double";
+			_mysql = "MYSQL_TYPE_DOUBLE";
+			break;
+			
+		case stTimeStamp:
+			_lang = "MYSQL_TIME";
+			_mysql = "MYSQL_TYPE_TIMESTAMP";
+			break;
 
-	return result;
+		case stTime:
+			_lang = "MYSQL_TIME";
+			_mysql = "MYSQL_TYPE_TIME";
+			break;
+
+		case stDate:
+			_lang = "MYSQL_TIME";
+			_mysql = "MYSQL_TYPE_DATE";
+			break;
+			
+		case stText:
+		default:
+		{
+			_lang = "char";
+			_mysql = "MYSQL_TYPE_STRING";
+			break;
+		}
+	}
+
 }
 
-String MySQLGenerator::getSelOutBuffers(const SelectElements* _select)
+String MySQLGenerator::getSelInBuffers(const SelectElements* _select)
 {
 	std::stringstream result;
-	 result << "MYSQL_BIND selOutBuffer[s_selectFieldCount];\n";
+	result << "MYSQL_BIND selInBuffer[s_selectParamCount];\n";
 
 	String langType, myType;
 	int index = 0;
 	foreach(SQLElement field, _select->input)
 	{
-		switch( field.type )
-		{
-			case stUnknown:
-				FATAL("BUG BUG BUG! " << __FILE__ << __LINE__);
-				
-			case stInt:
-				langType = "int";
-				myType = "MYSQL_TYPE_LONG";
-				break;
-				
-			case stFloat:
-				langType = "float";
-				myType = "MYSQL_TYPE_FLOAT";
-				break;
-				
-			case stDouble:
-				langType = "double";
-				myType = "MYSQL_TYPE_DOUBLE";
-				break;
-				
-			case stTimeStamp:
-				langType = "MYSQL_TIME";
-				myType = "MYSQL_TYPE_TIMESTAMP";
-				break;
-
-			case stTime:
-				langType = "MYSQL_TIME";
-				myType = "MYSQL_TYPE_TIME";
-				break;
-
-			case stDate:
-				langType = "MYSQL_TIME";
-				myType = "MYSQL_TYPE_DATE";
-				break;
-				
-			case stText:
-			default:
-			{
-				langType = "char";
-				myType = "MYSQL_TYPE_STRING";
-				break;
-			}
-		}
-
+		getMySQLTypes( field.type, langType, myType );
+		
 		if ( field.type != stText )
-			result << langType << " m_buff" << field.name << ";\n";
+			result << langType << " m_param" << field.name << ";\n";
 		else
-			result << langType << " m_buff" << field.name << "[" << field.length + 1 << "];\n";
+			result << langType << " m_param" << field.name << "[" << field.length + 1 << "];\n";
+
+		result << "unsigned int m_param" << field.name << "Length;\n";
+		
+		result << "selInBuffer[" << index << "].buffer_type = " << myType << ";\n"
+				<< "selInBuffer[" << index << "].buffer = (char *)&m_param" << field.name << ";\n"
+				<< "selInBuffer[" << index << "].is_null = 0;\n"
+				<< "selInBuffer[" << index << "].length = &m_param" << field.length << "Length;\n";
+		++index;
+	}
+	
+	return result.str();
+}
+
+String MySQLGenerator::getSelOutBuffers(const SelectElements* _select)
+{
+	std::stringstream result;
+	result << "MYSQL_BIND selOutBuffer[s_selectFieldCount];\n";
+
+	String langType, myType;
+	int index = 0;
+	foreach(SQLElement field, _select->output)
+	{
+		getMySQLTypes( field.type, langType, myType );
+		
+		result << "MY_BOOL	m_" << field.name << "IsNull;\n"
+				<< "unsigned int m_" << field.name << "Length;\n";
+				
+		if ( field.type != stText )
+		{
+			result << langType << " m_buff" << field.name << ";\n"
+					<< "selOutBuffer[" << index << "].buffer_length = sizeof(" << langType << ");\n";
+		}
+		else
+		{
+			result << langType << " m_buff" << field.name << "[" << field.length + 1 << "];\n"
+					<< "selOutBuffer[" << index << "].buffer_length = " << field.length << ";\n";
+		}
 
 		result << "selOutBuffer[" << index << "].buffer_type = " << myType << ";\n"
 				<< "selOutBuffer[" << index << "].buffer = (char *)&m_buff" << field.name << ";\n"
-				<< "selOutBuffer[" << index << "].is_null = 0;\n"
-				<< "selOutBuffer[" << index << "].length = " << field.length << ";\n";
+				<< "selOutBuffer[" << index << "].is_null = &m_" << field.name << "IsNull;\n"
+				<< "selOutBuffer[" << index << "].length = &m_" << field.name << "Length;\n";
+				
 		++index;
 	}
 	
