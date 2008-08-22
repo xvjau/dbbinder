@@ -9,7 +9,7 @@ LIBS          = -lsqlite3
 SQLITE        = sqlite3
 
 test.db: test.sql
-	$(SQLITE) -init test.sql test.db
+	$(SQLITE) -init test.sql test.db ".quit"
 
 test.o: test.xml test.db
 	../dbbinder -i test.xml -d ../templates
@@ -20,3 +20,6 @@ main.o: main.cpp test.o
 
 testapp: main.o test.o
 	$(LINK) $(LFLAGS) -o testapp main.o test.o $(LIBS)
+
+clean:
+	rm main.o test.o test.db test.h test.cpp testapp

@@ -1,7 +1,11 @@
 <xml>
 	<database>
-		<type>SQLite3</type>
-		<file>test.db</file>
+		<type>MySQL</type>
+		<host>127.0.0.1</host>
+		<db>grossi</db>
+		<user>grossi</user>
+		<password>grossi</password>
+		<port>grossi</port>
 	</database>
 	
 	<select name="selFestival">
@@ -10,19 +14,19 @@
 		
 		<sql>
 			select
-				U."NAME" as "Name",
-				F."TITLE" as "Festival",
-				F."DATE" as "Date"
+				U.NAME as Name,
+				F.TITLE as Festival,
+				F.DATE 
 			from
-				"USERS" U join "USERS_FESTIVALS" UF on
-					U."IDUSER" = UF."IDUSER"
-				join "FESTIVALS" F on
-					UF."IDFESTIVAL" = F."IDFESTIVAL"
+				USERS U join USERS_FESTIVALS UF on
+					U.IDUSER = UF.IDUSER
+				join FESTIVALS F on
+					UF.IDFESTIVAL = F.IDFESTIVAL
 			where 
-				U."IDUSER" = ? and
-				F."DATE" > ?
+				U.IDUSER = ? and
+				F.DATE > ?
 			order by
-				F."DATE"
+				F.DATE
 		</sql>
 	</select>
 	<extra>
