@@ -47,12 +47,21 @@ class {{CLASSNAME}}
 	private:
 		static const char* const s_selectSQL;
 		static const int s_selectSQL_len;
+		static const int s_selectFieldCount;
+		static const int s_selectParamCount;
 
 		{{DBENGINE_STATEMENT_TYPE}} m_selectStmt;
 		bool						m_selectIsActive;
 
 		bool fetchRow();
 
+		{{#SEL_IN_FIELDS_BUFFERS}}
+		{{SEL_IN_FIELDS_BUFFER}}
+		{{/SEL_IN_FIELDS_BUFFERS}}
+		
+		{{#SEL_OUT_FIELDS_BUFFERS}}
+		{{SEL_OUT_FIELDS_BUFFER}}
+		{{/SEL_OUT_FIELDS_BUFFERS}}
 	public:
 		void open(
 			{{#SEL_IN_FIELDS}}{{SEL_IN_FIELD_TYPE}} _{{SEL_IN_FIELD_NAME}}{{SEL_IN_FIELD_COMMA}}
