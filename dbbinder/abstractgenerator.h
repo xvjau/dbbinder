@@ -41,15 +41,16 @@ SQLTypes typeNameToSQLType(String _name);
 struct SQLElement
 {
 	SQLElement( const String& _name, SQLTypes _type, int _index = -1 ):
-			name( _name ), type( _type ), index( _index )
+			name( _name ), type( _type ), index( _index ), length(0)
 	{}
 	SQLElement( const String& _name, SQLTypes _type, int _index, const String& _default ):
-			name( _name ), type( _type ), index( _index ), defaultValue( _default )
+			name( _name ), type( _type ), index( _index ), length(0), defaultValue( _default )
 	{}
 
 	String		name;
 	SQLTypes	type;
 	int			index;
+	int			length;
 	String		defaultValue;
 };
 typedef std::list<SQLElement> ListElements;
