@@ -43,7 +43,7 @@ bool SQLiteGenerator::checkConnection()
 {
 	if ( !m_connected )
 	{
-		String dbName = m_dbParams["file"];
+		String dbName = m_dbParams["file"].value;
 		if ( dbName.empty() )
 			FATAL( "SQLite3: 'file' db parameter is empty." );
 		

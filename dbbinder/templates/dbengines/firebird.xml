@@ -1,7 +1,7 @@
 <xml>
 	<lang type="c++">
 		<includes>
-			<file name="sqlite3.h" />
+			<file name="ibase.h" />
 		</includes>
 		<extra_headers>
 			<define>

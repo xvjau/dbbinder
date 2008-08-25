@@ -1,7 +1,7 @@
 <xml>
 	<lang type="c++">
 		<includes>
-			<file name="sqlite3.h" />
+			<file name="oci.h" />
 		</includes>
 		<extra_headers>
 			<define>

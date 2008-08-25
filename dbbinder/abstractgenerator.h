@@ -78,7 +78,30 @@ class AbstractGenerator
 		AbstractGenerator();
 		virtual ~AbstractGenerator();
 
-		typedef std::map<String, String> _dbParams;
+		struct dbParam
+		{
+			dbParam():
+				isInt( false )
+			{}
+			
+			dbParam( const String& _value ):
+				isInt( false )
+			{
+				value = _value;
+			}
+
+			dbParam( int _value ):
+				isInt( true )
+			{
+				std::stringstream str;
+				str << _value;
+				value = str.str();
+			}
+
+			String	value;
+			bool	isInt;
+		};
+		typedef std::map<String, dbParam> _dbParams;
 
 		_dbParams	m_dbParams;
 
@@ -137,6 +160,11 @@ class AbstractGenerator
 		static AbstractGenerator* getGenerator(const String& _type);
 
 		void setDBParam(const String& _key, const String& _value)
+		{
+			m_dbParams[_key] = _value;
+		}
+
+		void setDBParam(const String& _key, const int _value)
 		{
 			m_dbParams[_key] = _value;
 		}

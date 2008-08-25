@@ -71,9 +71,9 @@ bool OracleGenerator::checkConnection()
 {
 	if ( !m_connected )
 	{
-		String dbName = m_dbParams["db"];
-		String user = m_dbParams["user"];
-		String pass = m_dbParams["password"];
+		String dbName = m_dbParams["db"].value;
+		String user = m_dbParams["user"].value;
+		String pass = m_dbParams["password"].value;
 		
 		/* Initialize OCI */
 		OCIInitialize ( OCI_DEFAULT, (dvoid*)0,

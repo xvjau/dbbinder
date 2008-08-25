@@ -374,12 +374,19 @@ void AbstractGenerator::loadDatabase()
 	for(it = m_dbParams.begin(); it != m_dbParams.end(); ++it)
 	{
 		subDict = m_dict->AddSectionDictionary(tpl_DBENGINE_GLOBAL_PARAMS);
-		
-		// TODO Abstract this
-		subDict->SetValue(tpl_TYPE, "const char * const");
 
 		subDict->SetValue(tpl_PARAM, it->first);
-		subDict->SetValue(tpl_VALUE, String("\"") + cescape(it->second) + String("\""));
+
+		if ( it->second.isInt )
+		{
+			subDict->SetValue(tpl_VALUE, it->second.value);
+			subDict->SetValue(tpl_TYPE, "const int");
+		}
+		else
+		{
+			subDict->SetValue(tpl_VALUE, String("\"") + cescape(it->second.value) + String("\""));
+			subDict->SetValue(tpl_TYPE, "const char * const");
+		}
 	}
 	
 	String str;

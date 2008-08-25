@@ -1,11 +1,11 @@
 <xml>
 	<database>
 		<type>MySQL</type>
-		<host>127.0.0.1</host>
+		<host>10.10.10.24</host>
 		<db>grossi</db>
 		<user>grossi</user>
 		<password>grossi</password>
-		<port>grossi</port>
+		<port type="int">3306</port>
 	</database>
 	
 	<select name="selFestival">

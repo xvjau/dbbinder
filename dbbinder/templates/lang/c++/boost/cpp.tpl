@@ -12,6 +12,10 @@
 {{#DBENGINE_GLOBAL_PARAMS}}static {{TYPE}} s_dbparam_{{PARAM}} = {{VALUE}};
 {{/DBENGINE_GLOBAL_PARAMS}}
 
+{{#DBENGINE_GLOBAL_FUNCTIONS}}
+{{FUNCTION}}
+{{/DBENGINE_GLOBAL_FUNCTIONS}}
+
 {{#CLASS}}
 {{#SELECT}}
 const char * const {{CLASSNAME}}::s_selectSQL = {{SELECT_SQL}};

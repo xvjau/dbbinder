@@ -73,7 +73,7 @@ bool MySQLGenerator::checkConnection()
     if ( !m_connected )
 	{
 #define READ_PARAM(NAME) \
-		String NAME = m_dbParams[# NAME]; \
+		String NAME = m_dbParams[# NAME].value; \
 		if ( NAME.empty() ) \
 			FATAL( "MySQL: '" # NAME "' db parameter is empty." );
 		

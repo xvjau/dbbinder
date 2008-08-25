@@ -111,7 +111,16 @@ void parseXML()
 		while( node = db->IterateChildren( node ))
 		{
 			elem = node->ToElement();
-			generator->setDBParam( elem->Value(), elem->GetText() );
+
+			String str;
+			elem->GetAttribute( "type", &str, false );
+
+			if ( stringToLower(str) == "int" )
+			{
+				generator->setDBParam( elem->Value(), atoi( elem->GetText().c_str() ));
+			}
+			else
+				generator->setDBParam( elem->Value(), elem->GetText() );
 		}
 
 		node = 0;

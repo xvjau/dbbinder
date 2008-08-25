@@ -2,7 +2,7 @@ default_target: testapp
 
 CXX           = g++
 LINK          = g++
-CFLAGS        = -pipe -Wall -W
+CFLAGS        = -pipe
 INCPATH       = -I/usr/include -I/usr/local/include
 LFLAGS        = 
 LIBS          = -lsqlite3
