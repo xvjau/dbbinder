@@ -13,26 +13,26 @@
 						switch( _status )
 						{
 							case CR_COMMANDS_OUT_OF_SYNC:
-								FATAL( "Commands were executed in an improper order." );
+								ASSERT_MSG( false, "Commands were executed in an improper order." );
 								break;
 							case CR_OUT_OF_MEMORY:
-								FATAL( "Out of memory." );
+								ASSERT_MSG( false, "Out of memory." );
 								break;
 							case CR_SERVER_GONE_ERROR:
-								FATAL( "The MySQL server has gone away." );
+								ASSERT_MSG( false, "The MySQL server has gone away." );
 								break;
 							case CR_SERVER_LOST:
-								FATAL( "The m_connection to the server was lost during the query." );
+								ASSERT_MSG( false, "The m_connection to the server was lost during the query." );
 								break;
 							case CR_UNKNOWN_ERROR:
-								FATAL( "An unknown error occurred." );
+								ASSERT_MSG( false, "An unknown error occurred." );
 								break;
 							case CR_UNSUPPORTED_PARAM_TYPE:
-								FATAL( "The buffer type is MYSQL_TYPE_DATE, MYSQL_TYPE_TIME, MYSQL_TYPE_DATETIME, or MYSQL_TYPE_TIMESTAMP, but the data type is not DATE, TIME, DATETIME, or TIMESTAMP." );
+								ASSERT_MSG( false, "The buffer type is MYSQL_TYPE_DATE, MYSQL_TYPE_TIME, MYSQL_TYPE_DATETIME, or MYSQL_TYPE_TIMESTAMP, but the data type is not DATE, TIME, DATETIME, or TIMESTAMP." );
 								break;
 						}
 						
-						FATAL( "MySQL: " &lt;&lt; mysql_stmt_error(_stmt) );
+						ASSERT_MSG( false, "MySQL: " &lt;&lt; mysql_stmt_error(_stmt) );
 						exit(-1);
 					}
 				}
@@ -57,19 +57,36 @@
 		</disconnect>
 		<select>
 			<create>
+				MYSQL_STMT *m_selectStmt = mysql_stmt_init( m_conn );
 			</create>
 			<destroy>
-				mysql_free_result(meta);
 				mysql_stmt_close(m_selectStmt);
 			</destroy>
 			<prepare>
-				
+				mysqlCheckStmtErr( m_selectStmt, mysql_stmt_prepare(m_selectStmt, s_selectSQL, s_selectSQL_len) );
 			</prepare>
 			<fetch>
+				int ret = mysql_stmt_fetch(m_selectStmt);
 				
+				switch( ret )
+				{
+					case 0:
+						m_currentRow.reset( new _row_type( this ));
+						break;
+					case MYSQL_NO_DATA:
+						m_currentRow.reset();
+						break;
+					default:
+						mysqlCheckStmtErr( m_selectStmt, ret );
+						break;
+				}
 			</fetch>
-			<reset>
-			</reset>
+			<execute>
+				mysqlCheckStmtErr( m_selectStmt, mysql_stmt_bind_param(m_selectStmt, selOutBuffer) );
+				mysqlCheckStmtErr( m_selectStmt, mysql_stmt_execute(m_selectStmt));
+				mysqlCheckStmtErr( m_selectStmt, mysql_stmt_bind_result(m_selectStmt, selInBuffer));
+				fetchRow();
+			</execute>
 		</select>
 	</lang>
 </xml>

@@ -11,11 +11,11 @@
 #include <iostream>
 
 #ifdef DEBUG
-#define ASSERT(cond) { assert(cond);}
-#define ASSERT_MSG(cond, msg) { if (!(cond)) { std::cerr << __FILE__ << "." << __LINE__ << " WARNING: " << msg << std::endl; assert(cond);} }
+#define ASSERT(cond) { assert(cond); }
+#define ASSERT_MSG(cond, msg) { if (!(cond)) { std::cerr << __FILE__ << "." << __LINE__ << " WARNING: " << msg << std::endl; assert(cond); }}
 #else
 #define ASSERT(cond)
-#define ASSERT_MSG(cond, msg) { if (!(cond)) { std::cerr << __FILE__ << "." << __LINE__ << " WARNING: " << msg << std::endl; } }
+#define ASSERT_MSG(cond, msg) { if (!(cond)) { std::cerr << " WARNING: " << msg << std::endl; }}
 #endif
 
 {{#DBENGINE_INCLUDES}}
@@ -56,11 +56,11 @@ class {{CLASSNAME}}
 		bool fetchRow();
 
 		{{#SEL_IN_FIELDS_BUFFERS}}
-		{{SEL_IN_FIELDS_BUFFERS}}
+		{{BUFFER_DECLARE}}
 		{{/SEL_IN_FIELDS_BUFFERS}}
 		
 		{{#SEL_OUT_FIELDS_BUFFERS}}
-		{{SEL_OUT_FIELDS_BUFFER}}
+		{{BUFFER_DECLARE}}
 		{{/SEL_OUT_FIELDS_BUFFERS}}
 	public:
 		void open(

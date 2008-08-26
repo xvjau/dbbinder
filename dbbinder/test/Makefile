@@ -5,7 +5,7 @@ LINK          = g++
 CFLAGS        = -pipe
 INCPATH       = -I/usr/include -I/usr/local/include
 LFLAGS        = 
-LIBS          = -lsqlite3
+LIBS          = -lsqlite3 -lmysqlclient
 SQLITE        = sqlite3
 
 test.db: test.sql

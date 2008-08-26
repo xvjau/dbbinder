@@ -241,69 +241,89 @@ void getMySQLTypes(SQLTypes _type, String& _lang, String& _mysql)
 
 }
 
-String MySQLGenerator::getSelInBuffers(const SelectElements* _select)
+void MySQLGenerator::addSelInBuffers(const SelectElements* _select)
 {
-	std::stringstream result;
-	result << "MYSQL_BIND selInBuffer[s_selectParamCount];\n";
-
 	String langType, myType;
 	int index = 0;
+	google::TemplateDictionary *subDict;
+	
 	foreach(SQLElement field, _select->input)
 	{
+		std::stringstream decl, init;
+		
 		getMySQLTypes( field.type, langType, myType );
+
+		if ( index == 0 )
+		{
+			decl << "MYSQL_BIND selInBuffer[" << _select->input.size() << "];\n\n";
+			init << "memset(selInBuffer, 0, sizeof(selInBuffer));\n\n";
+		}
 		
 		if ( field.type != stText )
-			result << langType << " m_param" << field.name << ";\n";
+			decl << langType << " m_param" << field.name << ";\n";
 		else
-			result << langType << " m_param" << field.name << "[" << field.length + 1 << "];\n";
+			decl << langType << " m_param" << field.name << "[" << field.length + 1 << "];\n";
 
-		result << "unsigned int m_param" << field.name << "Length;\n";
+		decl << "long unsigned m_param" << field.name << "Length;\n";
 		
-		result << "selInBuffer[" << index << "].buffer_type = " << myType << ";\n"
-				<< "selInBuffer[" << index << "].buffer = (char *)&m_param" << field.name << ";\n"
+		init << "selInBuffer[" << index << "].buffer_type = " << myType << ";\n"
+				<< "selInBuffer[" << index << "].buffer = reinterpret_cast<void *>(&m_param" << field.name << ");\n"
 				<< "selInBuffer[" << index << "].is_null = 0;\n"
-				<< "selInBuffer[" << index << "].length = &m_param" << field.length << "Length;\n"
+				<< "selInBuffer[" << index << "].length = &m_param" << field.name << "Length;\n"
 				<< "\n";
+
+		subDict = m_dict->AddSectionDictionary(tpl_SEL_IN_FIELDS_BUFFERS);
+		subDict->SetValue(tpl_BUFFER_DECLARE, decl.str() );
+		subDict->SetValue(tpl_BUFFER_INITIALIZE, init.str() );
+
 		++index;
 	}
-	
-	return result.str();
 }
 
-String MySQLGenerator::getSelOutBuffers(const SelectElements* _select)
+void MySQLGenerator::addSelOutBuffers(const SelectElements* _select)
 {
-	std::stringstream result;
-	result << "MYSQL_BIND selOutBuffer[s_selectFieldCount];\n";
-
 	String langType, myType;
 	int index = 0;
+	google::TemplateDictionary *subDict;
+	
 	foreach(SQLElement field, _select->output)
 	{
-		getMySQLTypes( field.type, langType, myType );
+		std::stringstream init, decl;
 		
-		result << "MY_BOOL	m_" << field.name << "IsNull;\n"
-				<< "unsigned int m_" << field.name << "Length;\n";
+		getMySQLTypes( field.type, langType, myType );
+
+		if ( index == 0 )
+		{
+			decl << "MYSQL_BIND selOutBuffer[" << _select->output.size() << "];\n\n";
+			init << "memset(selOutBuffer, 0, sizeof(selOutBuffer));\n\n";
+		}
+		
+		decl << "my_bool	m_" << field.name << "IsNull;\n"
+				<< "long unsigned m_" << field.name << "Length;\n";
 				
 		if ( field.type != stText )
 		{
-			result << langType << " m_buff" << field.name << ";\n"
-					<< "selOutBuffer[" << index << "].buffer_length = sizeof(" << langType << ");\n";
+			decl << langType << " m_buff" << field.name << ";\n";
+			init << "selOutBuffer[" << index << "].buffer_length = sizeof(" << langType << ");\n";
 		}
 		else
 		{
-			result << langType << " m_buff" << field.name << "[" << field.length + 1 << "];\n"
-					<< "selOutBuffer[" << index << "].buffer_length = " << field.length << ";\n";
+			decl << langType << " m_buff" << field.name << "[" << field.length + 1 << "];\n";
+			init << "selOutBuffer[" << index << "].buffer_length = " << field.length << ";\n";
 		}
 
-		result << "selOutBuffer[" << index << "].buffer_type = " << myType << ";\n"
-				<< "selOutBuffer[" << index << "].buffer = (char *)&m_buff" << field.name << ";\n"
+		init << "selOutBuffer[" << index << "].buffer_type = " << myType << ";\n"
+				<< "selOutBuffer[" << index << "].buffer = reinterpret_cast<void *>(&m_buff" << field.name << ");\n"
 				<< "selOutBuffer[" << index << "].is_null = &m_" << field.name << "IsNull;\n"
-				<< "selOutBuffer[" << index << "].length = &m_" << field.name << "Length;\n";
-				
+				<< "selOutBuffer[" << index << "].length = &m_" << field.name << "Length;\n"
+				<< "\n";
+
+		subDict = m_dict->AddSectionDictionary(tpl_SEL_OUT_FIELDS_BUFFERS);
+		subDict->SetValue(tpl_BUFFER_DECLARE, decl.str() );
+		subDict->SetValue(tpl_BUFFER_INITIALIZE, init.str() );
+		
 		++index;
 	}
-	
-	return result.str();
 }
 
 }

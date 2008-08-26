@@ -60,7 +60,9 @@ const char * const tpl_SEL_IN_FIELD_COMMA = "SEL_IN_FIELD_COMMA";
 const char * const tpl_SEL_IN_FIELD_INIT = "SEL_IN_FIELD_INIT";
 const char * const tpl_SEL_IN_FIELD_BIND = "SEL_IN_FIELD_BIND";
 const char * const tpl_SEL_IN_FIELDS_BUFFERS = "SEL_IN_FIELDS_BUFFERS";
-const char * const tpl_SEL_IN_FIELDS_BUFFER = "SEL_IN_FIELDS_BUFFER";
+
+const char * const tpl_BUFFER_DECLARE = "BUFFER_DECLARE";
+const char * const tpl_BUFFER_INITIALIZE = "BUFFER_INITIALIZE";
 
 const char * const tpl_SEL_OUT_FIELDS = "SEL_OUT_FIELDS";
 const char * const tpl_SEL_OUT_FIELD_TYPE = "SEL_OUT_FIELD_TYPE";
@@ -69,8 +71,6 @@ const char * const tpl_SEL_OUT_FIELD_COMMA = "SEL_OUT_FIELD_COMMA";
 const char * const tpl_SEL_OUT_FIELD_INIT = "SEL_OUT_FIELD_INIT";
 const char * const tpl_SEL_OUT_FIELD_GETVALUE = "SEL_OUT_FIELD_GETVALUE";
 const char * const tpl_SEL_OUT_FIELDS_BUFFERS = "SEL_OUT_FIELDS_BUFFERS";
-const char * const tpl_SEL_OUT_FIELDS_BUFFER = "SEL_OUT_FIELDS_BUFFER";
-
 
 const char * const tpl_DBENGINE_STATEMENT_TYPE = "DBENGINE_STATEMENT_TYPE";
 const char * const tpl_DBENGINE_STATEMENT_NULL = "DBENGINE_STATEMENT_NULL";
@@ -343,9 +343,7 @@ void AbstractGenerator::generate()
 	loadDictionary();
 	loadDatabase();
 
-	int i;
 	String str;
-
 	{
 		std::ofstream out( m_outIntFile.c_str(), std::ios_base::trunc );
 		m_templ[ftIntf]->Expand(&str, m_dict);
@@ -733,13 +731,8 @@ void AbstractGenerator::loadDictionary()
 
 			if ( needIOBuffers() )
 			{
-				String str = getSelInBuffers( &it->second->select );
-				if ( !str.empty() )
-					m_dict->SetValueAndShowSection(tpl_SEL_IN_FIELDS_BUFFER, str, tpl_SEL_IN_FIELDS_BUFFERS);
-
-				str = getSelOutBuffers( &it->second->select );
-				if ( !str.empty() )
-					m_dict->SetValueAndShowSection(tpl_SEL_OUT_FIELDS_BUFFER, str, tpl_SEL_OUT_FIELDS_BUFFERS);
+				addSelInBuffers( &it->second->select );
+				addSelOutBuffers( &it->second->select );
 			}
 		}
 
@@ -770,14 +763,12 @@ bool AbstractGenerator::needIOBuffers() const
 	return false;
 }
 
-String AbstractGenerator::getSelInBuffers(const SelectElements* _select)
+void AbstractGenerator::addSelInBuffers(const SelectElements* _select)
 {
-	return "";
 }
 
-String AbstractGenerator::getSelOutBuffers(const SelectElements* _select)
+void AbstractGenerator::addSelOutBuffers(const SelectElements* _select)
 {
-	return "";
 }
 
 }

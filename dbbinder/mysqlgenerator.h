@@ -42,8 +42,8 @@ class MySQLGenerator : public AbstractGenerator
 
 		virtual bool   needIOBuffers() const;
 		
-		virtual String getSelInBuffers(const SelectElements* _select);
-		virtual String getSelOutBuffers(const SelectElements* _select);
+		virtual void addSelInBuffers(const SelectElements* _select);
+		virtual void addSelOutBuffers(const SelectElements* _select);
 		
 	public:
 		virtual void addInsert(InsertElements _elements);
