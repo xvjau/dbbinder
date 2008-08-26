@@ -49,8 +49,9 @@
 			</statement>
 		</types>
 		<connect>
-				m_conn = mysql_init(0);
-				m_conn = mysql_real_connect(m_conn, s_dbparam_host, s_dbparam_user, s_dbparam_password, s_dbparam_db, s_dbparam_port, 0, CLIENT_COMPRESS);
+			m_conn = mysql_init(0);
+			m_conn = mysql_real_connect(m_conn, s_dbparam_host, s_dbparam_user, s_dbparam_password, s_dbparam_db, s_dbparam_port, 0, CLIENT_COMPRESS);
+			ASSERT_MSG( m_conn, "Unable to connect to:" &lt;&lt; s_dbparam_host );
 		</connect>
 		<disconnect>
 			mysql_close(m_conn);

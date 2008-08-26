@@ -350,7 +350,9 @@ void AbstractGenerator::generate()
 		out << str;
 		str.clear();
 	}
-	str = "astyle --style=ansi -n ";
+	
+	// TODO Put this in an XML
+	str = "astyle --style=ansi -n > /dev/null 2>&1";
 	str += m_outIntFile;
 	system( str.c_str() );
 	str.clear();
@@ -362,7 +364,8 @@ void AbstractGenerator::generate()
 		str.clear();
 	}
 
-	str = "astyle --style=ansi -n ";
+	// TODO Put this in an XML
+	str = "astyle --style=ansi -n > /dev/null 2>&1";
 	str += m_outImplFile;
 	system( str.c_str() );
 	str.clear();
