@@ -20,7 +20,7 @@
 #include "sqlitegenerator.h"
 
 #define SQLFATAL(STR) FATAL( "SQLite3: " << STR << sqlite3_errmsg(m_db) )
-#define SQLCHECK(STR) { if ( ret != SQLITE_OK ) FATAL( STR << sqlite3_errmsg(m_db) ) }
+#define SQLCHECK(STR) { if ( ret != SQLITE_OK ) FATAL( STR << sqlite3_errmsg(m_db) ); }
 
 namespace DBBinder
 {
@@ -191,7 +191,7 @@ String SQLiteGenerator::getReadValue(const ListElements::iterator & _item, int _
 			break;
 		}
 	}
-
+	
 	return str.str();
 }
 

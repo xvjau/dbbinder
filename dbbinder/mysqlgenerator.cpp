@@ -104,7 +104,7 @@ String MySQLGenerator::getBind(const ListElements::iterator& _item, int _index)
 
 String MySQLGenerator::getReadValue(const ListElements::iterator& _item, int _index)
 {
-	return String("m_buff") + _item->name + ";";
+	return String("m_") + _item->name + " = _parent->m_buff" + _item->name + ";";
 }
 
 void MySQLGenerator::addInsert(InsertElements _elements)
@@ -262,7 +262,8 @@ String MySQLGenerator::getSelInBuffers(const SelectElements* _select)
 		result << "selInBuffer[" << index << "].buffer_type = " << myType << ";\n"
 				<< "selInBuffer[" << index << "].buffer = (char *)&m_param" << field.name << ";\n"
 				<< "selInBuffer[" << index << "].is_null = 0;\n"
-				<< "selInBuffer[" << index << "].length = &m_param" << field.length << "Length;\n";
+				<< "selInBuffer[" << index << "].length = &m_param" << field.length << "Length;\n"
+				<< "\n";
 		++index;
 	}
 	

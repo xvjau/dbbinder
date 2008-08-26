@@ -56,7 +56,7 @@ class {{CLASSNAME}}
 		bool fetchRow();
 
 		{{#SEL_IN_FIELDS_BUFFERS}}
-		{{SEL_IN_FIELDS_BUFFER}}
+		{{SEL_IN_FIELDS_BUFFERS}}
 		{{/SEL_IN_FIELDS_BUFFERS}}
 		
 		{{#SEL_OUT_FIELDS_BUFFERS}}
@@ -78,7 +78,7 @@ class {{CLASSNAME}}
 				{{/SEL_OUT_FIELDS}}
 				{}
 
-				_row_type({{DBENGINE_STATEMENT_TYPE}} _stmt)
+				_row_type(const {{CLASSNAME}} *_parent)
 				{
 					{{#SEL_OUT_FIELDS}}{{SEL_OUT_FIELD_GETVALUE}}
 					{{/SEL_OUT_FIELDS}}

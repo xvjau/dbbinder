@@ -2,12 +2,42 @@
 	<lang type="c++">
 		<includes>
 			<file name="mysql/mysql.h" />
+			<file name="mysql/errmsg.h" />
 		</includes>
-		<extra_headers>
-			<define>
-				#define SQLCHECK( FN ) if( FN != SQLITE_OK ) { std::cerr &lt;&lt; __FILE__ &lt;&lt; __LINE__ &lt;&lt; " SQL error: " &lt;&lt; sqlite3_errmsg(m_conn) &lt;&lt; std::endl; assert(false); };
-			</define>
-		</extra_headers>
+		<global_functions>
+			<function>
+				void mysqlCheckStmtErr( MYSQL_STMT *_stmt, int _status )
+				{
+					if ( _status )
+					{
+						switch( _status )
+						{
+							case CR_COMMANDS_OUT_OF_SYNC:
+								FATAL( "Commands were executed in an improper order." );
+								break;
+							case CR_OUT_OF_MEMORY:
+								FATAL( "Out of memory." );
+								break;
+							case CR_SERVER_GONE_ERROR:
+								FATAL( "The MySQL server has gone away." );
+								break;
+							case CR_SERVER_LOST:
+								FATAL( "The m_connection to the server was lost during the query." );
+								break;
+							case CR_UNKNOWN_ERROR:
+								FATAL( "An unknown error occurred." );
+								break;
+							case CR_UNSUPPORTED_PARAM_TYPE:
+								FATAL( "The buffer type is MYSQL_TYPE_DATE, MYSQL_TYPE_TIME, MYSQL_TYPE_DATETIME, or MYSQL_TYPE_TIMESTAMP, but the data type is not DATE, TIME, DATETIME, or TIMESTAMP." );
+								break;
+						}
+						
+						FATAL( "MySQL: " &lt;&lt; mysql_stmt_error(_stmt) );
+						exit(-1);
+					}
+				}
+			</function>
+		</global_functions>
 		<types>
 			<connection>
 				<type value="MYSQL*"/>

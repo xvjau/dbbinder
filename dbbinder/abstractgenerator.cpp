@@ -35,6 +35,8 @@ const char * const tpl_DBENGINE_INCLUDES = "DBENGINE_INCLUDES";
 const char * const tpl_DBENGINE_INCLUDE_NAME = "DBENGINE_INCLUDE_NAME";
 const char * const tpl_EXTRA_HEADERS = "EXTRA_HEADERS";
 const char * const tpl_EXTRA_HEADERS_HEADER = "EXTRA_HEADERS_HEADER";
+const char * const tpl_DBENGINE_GLOBAL_FUNCTIONS = "DBENGINE_GLOBAL_FUNCTIONS";
+const char * const tpl_FUNCTION = "FUNCTION";
 
 const char * const tpl_NAMESPACES = "NAMESPACES";
 const char * const tpl_NAMESPACE = "NAMESPACE";
@@ -58,7 +60,7 @@ const char * const tpl_SEL_IN_FIELD_COMMA = "SEL_IN_FIELD_COMMA";
 const char * const tpl_SEL_IN_FIELD_INIT = "SEL_IN_FIELD_INIT";
 const char * const tpl_SEL_IN_FIELD_BIND = "SEL_IN_FIELD_BIND";
 const char * const tpl_SEL_IN_FIELDS_BUFFERS = "SEL_IN_FIELDS_BUFFERS";
-const char * const tpl_SEL_IN_FIELDS_BUFFER = "tpl_SEL_IN_FIELDS_BUFFER";
+const char * const tpl_SEL_IN_FIELDS_BUFFER = "SEL_IN_FIELDS_BUFFER";
 
 const char * const tpl_SEL_OUT_FIELDS = "SEL_OUT_FIELDS";
 const char * const tpl_SEL_OUT_FIELD_TYPE = "SEL_OUT_FIELD_TYPE";
@@ -67,7 +69,7 @@ const char * const tpl_SEL_OUT_FIELD_COMMA = "SEL_OUT_FIELD_COMMA";
 const char * const tpl_SEL_OUT_FIELD_INIT = "SEL_OUT_FIELD_INIT";
 const char * const tpl_SEL_OUT_FIELD_GETVALUE = "SEL_OUT_FIELD_GETVALUE";
 const char * const tpl_SEL_OUT_FIELDS_BUFFERS = "SEL_OUT_FIELDS_BUFFERS";
-const char * const tpl_SEL_OUT_FIELDS_BUFFER = "tpl_SEL_OUT_FIELDS_BUFFER";
+const char * const tpl_SEL_OUT_FIELDS_BUFFER = "SEL_OUT_FIELDS_BUFFER";
 
 
 const char * const tpl_DBENGINE_STATEMENT_TYPE = "DBENGINE_STATEMENT_TYPE";
@@ -340,7 +342,8 @@ void AbstractGenerator::generate()
 	loadTemplates();
 	loadDictionary();
 	loadDatabase();
-	
+
+	int i;
 	String str;
 
 	{
@@ -452,11 +455,11 @@ bool AbstractGenerator::loadXMLDatabase(const String& _path)
 					while( node = lang->IterateChildren( "includes", node ))
 					{
 						m_dict->ShowSection( tpl_DBENGINE_INCLUDES );
-						subDict = m_dict->AddSectionDictionary( tpl_DBENGINE_INCLUDES );
 						
 						subnode = 0;
 						while( subnode = node->IterateChildren( "file", subnode ))
 						{
+							subDict = m_dict->AddSectionDictionary( tpl_DBENGINE_INCLUDES );
 							elem = subnode->ToElement();
 
 							GET_TEXT_OR_ATTR( str, elem, "name" );
@@ -470,14 +473,28 @@ bool AbstractGenerator::loadXMLDatabase(const String& _path)
 					}
 
 					node = 0;
-					while( node = lang->IterateChildren( "extra_headers", node ))
+					while( node = lang->IterateChildren( "global_functions", node ))
 					{
 						m_dict->ShowSection( tpl_EXTRA_HEADERS );
+						
+						subnode = 0;
+						while( subnode = node->IterateChildren( "function", subnode ))
+						{
+							subDict = m_dict->AddSectionDictionary( tpl_DBENGINE_GLOBAL_FUNCTIONS );
+							elem = subnode->ToElement();
+							GET_TEXT_OR_ATTR_SET_TMPL( str, elem, "code", subDict, tpl_FUNCTION);
+						}
+					}
+
+					node = 0;
+					while( node = lang->IterateChildren( "extra_headers", node ))
+					{
 						subDict = m_dict->AddSectionDictionary( tpl_EXTRA_HEADERS );
 						
 						subnode = 0;
 						while( subnode = node->IterateChildren( "define", subnode ))
 						{
+							m_dict->ShowSection( tpl_EXTRA_HEADERS );
 							elem = subnode->ToElement();
 							GET_TEXT_OR_ATTR_SET_TMPL( str, elem, "code", subDict, tpl_EXTRA_HEADERS_HEADER);
 						}
