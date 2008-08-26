@@ -34,7 +34,7 @@ int main()
 		{
 			cout << it->getName() << " "
 					<< it->getFestival() << " "
-					<< it->getDATE() << endl;
+					<< it->getDate() << endl;
 		}
 	}
 	
@@ -50,7 +50,7 @@ int main()
 		{
 			cout << (*it)->getName() << " "
 					<< (*it)->getFestival() << " "
-					<< (*it)->getDATE() << endl;
+					<< (*it)->getDate() << endl;
 		}
 	}
 }

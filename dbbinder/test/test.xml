@@ -1,7 +1,7 @@
 <xml>
 	<database>
 		<type>MySQL</type>
-		<host>10.10.10.24</host>
+		<host>dbserver</host>
 		<db>grossi</db>
 		<user>grossi</user>
 		<password>grossi</password>
@@ -16,7 +16,7 @@
 			select
 				U.NAME as Name,
 				F.TITLE as Festival,
-				F.DATE 
+				F.DATE as Date
 			from
 				USERS U join USERS_FESTIVALS UF on
 					U.IDUSER = UF.IDUSER
