@@ -57,7 +57,7 @@
 		</disconnect>
 		<select>
 			<create>
-				MYSQL_STMT *m_selectStmt = mysql_stmt_init( m_conn );
+				m_selectStmt = mysql_stmt_init( m_conn );
 			</create>
 			<destroy>
 				mysql_stmt_close(m_selectStmt);
@@ -72,7 +72,7 @@
 				{
 					case 0:
 						m_currentRow.reset( new _row_type( this ));
-						break;
+						return true;
 					case MYSQL_NO_DATA:
 						m_currentRow.reset();
 						break;
@@ -80,12 +80,13 @@
 						mysqlCheckStmtErr( m_selectStmt, ret );
 						break;
 				}
+				
+				return false;
 			</fetch>
 			<execute>
-				mysqlCheckStmtErr( m_selectStmt, mysql_stmt_bind_param(m_selectStmt, selOutBuffer) );
+				mysqlCheckStmtErr( m_selectStmt, mysql_stmt_bind_param(m_selectStmt, selInBuffer));
 				mysqlCheckStmtErr( m_selectStmt, mysql_stmt_execute(m_selectStmt));
-				mysqlCheckStmtErr( m_selectStmt, mysql_stmt_bind_result(m_selectStmt, selInBuffer));
-				fetchRow();
+				mysqlCheckStmtErr( m_selectStmt, mysql_stmt_bind_result(m_selectStmt, selOutBuffer));
 			</execute>
 		</select>
 	</lang>
