@@ -336,6 +336,7 @@ void AbstractGenerator::addInsert(InsertElements _elements)
 
 void AbstractGenerator::generate()
 {
+	// Defaults values - might be replaced by 'loadTemplates'
 	m_outIntFile = optOutput + ".h";
 	m_outImplFile = optOutput + ".cpp";
 	
@@ -352,7 +353,7 @@ void AbstractGenerator::generate()
 	}
 	
 	// TODO Put this in an XML
-	str = "astyle --style=ansi -n > /dev/null 2>&1";
+	str = "astyle --style=ansi -n > /dev/null 2>&1 ";
 	str += m_outIntFile;
 	system( str.c_str() );
 	str.clear();
@@ -365,7 +366,7 @@ void AbstractGenerator::generate()
 	}
 
 	// TODO Put this in an XML
-	str = "astyle --style=ansi -n > /dev/null 2>&1";
+	str = "astyle --style=ansi -n > /dev/null 2>&1 ";
 	str += m_outImplFile;
 	system( str.c_str() );
 	str.clear();
@@ -625,7 +626,7 @@ bool AbstractGenerator::loadXMLTemplate(const String & _path)
 		String str;
 		XMLElementPtr elem;
 		
-#define READ_PARAM(XML, ENUM) \
+#define READ_PARAM(XML, ENUM, STR) \
 		elem = xml->FirstChildElement(XML);																\
 		elem->GetAttribute("file", &str, false);														\
 		if ( str.empty() )																				\
@@ -642,10 +643,15 @@ bool AbstractGenerator::loadXMLTemplate(const String & _path)
 			{																							\
 				WARNING("file :" << str << " does not exist!");											\
 			}																							\
-		}
+		}																								\
+		elem->GetAttribute("extension", &str, false);														\
+		if ( str.empty() )																				\
+			elem->GetText( &str, false );																\
+		if ( str.length() )																				\
+			STR = optOutput + str;
 
-		READ_PARAM("interface", ftIntf);
-		READ_PARAM("implementation", ftImpl);
+		READ_PARAM("interface", ftIntf, m_outIntFile);
+		READ_PARAM("implementation", ftImpl, m_outImplFile);
 #undef READ_PARAM
 		return true;
 	}

@@ -1,4 +1,4 @@
 <xml>
-	<interface file="h.tpl"/>
-	<implementation file="cpp.tpl" />
+	<interface file="h.tpl" extension=".h"/>
+	<implementation file="cpp.tpl" extension=".cpp"/>
 </xml>
