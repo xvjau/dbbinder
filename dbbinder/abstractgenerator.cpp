@@ -644,7 +644,8 @@ bool AbstractGenerator::loadXMLTemplate(const String & _path)
 				WARNING("file :" << str << " does not exist!");											\
 			}																							\
 		}																								\
-		elem->GetAttribute("extension", &str, false);														\
+		str.clear();																					\
+		elem->GetAttribute("extension", &str, false);													\
 		if ( str.empty() )																				\
 			elem->GetText( &str, false );																\
 		if ( str.length() )																				\
