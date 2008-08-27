@@ -88,9 +88,38 @@ void getOracleTypes(SQLTypes _type, String& _lang, String& _oracle)
 		default:
 		{
 			_lang = "char";
-			_oracle = "SQLT_CHR";
+			_oracle = "SQLT_STR";
 			break;
 		}
+	}
+}
+
+SQLTypes getSQLTypes(ub2 _oracleType)
+{
+	switch( _oracleType )
+	{
+		case SQLT_INT:
+			return stInt;
+		case SQLT_FLT:
+		case SQLT_BDOUBLE:
+			return stDouble;
+		case SQLT_BFLOAT:
+			return stFloat;
+		case SQLT_ODT:
+			return stDate;
+
+		case SQLT_DATE:
+		case SQLT_TIMESTAMP:
+		case SQLT_TIMESTAMP_TZ:
+		case SQLT_TIMESTAMP_LTZ:
+			return stTimeStamp;
+			
+		case SQLT_CHR:
+		case SQLT_NUM:
+		case SQLT_STR:
+		case SQLT_VCS:
+		default:
+			return stText;
 	}
 }
 
@@ -209,7 +238,6 @@ void OracleGenerator::addSelect(SelectElements _elements)
 	oraCheckErr( m_err, OCIAttrGet((dvoid *)_stmt, OCI_HTYPE_STMT, (dvoid *)&colCount,
 						0, OCI_ATTR_PARAM_COUNT, m_err));
 
-	SQLTypes type;
 	ub2 oraType = 0;
 	OCIParam *col = 0;
 
@@ -245,16 +273,8 @@ void OracleGenerator::addSelect(SelectElements _elements)
 			/* Retrieve the column width in bytes */
 			oraCheckErr( m_err, OCIAttrGet((dvoid*)col, OCI_DTYPE_PARAM,
 					(dvoid*) &colWidth,0, OCI_ATTR_DATA_SIZE, m_err ));
-
-		std::cout << "Col: " << name << " type:" << oraType << " len:" << colWidth << std::endl;
-
-		switch( oraType )
-		{
-			default:
-				type = stText;
-		}
 		
-		_elements.output.push_back( SQLElement( reinterpret_cast<char*>(name), type, i++, colWidth ));
+		_elements.output.push_back( SQLElement( String(reinterpret_cast<char*>(name), nameLen), getSQLTypes( oraType ), i, colWidth ));
 	}
 	
 	OCIHandleFree ( (dvoid*) _stmt, OCI_HTYPE_STMT );
@@ -297,15 +317,20 @@ void OracleGenerator::addSelOutBuffers(const SelectElements * _select)
 		getOracleTypes( field.type, langType, oraType );
 
 		decl << "OCIDefine*	m_def" << field.name << ";\n";
+		init <<	"oraCheckErr( m_conn->err, OCIDefineByPos( m_selectStmt, &m_def" << field.name << ", m_conn->err, " << index << ", (dvoid*) &m_buff" << field.name << ",\n";
 		
 		if ( field.type != stText )
 		{
 			decl << langType << " m_buff" << field.name << ";\n";
+			init << "sizeof(" << langType << ")";
 		}
 		else
 		{
 			decl << langType << " m_buff" << field.name << "[" << field.length + 1 << "];\n";
+			init << field.length;
 		}
+
+		init << "," << oraType << ", 0, 0, 0, OCI_DEFAULT ));";
 
 		subDict = m_dict->AddSectionDictionary(tpl_SEL_OUT_FIELDS_BUFFERS);
 		subDict->SetValue(tpl_BUFFER_DECLARE, decl.str() );
