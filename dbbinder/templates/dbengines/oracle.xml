@@ -5,36 +5,119 @@
 		</includes>
 		<extra_headers>
 			<define>
-				#define SQLCHECK( FN ) if( FN != SQLITE_OK ) { std::cerr &lt;&lt; __FILE__ &lt;&lt; __LINE__ &lt;&lt; " SQL error: " &lt;&lt; sqlite3_errmsg(m_conn) &lt;&lt; std::endl; assert(false); };
+				#define oraCheckErr(ERROR, STATUS) oraCheckErrFn(ERROR, STATUS, __FILE__, __LINE__)
 			</define>
+			<type>
+				class OracleEnv
+				{
+					public:
+						OracleEnv()
+						{
+							int errcode = OCIEnvCreate ( &amp;env, OCI_DEFAULT, 0, 
+											( dvoid * ( * ) ( dvoid *,size_t ) ) 0,
+											( dvoid * ( * ) ( dvoid *, dvoid *, size_t ) ) 0,
+											( void ( * ) ( dvoid *, dvoid * ) ) 0, 0, 0 );
+							if ( errcode )
+								ASSERT_MSG( false, "OCIEnvCreate failed with errcode = " &lt;&lt; errcode );
+		
+							/* Initialize handles */
+							OCIHandleAlloc( env, (dvoid**)&amp;err, OCI_HTYPE_ERROR, 0, 0 );
+							OCIHandleAlloc( env, (dvoid**)&amp;srv, OCI_HTYPE_SERVER, 0, 0 );
+							OCIHandleAlloc( env, (dvoid**)&amp;svc, OCI_HTYPE_SVCCTX, 0, 0 );
+							OCIHandleAlloc( env, (dvoid**)&amp;auth, OCI_HTYPE_SESSION, 0, 0 );
+						}
+						
+						~OracleEnv()
+						{
+							OCIHandleFree ( (dvoid*)auth, OCI_HTYPE_SESSION );
+							OCIHandleFree ( (dvoid*)svc, OCI_HTYPE_SVCCTX );
+							OCIHandleFree ( (dvoid*)srv, OCI_HTYPE_SVCCTX );
+							OCIHandleFree ( (dvoid*)err, OCI_HTYPE_SVCCTX );
+						}
+						
+						OCIEnv		*env;
+						OCIError	*err;
+						OCIServer	*srv;
+						OCISvcCtx	*svc;
+						OCISession	*auth;
+				}
+			</type>
 		</extra_headers>
+		<global_functions>
+			<function>
+				void oraCheckErrFn ( OCIError *_err, sword _status, const char* _file, unsigned int _line )
+				{
+					switch ( _status )
+					{
+						case OCI_SUCCESS:
+							break;
+						case OCI_SUCCESS_WITH_INFO: FATAL("OCI_SUCCESS_WITH_INFO");
+						case OCI_NEED_DATA: FATAL("OCI_NEED_DATA");
+						case OCI_NO_DATA: FATAL("OCI_NODATA");
+						case OCI_ERROR:
+						{
+							text errbuf[2048];
+							sb4 errcode;
+							
+							OCIErrorGet ( _err, ( ub4 ) 1, ( text * ) NULL, &amp;errcode,
+												errbuf, ( ub4 ) sizeof ( errbuf ), OCI_HTYPE_ERROR );
+							
+							ASSERT_MSG( false, errbuf );
+						}
+						case OCI_INVALID_HANDLE: FATAL("OCI_INVALID_HANDLE");
+						case OCI_STILL_EXECUTING: FATAL("OCI_STILL_EXECUTE");
+						default: ASSERT_MSG( false, "UNKNOWN ERROR: " &lt;&lt; _status);
+					}
+				}
+			</function>
+		</global_functions>
 		<types>
 			<connection>
-				<type value="sqlite3*"/>
+				<type value="OracleEnv*"/>
 				<null value="0"/>
 			</connection>
 			<statement>
-				<type value="sqlite3_stmt*"/>
+				<type value="OCIStmt*"/>
 				<null value="0"/>
 			</statement>
 		</types>
 		<connect>
-			SQLCHECK( sqlite3_open(s_dbparam_file, &amp;m_conn) );
+			/* Allocate handles */
+			m_conn = new OracleEnv;
+			
+			/* Connect/Attach to the Server */
+			oraCheckErr ( m_conn.err, OCIServerAttach( m_conn.srv, m_conn.err, (text*)s_dbparam_db, strlen(s_dbparam_db), 0) );
+			
+			/* set username and password */
+			oraCheckErr ( m_conn.err, OCIAttrSet ( m_conn.svc, OCI_HTYPE_SVCCTX, m_conn.srv, 0, OCI_ATTR_SERVER, m_conn.err ) );
+			
+			oraCheckErr ( m_conn.err, OCIAttrSet ( m_conn.auth, OCI_HTYPE_SESSION,
+											(text*)s_dbparam_user, strlen(s_dbparam_user),
+											OCI_ATTR_USERNAME, m_conn.err ) );
+			
+			oraCheckErr ( m_conn.err, OCIAttrSet ( m_conn.auth, OCI_HTYPE_SESSION,
+											(text*)s_dbparam_password, strlen(s_dbparam_password),
+											OCI_ATTR_PASSWORD, m_conn.err ));
+			
+			/* Authenticate / Start session */
+			oraCheckErr ( m_conn.err, OCISessionBegin ( m_conn.svc, m_conn.err, m_conn.auth, OCI_CRED_RDBMS, OCI_DEFAULT));
+			
+			oraCheckErr ( m_conn.err, OCIAttrSet((dvoid *)m_conn.svc, OCI_HTYPE_SVCCTX,(dvoid *)m_conn.auth, 0, OCI_ATTR_SESSION, m_conn.err));
 		</connect>
 		<disconnect>
-			sqlite3_close( m_conn );
+			oraCheckErr( m_conn.err, OCILogoff ( m_conn.svc, m_conn.err ));
+			delete m_conn;
 		</disconnect>
 		<select>
 			<create>
+				oraCheckErr( m_conn.err, OCIHandleAlloc ( m_conn.env, &amp;m_selectStmt, OCI_HTYPE_STMT, 0, 0 ));
 			</create>
 			<destroy>
-				sqlite3_finalize( m_selectStmt );
+				OCIHandleFree ( m_selectStmt, OCI_HTYPE_STMT );
 			</destroy>
 			<prepare>
-				{
-					const char *tail;
-					SQLCHECK( sqlite3_prepare(m_conn, s_selectSQL, s_selectSQL_len, &amp;m_selectStmt,  &amp;tail ));
-				}
+				oraCheckErr( m_conn.err, OCIHandleAlloc ( (dvoid*) m_conn.env, ( dvoid ** ) &amp;m_selectStmt, OCI_HTYPE_STMT, 0, 0));
+				oraCheckErr( m_conn.err, OCIStmtPrepare ( m_selectStmt, m_conn.err, (const OraText * )s_selectSQL, s_selectSQL_len, OCI_NTV_SYNTAX, OCI_DEFAULT ));
 			</prepare>
 			<fetch>
 				int ret = sqlite3_step( m_selectStmt );
@@ -58,9 +141,6 @@
 					}
 				}
 			</fetch>
-			<reset>
-				SQLCHECK( sqlite3_reset(m_selectStmt));
-			</reset>
 		</select>
 	</lang>
 </xml>

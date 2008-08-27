@@ -49,7 +49,7 @@ void oraCheckErrFn ( OCIError *_err, sword _status, const char* _file, unsigned 
 }
 	
 OracleGenerator::OracleGenerator()
- : AbstractGenerator()
+ : AbstractGenerator(), m_env(0), m_err(0), m_srv(0), m_svc(0), m_auth(0)
 {
 	m_dbengine = "oracle";
 }
@@ -74,34 +74,47 @@ bool OracleGenerator::checkConnection()
 		String dbName = m_dbParams["db"].value;
 		String user = m_dbParams["user"].value;
 		String pass = m_dbParams["password"].value;
-		
-		/* Initialize OCI */
-		OCIInitialize ( OCI_DEFAULT, (dvoid*)0,
-							(dvoid*(*) (dvoid*, size_t))0,
-							(dvoid*(*) (dvoid*, dvoid*, size_t))0,
-							(void(*) (dvoid*, dvoid*))0 );
-
-		/* Initialize evironment */
-		m_env = 0;
-		OCIEnvInit ( (OCIEnv**)&m_env, OCI_DEFAULT, (size_t)0, (dvoid**)0 );
-
+	
+		int errcode = OCIEnvCreate ( &m_env, OCI_DEFAULT,
+		                             0, ( dvoid * ( * ) ( dvoid *,size_t ) ) 0,
+		                             ( dvoid * ( * ) ( dvoid *, dvoid *, size_t ) ) 0,
+		                             ( void ( * ) ( dvoid *, dvoid * ) ) 0, 0, 0 );
+		if ( errcode != 0 )
+		{
+			std::cerr << "OCIEnvCreate failed with errcode = " << errcode << std::endl;
+			exit ( 1 );
+		}
+	
 		/* Initialize handles */
-		m_err = 0;
-		OCIHandleAlloc ( (dvoid*)m_env, (dvoid**) &m_err, OCI_HTYPE_ERROR, (size_t)0, (dvoid**)0 );
+		OCIHandleAlloc( m_env, (dvoid**)&m_err, OCI_HTYPE_ERROR, 0, 0 );
+		OCIHandleAlloc( m_env, (dvoid**)&m_srv, OCI_HTYPE_SERVER, 0, 0 );
+		OCIHandleAlloc( m_env, (dvoid**)&m_svc, OCI_HTYPE_SVCCTX, 0, 0 );
+		OCIHandleAlloc( m_env, (dvoid**)&m_auth, OCI_HTYPE_SESSION, 0, 0 );
 
-		m_svc = 0;
-		OCIHandleAlloc ( (dvoid*)m_env, (dvoid**) &m_svc, OCI_HTYPE_SVCCTX, (size_t)0, (dvoid**)0 );
-
-		/* Connect to database server */
-		int ret = OCILogon ( m_env, m_err, &m_svc,
-								(const OraText*)dbName.c_str(), dbName.length(),
-								(const OraText*)user.c_str(), user.length(),
-								(const OraText*)pass.c_str(), pass.length() );
-		oraCheckErr( m_err, ret );
-
+		/* Connect/Attach to the Server */
+		oraCheckErr ( m_err, OCIServerAttach( m_srv, m_err, (text *) dbName.c_str(), dbName.length(), 0) );
+		
+		/* set username and password */
+		oraCheckErr ( m_err, OCIAttrSet ( m_svc, OCI_HTYPE_SVCCTX, m_srv, 0, OCI_ATTR_SERVER, m_err ) );
+		
+		oraCheckErr ( m_err, OCIAttrSet ( m_auth, OCI_HTYPE_SESSION,
+		                                  const_cast<char*>(user.c_str()), user.length(),
+		                                  OCI_ATTR_USERNAME, m_err ) );
+		
+		oraCheckErr ( m_err, OCIAttrSet ( m_auth, OCI_HTYPE_SESSION,
+		                                  const_cast<char*>(pass.c_str()), pass.length(),
+		                                  OCI_ATTR_PASSWORD, m_err ));
+		
+		/* Authenticate / Start session */
+		int ret = OCISessionBegin ( m_svc, m_err, m_auth, OCI_CRED_RDBMS, OCI_DEFAULT);
+		oraCheckErr ( m_err, ret );
+	
 		m_connected = ret == OCI_SUCCESS;
-	}
 
+		oraCheckErr ( m_err, OCIAttrSet((dvoid *)m_svc, OCI_HTYPE_SVCCTX,
+                   (dvoid *)m_auth, 0, OCI_ATTR_SESSION, m_err));
+	}
+	
 	return m_connected;
 }
 
@@ -161,14 +174,12 @@ void OracleGenerator::addSelect(SelectElements _elements)
 	/* Allocate and prepare SQL statement */
 	OCIStmt *_stmt = 0;
 	
-	oraCheckErr( m_err, OCIHandleAlloc ( (dvoid*) m_env, ( dvoid ** ) &_stmt,
-						OCI_HTYPE_STMT, ( size_t ) 0, ( dvoid ** ) 0 ));
+	oraCheckErr( m_err, OCIHandleAlloc ( (dvoid*) m_env, ( dvoid ** ) &_stmt, OCI_HTYPE_STMT, 0, 0));
 
 	oraCheckErr( m_err, OCIStmtPrepare ( _stmt, m_err, (const OraText * )_elements.sql.c_str(),
-						( ub4 ) _elements.sql.length(), ( ub4 ) OCI_NTV_SYNTAX, ( ub4 ) OCI_DEFAULT ));
+						_elements.sql.length(), OCI_NTV_SYNTAX, OCI_DEFAULT ));
 
-	oraCheckErr( m_err, OCIStmtExecute( m_svc, _stmt, m_err, 0, 0,
-						(OCISnapshot *) 0, (OCISnapshot *) 0, OCI_DESCRIBE_ONLY));
+	oraCheckErr( m_err, OCIStmtExecute( m_svc, _stmt, m_err, 0, 0, 0, 0, OCI_DESCRIBE_ONLY));
 
 	/* Get the number of columns in the query */
 	ub4 colCount = 0;

@@ -39,7 +39,9 @@ class OracleGenerator : public AbstractGenerator
 
 		OCIEnv		*m_env;
 		OCIError	*m_err;
+		OCIServer	*m_srv;
 		OCISvcCtx	*m_svc;
+		OCISession	*m_auth;
 		
 		virtual bool checkConnection();
 
