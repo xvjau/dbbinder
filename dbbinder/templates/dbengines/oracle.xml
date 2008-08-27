@@ -8,10 +8,10 @@
 				#define oraCheckErr(ERROR, STATUS) oraCheckErrFn(ERROR, STATUS, __FILE__, __LINE__)
 			</define>
 			<type>
-				class OracleEnv
+				class __oracleEnv
 				{
 					public:
-						OracleEnv()
+						__oracleEnv()
 						{
 							int errcode = OCIEnvCreate ( &amp;env, OCI_DEFAULT, 0, 
 											( dvoid * ( * ) ( dvoid *,size_t ) ) 0,
@@ -25,22 +25,22 @@
 							OCIHandleAlloc( env, (dvoid**)&amp;srv, OCI_HTYPE_SERVER, 0, 0 );
 							OCIHandleAlloc( env, (dvoid**)&amp;svc, OCI_HTYPE_SVCCTX, 0, 0 );
 							OCIHandleAlloc( env, (dvoid**)&amp;auth, OCI_HTYPE_SESSION, 0, 0 );
-						}
+						};
 						
-						~OracleEnv()
+						~__oracleEnv()
 						{
 							OCIHandleFree ( (dvoid*)auth, OCI_HTYPE_SESSION );
 							OCIHandleFree ( (dvoid*)svc, OCI_HTYPE_SVCCTX );
 							OCIHandleFree ( (dvoid*)srv, OCI_HTYPE_SVCCTX );
 							OCIHandleFree ( (dvoid*)err, OCI_HTYPE_SVCCTX );
-						}
+						};
 						
 						OCIEnv		*env;
 						OCIError	*err;
 						OCIServer	*srv;
 						OCISvcCtx	*svc;
 						OCISession	*auth;
-				}
+				};
 			</type>
 		</extra_headers>
 		<global_functions>
@@ -51,9 +51,9 @@
 					{
 						case OCI_SUCCESS:
 							break;
-						case OCI_SUCCESS_WITH_INFO: FATAL("OCI_SUCCESS_WITH_INFO");
-						case OCI_NEED_DATA: FATAL("OCI_NEED_DATA");
-						case OCI_NO_DATA: FATAL("OCI_NODATA");
+						case OCI_SUCCESS_WITH_INFO: ASSERT_MSG( false,"OCI_SUCCESS_WITH_INFO"); break;
+						case OCI_NEED_DATA: ASSERT_MSG( false,"OCI_NEED_DATA"); break;
+						case OCI_NO_DATA: ASSERT_MSG( false,"OCI_NODATA"); break;
 						case OCI_ERROR:
 						{
 							text errbuf[2048];
@@ -63,17 +63,18 @@
 												errbuf, ( ub4 ) sizeof ( errbuf ), OCI_HTYPE_ERROR );
 							
 							ASSERT_MSG( false, errbuf );
+							 break;
 						}
-						case OCI_INVALID_HANDLE: FATAL("OCI_INVALID_HANDLE");
-						case OCI_STILL_EXECUTING: FATAL("OCI_STILL_EXECUTE");
-						default: ASSERT_MSG( false, "UNKNOWN ERROR: " &lt;&lt; _status);
+						case OCI_INVALID_HANDLE: ASSERT_MSG( false, "OCI_INVALID_HANDLE"); break;
+						case OCI_STILL_EXECUTING: ASSERT_MSG( false, "OCI_STILL_EXECUTE"); break;
+						default: ASSERT_MSG( false, "UNKNOWN ERROR: " &lt;&lt; _status); break;
 					}
 				}
 			</function>
 		</global_functions>
 		<types>
 			<connection>
-				<type value="OracleEnv*"/>
+				<type value="__oracleEnv*"/>
 				<null value="0"/>
 			</connection>
 			<statement>
@@ -83,63 +84,58 @@
 		</types>
 		<connect>
 			/* Allocate handles */
-			m_conn = new OracleEnv;
+			m_conn = new __oracleEnv;
 			
 			/* Connect/Attach to the Server */
-			oraCheckErr ( m_conn.err, OCIServerAttach( m_conn.srv, m_conn.err, (text*)s_dbparam_db, strlen(s_dbparam_db), 0) );
+			oraCheckErr ( m_conn->err, OCIServerAttach( m_conn->srv, m_conn->err, (text*)s_dbparam_db, strlen(s_dbparam_db), 0) );
 			
 			/* set username and password */
-			oraCheckErr ( m_conn.err, OCIAttrSet ( m_conn.svc, OCI_HTYPE_SVCCTX, m_conn.srv, 0, OCI_ATTR_SERVER, m_conn.err ) );
+			oraCheckErr ( m_conn->err, OCIAttrSet ( m_conn->svc, OCI_HTYPE_SVCCTX, m_conn->srv, 0, OCI_ATTR_SERVER, m_conn->err ) );
 			
-			oraCheckErr ( m_conn.err, OCIAttrSet ( m_conn.auth, OCI_HTYPE_SESSION,
+			oraCheckErr ( m_conn->err, OCIAttrSet ( m_conn->auth, OCI_HTYPE_SESSION,
 											(text*)s_dbparam_user, strlen(s_dbparam_user),
-											OCI_ATTR_USERNAME, m_conn.err ) );
+											OCI_ATTR_USERNAME, m_conn->err ) );
 			
-			oraCheckErr ( m_conn.err, OCIAttrSet ( m_conn.auth, OCI_HTYPE_SESSION,
+			oraCheckErr ( m_conn->err, OCIAttrSet ( m_conn->auth, OCI_HTYPE_SESSION,
 											(text*)s_dbparam_password, strlen(s_dbparam_password),
-											OCI_ATTR_PASSWORD, m_conn.err ));
+											OCI_ATTR_PASSWORD, m_conn->err ));
 			
 			/* Authenticate / Start session */
-			oraCheckErr ( m_conn.err, OCISessionBegin ( m_conn.svc, m_conn.err, m_conn.auth, OCI_CRED_RDBMS, OCI_DEFAULT));
+			oraCheckErr ( m_conn->err, OCISessionBegin ( m_conn->svc, m_conn->err, m_conn->auth, OCI_CRED_RDBMS, OCI_DEFAULT));
 			
-			oraCheckErr ( m_conn.err, OCIAttrSet((dvoid *)m_conn.svc, OCI_HTYPE_SVCCTX,(dvoid *)m_conn.auth, 0, OCI_ATTR_SESSION, m_conn.err));
+			oraCheckErr ( m_conn->err, OCIAttrSet((dvoid *)m_conn->svc, OCI_HTYPE_SVCCTX,(dvoid *)m_conn->auth, 0, OCI_ATTR_SESSION, m_conn->err));
 		</connect>
 		<disconnect>
-			oraCheckErr( m_conn.err, OCILogoff ( m_conn.svc, m_conn.err ));
+			oraCheckErr( m_conn->err, OCILogoff ( m_conn->svc, m_conn->err ));
 			delete m_conn;
 		</disconnect>
 		<select>
 			<create>
-				oraCheckErr( m_conn.err, OCIHandleAlloc ( m_conn.env, &amp;m_selectStmt, OCI_HTYPE_STMT, 0, 0 ));
+				oraCheckErr( m_conn->err, OCIHandleAlloc ( m_conn->env, (dvoid**)&amp;m_selectStmt, OCI_HTYPE_STMT, 0, 0 ));
 			</create>
 			<destroy>
 				OCIHandleFree ( m_selectStmt, OCI_HTYPE_STMT );
 			</destroy>
 			<prepare>
-				oraCheckErr( m_conn.err, OCIHandleAlloc ( (dvoid*) m_conn.env, ( dvoid ** ) &amp;m_selectStmt, OCI_HTYPE_STMT, 0, 0));
-				oraCheckErr( m_conn.err, OCIStmtPrepare ( m_selectStmt, m_conn.err, (const OraText * )s_selectSQL, s_selectSQL_len, OCI_NTV_SYNTAX, OCI_DEFAULT ));
+				oraCheckErr( m_conn->err, OCIHandleAlloc ( (dvoid*) m_conn->env, (dvoid**)&amp;m_selectStmt, OCI_HTYPE_STMT, 0, 0));
+				oraCheckErr( m_conn->err, OCIStmtPrepare ( m_selectStmt, m_conn->err, (const OraText * )s_selectSQL, s_selectSQL_len, OCI_NTV_SYNTAX, OCI_DEFAULT ));
 			</prepare>
 			<fetch>
-				int ret = sqlite3_step( m_selectStmt );
-				switch ( ret )
+				int rc = OCIStmtFetch2( m_selectStmt, m_conn->err, 1, OCI_DEFAULT, 0, OCI_DEFAULT );
+			
+				if ( rc &amp;&amp; ( rc != OCI_SUCCESS ) &amp;&amp; ( rc != OCI_NO_DATA ))
 				{
-					case SQLITE_ROW:
-					{
-						m_currentRow.reset( new _row_type( m_selectStmt ));
-						return true;
-					}
-					case SQLITE_DONE:
-					{
-						m_currentRow.reset();
-						return false;
-					}
-					default:
-					{
-						m_currentRow.reset();
-						std::cerr &lt;&lt; "SQL error: " &lt;&lt; sqlite3_errmsg(m_conn) &lt;&lt; std::endl;
-						return false;
-					}
+					oraCheckErr( m_conn->err, rc );
 				}
+				else if ( rc != OCI_NO_DATA )
+				{
+					m_currentRow.reset( new _row_type( this ) );
+					return true;
+				}
+				else
+					m_currentRow.reset();
+				
+				return false;
 			</fetch>
 		</select>
 	</lang>

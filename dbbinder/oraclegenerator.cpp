@@ -47,6 +47,53 @@ void oraCheckErrFn ( OCIError *_err, sword _status, const char* _file, unsigned 
 		default: FATAL("UNKNOWN ERROR: " << _status);
 	}
 }
+
+/*
+	http://download.oracle.com/docs/cd/B14117_01/appdev.101/b10779/oci03typ.htm#423119
+*/
+void getOracleTypes(SQLTypes _type, String& _lang, String& _oracle)
+{
+	switch( _type )
+	{
+		case stUnknown:
+			FATAL("BUG BUG BUG! " << __FILE__ << __LINE__);
+			
+		case stInt:
+			_lang = "int";
+			_oracle = "SQLT_INT";
+			break;
+			
+		case stFloat:
+			_lang = "float";
+			_oracle = "SQLT_FLT";
+			break;
+			
+		case stDouble:
+			_lang = "double";
+			_oracle = "SQLT_FLT";
+			break;
+			
+		case stTimeStamp:
+		case stTime:
+			_lang = "OCIDateTime";
+			_oracle = "SQLT_TIMESTAMP";
+			break;
+
+		case stDate:
+			_lang = "char[7]";
+			_oracle = "SQLT_DAT";
+			break;
+			
+		case stText:
+		default:
+		{
+			_lang = "char";
+			_oracle = "SQLT_CHR";
+			break;
+		}
+	}
+}
+
 	
 OracleGenerator::OracleGenerator()
  : AbstractGenerator(), m_env(0), m_err(0), m_srv(0), m_svc(0), m_auth(0)
@@ -120,51 +167,27 @@ bool OracleGenerator::checkConnection()
 
 String OracleGenerator::getBind(const ListElements::iterator & _item, int _index)
 {
+	String langType, oraType;
+	getOracleTypes( _item->type, langType, oraType );
+	
 	std::stringstream result;
 
-	result <<
-			"oraCheckErr( m_conn->err, OCIBindByName ( m_selectStmt, &m_bnd" << _item->name << ", m_conn->err, ( text * ) :" << _item->name
-			<< ", -1, ( dvoid * ) &_" << _item->name << ", ";
+	result << "oraCheckErr( m_conn->err, OCIBindByPos( m_selectStmt, &m_param" << _item->name << ", m_conn->err, " << _index << ",\n"
+			<< "(dvoid*)&_" << _item->name << ",";
 
-	switch ( _item->type )
-	{
-		case stUnknown:
-		{
-			FATAL("BUG BUG BUG! " << __FILE__ << __LINE__);
-		}
-		case stInt:
-		{
-			result << "sizeof( int ), SQLT_INT";
-			break;
-		}
-		case stFloat:
-		case stDouble:
-		{
-			result << "double";
-			break;
-		}
-		case stTimeStamp:
-		case stTime:
-		case stDate:
-		case stText:
-		{
-			result << "text";
-			break;
-		}
+	if ( _item->type != stText )
+		result << " sizeof (" << langType << "), " << oraType << ", 0,\n";
+	else
+		result << " sizeof(" << _item->length << "), " << oraType << ", 0,\n";
 
-	}
-	result << ", ( dvoid * ) 0, ( ub2 * ) 0, ( ub2 * ) 0, ( ub4 ) 0, ( ub4 * ) 0, OCI_DEFAULT ));";
+	result << "0, 0, 0, 0, OCI_DEFAULT ));\n";
 
 	return result.str();
 }
 
 String OracleGenerator::getReadValue(const ListElements::iterator & _item, int _index)
 {
-	std::stringstream result;
-	
-	result << "m_currentRow->m_" << _item->name << " = m_" << _item->name << ";";
-
-	return result.str();
+	return String("m_") + _item->name + " = _parent->m_buff" + _item->name + ";";
 }
 
 void OracleGenerator::addSelect(SelectElements _elements)
@@ -184,9 +207,10 @@ void OracleGenerator::addSelect(SelectElements _elements)
 	/* Get the number of columns in the query */
 	ub4 colCount = 0;
 	oraCheckErr( m_err, OCIAttrGet((dvoid *)_stmt, OCI_HTYPE_STMT, (dvoid *)&colCount,
-						(ub4 *)0, OCI_ATTR_PARAM_COUNT, m_err));
+						0, OCI_ATTR_PARAM_COUNT, m_err));
 
-	ub2 type = 0;
+	SQLTypes type;
+	ub2 oraType = 0;
 	OCIParam *col = 0;
 
 	ub4 nameLen, colWidth, charSemantics;
@@ -198,9 +222,9 @@ void OracleGenerator::addSelect(SelectElements _elements)
 		oraCheckErr( m_err, OCIParamGet((dvoid *)_stmt, OCI_HTYPE_STMT, m_err, (dvoid**)&col, i));
 
 		/* get data-type of column i */
-		type = 0;
+		oraType = 0;
 		oraCheckErr( m_err, OCIAttrGet((dvoid *)col, OCI_DTYPE_PARAM,
-				(dvoid *)&type, (ub4 *)0, OCI_ATTR_DATA_TYPE,  m_err));
+				(dvoid *)&oraType, 0, OCI_ATTR_DATA_TYPE,  m_err));
 
 		/* Retrieve the column name attribute */
 		nameLen = 0;
@@ -210,23 +234,85 @@ void OracleGenerator::addSelect(SelectElements _elements)
 		/* Retrieve the length semantics for the column */
 		charSemantics = 0;
 		oraCheckErr( m_err, OCIAttrGet((dvoid*)col, OCI_DTYPE_PARAM,
-				(dvoid*) &charSemantics,(ub4 *) 0, OCI_ATTR_CHAR_USED, m_err ));
+				(dvoid*) &charSemantics,0, OCI_ATTR_CHAR_USED, m_err ));
 		
 		colWidth = 0;
 		if (charSemantics)
 			/* Retrieve the column width in characters */
 			oraCheckErr( m_err, OCIAttrGet((dvoid*)col, OCI_DTYPE_PARAM,
-					(dvoid*) &colWidth, (ub4 *) 0, OCI_ATTR_CHAR_SIZE, m_err ));
+					(dvoid*) &colWidth, 0, OCI_ATTR_CHAR_SIZE, m_err ));
 		else
 			/* Retrieve the column width in bytes */
 			oraCheckErr( m_err, OCIAttrGet((dvoid*)col, OCI_DTYPE_PARAM,
-					(dvoid*) &colWidth,(ub4 *) 0, OCI_ATTR_DATA_SIZE, m_err ));
+					(dvoid*) &colWidth,0, OCI_ATTR_DATA_SIZE, m_err ));
 
-		std::cout << "Col: " << name << " type:" << type << " len:" << colWidth << std::endl;
+		std::cout << "Col: " << name << " type:" << oraType << " len:" << colWidth << std::endl;
+
+		switch( oraType )
+		{
+			default:
+				type = stText;
+		}
+		
+		_elements.output.push_back( SQLElement( reinterpret_cast<char*>(name), type, i++, colWidth ));
 	}
 	
 	OCIHandleFree ( (dvoid*) _stmt, OCI_HTYPE_STMT );
+
+	AbstractGenerator::addSelect(_elements);
+}
+
+bool OracleGenerator::needIOBuffers() const
+{
+	return true;
+}
+
+void OracleGenerator::addSelInBuffers(const SelectElements * _select)
+{
+	String langType, oraType;
+	int index = 0;
+	google::TemplateDictionary *subDict;
+	
+	foreach(SQLElement field, _select->input)
+	{
+		getOracleTypes( field.type, langType, oraType );
+
+		subDict = m_dict->AddSectionDictionary(tpl_SEL_IN_FIELDS_BUFFERS);
+		subDict->SetValue(tpl_BUFFER_DECLARE, String("OCIBind	*m_param") + field.name + ";" );
+
+		++index;
+	}
+}
+
+void OracleGenerator::addSelOutBuffers(const SelectElements * _select)
+{
+	String langType, oraType;
+	int index = 0;
+	google::TemplateDictionary *subDict;
+	
+	foreach(SQLElement field, _select->output)
+	{
+		std::stringstream init, decl;
+		
+		getOracleTypes( field.type, langType, oraType );
+
+		decl << "OCIDefine*	m_def" << field.name << ";\n";
+		
+		if ( field.type != stText )
+		{
+			decl << langType << " m_buff" << field.name << ";\n";
+		}
+		else
+		{
+			decl << langType << " m_buff" << field.name << "[" << field.length + 1 << "];\n";
+		}
+
+		subDict = m_dict->AddSectionDictionary(tpl_SEL_OUT_FIELDS_BUFFERS);
+		subDict->SetValue(tpl_BUFFER_DECLARE, decl.str() );
+		subDict->SetValue(tpl_BUFFER_INITIALIZE, init.str() );
+		
+		++index;
+	}
 }
 
 }
-

@@ -238,7 +238,6 @@ void getMySQLTypes(SQLTypes _type, String& _lang, String& _mysql)
 			break;
 		}
 	}
-
 }
 
 void MySQLGenerator::addSelInBuffers(const SelectElements* _select)
