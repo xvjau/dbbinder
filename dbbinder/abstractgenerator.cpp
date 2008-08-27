@@ -35,6 +35,7 @@ const char * const tpl_DBENGINE_INCLUDES = "DBENGINE_INCLUDES";
 const char * const tpl_DBENGINE_INCLUDE_NAME = "DBENGINE_INCLUDE_NAME";
 const char * const tpl_EXTRA_HEADERS = "EXTRA_HEADERS";
 const char * const tpl_EXTRA_HEADERS_HEADER = "EXTRA_HEADERS_HEADER";
+const char * const tpl_EXTRA_HEADERS_TYPE = "EXTRA_HEADERS_TYPE";
 const char * const tpl_DBENGINE_GLOBAL_FUNCTIONS = "DBENGINE_GLOBAL_FUNCTIONS";
 const char * const tpl_FUNCTION = "FUNCTION";
 
@@ -491,14 +492,23 @@ bool AbstractGenerator::loadXMLDatabase(const String& _path)
 					node = 0;
 					while( node = lang->IterateChildren( "extra_headers", node ))
 					{
-						subDict = m_dict->AddSectionDictionary( tpl_EXTRA_HEADERS );
+						m_dict->ShowSection( tpl_EXTRA_HEADERS );
+						
 						
 						subnode = 0;
 						while( subnode = node->IterateChildren( "define", subnode ))
 						{
-							m_dict->ShowSection( tpl_EXTRA_HEADERS );
+							subDict = m_dict->AddSectionDictionary( tpl_EXTRA_HEADERS );
 							elem = subnode->ToElement();
 							GET_TEXT_OR_ATTR_SET_TMPL( str, elem, "code", subDict, tpl_EXTRA_HEADERS_HEADER);
+						}
+						
+						subnode = 0;
+						while( subnode = node->IterateChildren( "type", subnode ))
+						{
+							subDict = m_dict->AddSectionDictionary( tpl_EXTRA_HEADERS );
+							elem = subnode->ToElement();
+							GET_TEXT_OR_ATTR_SET_TMPL( str, elem, "code", subDict, tpl_EXTRA_HEADERS_TYPE);
 						}
 					}
 
