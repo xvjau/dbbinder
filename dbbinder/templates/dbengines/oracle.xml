@@ -51,9 +51,15 @@
 					{
 						case OCI_SUCCESS:
 							break;
-						case OCI_SUCCESS_WITH_INFO: ASSERT_MSG( false,"OCI_SUCCESS_WITH_INFO"); break;
-						case OCI_NEED_DATA: ASSERT_MSG( false,"OCI_NEED_DATA"); break;
-						case OCI_NO_DATA: ASSERT_MSG( false,"OCI_NODATA"); break;
+						case OCI_SUCCESS_WITH_INFO: 
+							ASSERT_MSG_FILE_LINE( false,"OCI_SUCCESS_WITH_INFO", _file, _line); 
+							break;
+						case OCI_NEED_DATA: 
+							ASSERT_MSG_FILE_LINE( false,"OCI_NEED_DATA", _file, _line);
+							break;
+						case OCI_NO_DATA: 
+							ASSERT_MSG_FILE_LINE( false,"OCI_NODATA", _file, _line);
+							break;
 						case OCI_ERROR:
 						{
 							text errbuf[2048];
@@ -62,12 +68,18 @@
 							OCIErrorGet ( _err, ( ub4 ) 1, ( text * ) NULL, &amp;errcode,
 												errbuf, ( ub4 ) sizeof ( errbuf ), OCI_HTYPE_ERROR );
 							
-							ASSERT_MSG( false, errbuf );
-							 break;
+							ASSERT_MSG_FILE_LINE( false, errbuf, _file, _line);
+							break;
 						}
-						case OCI_INVALID_HANDLE: ASSERT_MSG( false, "OCI_INVALID_HANDLE"); break;
-						case OCI_STILL_EXECUTING: ASSERT_MSG( false, "OCI_STILL_EXECUTE"); break;
-						default: ASSERT_MSG( false, "UNKNOWN ERROR: " &lt;&lt; _status); break;
+						case OCI_INVALID_HANDLE: 
+							ASSERT_MSG_FILE_LINE( false, "OCI_INVALID_HANDLE", _file, _line);
+							break;
+						case OCI_STILL_EXECUTING: 
+							ASSERT_MSG_FILE_LINE( false, "OCI_STILL_EXECUTE", _file, _line);
+							break;
+						default: 
+							ASSERT_MSG_FILE_LINE( false, "UNKNOWN ERROR: " &lt;&lt; _status, _file, _line);
+							break;
 					}
 				}
 			</function>
@@ -120,6 +132,9 @@
 				oraCheckErr( m_conn->err, OCIHandleAlloc ( (dvoid*) m_conn->env, (dvoid**)&amp;m_selectStmt, OCI_HTYPE_STMT, 0, 0));
 				oraCheckErr( m_conn->err, OCIStmtPrepare ( m_selectStmt, m_conn->err, (const OraText * )s_selectSQL, s_selectSQL_len, OCI_NTV_SYNTAX, OCI_DEFAULT ));
 			</prepare>
+			<execute>
+				oraCheckErr( m_conn->err, OCIStmtExecute ( m_conn->svc, m_selectStmt, m_conn->err, 1, 0, 0, 0, OCI_DEFAULT ));
+			</execute>
 			<fetch>
 				int rc = OCIStmtFetch2( m_selectStmt, m_conn->err, 1, OCI_DEFAULT, 0, OCI_DEFAULT );
 			
