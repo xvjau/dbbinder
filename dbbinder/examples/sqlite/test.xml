@@ -1,29 +1,28 @@
 <xml>
 	<database>
-		<type>Oracle</type>
-		<db>nvdb</db>
-		<user>grossi</user>
-		<password>grossi</password>
+		<type>SQLite3</type>
+		<file>test.db</file>
 	</database>
 	
 	<select name="selFestival">
 		<param name="idUser" type="int" default="2" />
-		<!--<param name="minDate" type="int" default="0" />-->
+		<param name="minDate" type="int" default="0" />
 		
 		<sql>
 			select
 				U."NAME" as "Name",
-				F."TITLE" as "Festival"
+				F."TITLE" as "Festival",
+				F."DATE" as "Date"
 			from
 				"USERS" U join "USERS_FESTIVALS" UF on
 					U."IDUSER" = UF."IDUSER"
 				join "FESTIVALS" F on
 					UF."IDFESTIVAL" = F."IDFESTIVAL"
 			where 
-				U."IDUSER" = :IDUSER
+				U."IDUSER" = ? and
+				F."DATE" > ?
 			order by
 				F."DATE"
-			
 		</sql>
 	</select>
 	<extra>
