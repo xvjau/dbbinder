@@ -1,0 +1,39 @@
+<xml>
+	<database>
+		<type>Oracle</type>
+		<db>//dbserver/xe</db>
+		<user>grossi</user>
+		<password>grossi</password>
+	</database>
+	
+	<select name="selFestival">
+		<param name="idUser" type="int" default="2" />
+		
+		<sql>
+			select
+				U."NAME" as "Name",
+				F."TITLE" as "Festival"
+			from
+				"USERS" U join "USERS_FESTIVALS" UF on
+					U."IDUSER" = UF."IDUSER"
+				join "FESTIVALS" F on
+					UF."IDFESTIVAL" = F."IDFESTIVAL"
+			where 
+				U."IDUSER" = :IDUSER
+			order by
+				F."DATE"
+		</sql>
+	</select>
+	<extra>
+		<types>
+			<string>String</string>
+		</types>
+		<namespaces>
+			<namespace>TestApp</namespace>
+		</namespaces>
+		<headers>
+			<header>#include &lt;string&gt;</header>
+			<header>typedef std::string String;</header>
+		</headers>
+	</extra>
+</xml>

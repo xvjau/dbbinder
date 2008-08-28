@@ -1,0 +1,44 @@
+<xml>
+	<database>
+		<type>Firebird</type>
+		<db>employee</db>
+		<user>SYSDBA</user>
+		<password>masterkey</password>
+		<role></role>
+		<charset>UTF8</charset>
+	</database>
+	
+	<select name="selFestival">
+		<param name="idUser" type="int" default="2" />
+		<param name="minDate" type="int" default="0" />
+		
+		<sql>
+			select
+				U."NAME" as "Name",
+				F."TITLE" as "Festival",
+				F."DATE" as "Date"
+			from
+				"USERS" U join "USERS_FESTIVALS" UF on
+					U."IDUSER" = UF."IDUSER"
+				join "FESTIVALS" F on
+					UF."IDFESTIVAL" = F."IDFESTIVAL"
+			where 
+				U."IDUSER" = ? and
+				F."DATE" > ?
+			order by
+				F."DATE"
+		</sql>
+	</select>
+	<extra>
+		<types>
+			<string>String</string>
+		</types>
+		<namespaces>
+			<namespace>TestApp</namespace>
+		</namespaces>
+		<headers>
+			<header>#include &lt;string&gt;</header>
+			<header>typedef std::string String;</header>
+		</headers>
+	</extra>
+</xml>
