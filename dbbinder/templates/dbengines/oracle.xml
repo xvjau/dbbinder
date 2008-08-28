@@ -42,6 +42,9 @@
 						OCISession	*auth;
 				};
 			</type>
+			<member>
+				bool	m_selectIsFirst;
+			</member>
 		</extra_headers>
 		<global_functions>
 			<function>
@@ -134,24 +137,37 @@
 			</prepare>
 			<execute>
 				oraCheckErr( m_conn->err, OCIStmtExecute ( m_conn->svc, m_selectStmt, m_conn->err, 1, 0, 0, 0, OCI_DEFAULT ));
+				m_selectIsFirst = true;
 			</execute>
 			<fetch>
-				int rc = OCIStmtFetch2( m_selectStmt, m_conn->err, 1, OCI_DEFAULT, 0, OCI_DEFAULT );
-			
-				if ( rc &amp;&amp; ( rc != OCI_SUCCESS ) &amp;&amp; ( rc != OCI_NO_DATA ))
-				{
-					oraCheckErr( m_conn->err, rc );
-				}
-				else if ( rc != OCI_NO_DATA )
+				if ( m_selectIsFirst )
 				{
 					m_currentRow.reset( new _row_type( this ) );
+					m_selectIsFirst = false;
 					return true;
 				}
 				else
-					m_currentRow.reset();
+				{
+					int rc = OCIStmtFetch2( m_selectStmt, m_conn->err, 1, OCI_DEFAULT, 0, OCI_DEFAULT );
 				
-				return false;
+					if ( rc &amp;&amp; ( rc != OCI_SUCCESS ) &amp;&amp; ( rc != OCI_NO_DATA ))
+					{
+						oraCheckErr( m_conn->err, rc );
+					}
+					else if ( rc != OCI_NO_DATA )
+					{
+						m_currentRow.reset( new _row_type( this ) );
+						return true;
+					}
+					else
+						m_currentRow.reset();
+					
+					return false;
+				}
 			</fetch>
+			<reset>
+				m_selectIsFirst = true;
+			</reset>
 		</select>
 	</lang>
 </xml>

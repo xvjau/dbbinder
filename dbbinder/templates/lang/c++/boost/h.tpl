@@ -41,6 +41,8 @@ class {{CLASSNAME}}
 	private:
 		{{DBENGINE_CONNECTION_TYPE}}	m_conn;
 		bool							m_needCloseConn;
+		{{#EXTRA_HEADERS}}{{EXTRA_HEADERS_MEMBER}}
+		{{/EXTRA_HEADERS}}
 {{#SELECT}}
 	public:
 		{{CLASSNAME}}(
