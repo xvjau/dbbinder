@@ -21,6 +21,7 @@
 #define DBBINDERFIREBIRDGENERATOR_H
 
 #include "abstractgenerator.h"
+#include <ibase.h>
 
 namespace DBBinder {
 
@@ -31,10 +32,12 @@ class FirebirdGenerator : public AbstractGenerator
 {
 	public:
 		FirebirdGenerator();
-
-		~FirebirdGenerator();
+		virtual ~FirebirdGenerator();
 
 		virtual void addSelect(SelectElements _elements);
+		
+	private:
+		isc_db_handle	m_conn;
 
 	protected:
 		virtual bool checkConnection();

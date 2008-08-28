@@ -19,4 +19,4 @@ add_executable(dbbinder main.cpp abstractgenerator sqlitegenerator oraclegenerat
 
 set_source_files_properties(main.cpp PROPERTIES OBJECT_DEPENDS options.h)
 
-target_link_libraries(dbbinder ticpp ctemplate_nothreads sqlite3 ociei mysqlclient)
+target_link_libraries(dbbinder ticpp ctemplate_nothreads sqlite3 ociei mysqlclient fbclient)
