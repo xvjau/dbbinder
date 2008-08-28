@@ -36,6 +36,7 @@ const char * const tpl_DBENGINE_INCLUDE_NAME = "DBENGINE_INCLUDE_NAME";
 const char * const tpl_EXTRA_HEADERS = "EXTRA_HEADERS";
 const char * const tpl_EXTRA_HEADERS_HEADER = "EXTRA_HEADERS_HEADER";
 const char * const tpl_EXTRA_HEADERS_TYPE = "EXTRA_HEADERS_TYPE";
+const char * const tpl_EXTRA_HEADERS_MEMBER = "EXTRA_HEADERS_MEMBER";
 const char * const tpl_DBENGINE_GLOBAL_FUNCTIONS = "DBENGINE_GLOBAL_FUNCTIONS";
 const char * const tpl_FUNCTION = "FUNCTION";
 
@@ -335,6 +336,24 @@ void AbstractGenerator::addInsert(InsertElements _elements)
 	m_classParams[ name ] = params;
 }
 
+static void cleanExcessiveLineBreaks(String &_str, std::ostream &_stream)
+{
+	int ln = 0;
+	foreach(char c, _str)
+	{
+		if ( c == '\n' )
+			++ln;
+		else
+		{
+			if ( c != ' ' && c != '\t' )
+				ln = 0;
+		}
+
+		if ( ln < 3 )
+			_stream << c;
+	}
+}
+
 void AbstractGenerator::generate()
 {
 	// Defaults values - might be replaced by 'loadTemplates'
@@ -349,7 +368,9 @@ void AbstractGenerator::generate()
 	{
 		std::ofstream out( m_outIntFile.c_str(), std::ios_base::trunc );
 		m_templ[ftIntf]->Expand(&str, m_dict);
-		out << str;
+		
+		cleanExcessiveLineBreaks(str, out);
+		//out << str;
 		str.clear();
 	}
 	
@@ -362,7 +383,10 @@ void AbstractGenerator::generate()
 	{
 		std::ofstream out( m_outImplFile.c_str(), std::ios_base::trunc );
 		m_templ[ftImpl]->Expand(&str, m_dict);
-		out << str;
+
+		cleanExcessiveLineBreaks(str, out);
+		//out << str;
+		
 		str.clear();
 	}
 
@@ -509,6 +533,14 @@ bool AbstractGenerator::loadXMLDatabase(const String& _path)
 							subDict = m_dict->AddSectionDictionary( tpl_EXTRA_HEADERS );
 							elem = subnode->ToElement();
 							GET_TEXT_OR_ATTR_SET_TMPL( str, elem, "code", subDict, tpl_EXTRA_HEADERS_TYPE);
+						}
+
+						subnode = 0;
+						while( subnode = node->IterateChildren( "member", subnode ))
+						{
+							subDict = m_dict->AddSectionDictionary( tpl_EXTRA_HEADERS );
+							elem = subnode->ToElement();
+							GET_TEXT_OR_ATTR_SET_TMPL( str, elem, "code", subDict, tpl_EXTRA_HEADERS_MEMBER);
 						}
 					}
 
