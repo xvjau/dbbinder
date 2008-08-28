@@ -33,10 +33,12 @@ int main()
 		for( selFestival::iterator it = stmt.begin(); it != stmt.end(); ++it )
 		{
 			cout << it->getName() << " "
-					<< it->getFestival() << " "
-					<< it->getDate() << endl;
+					<< it->getFestival() << " " << endl;
+					//<< it->getDate() << endl;
 		}
 	}
+
+	cout << "\n--------------\n";
 	
 	{
 		selFestival stmt(1, 0);
@@ -49,8 +51,8 @@ int main()
 		for( MyListType::iterator it = myList.begin(); it != myList.end(); ++it )
 		{
 			cout << (*it)->getName() << " "
-					<< (*it)->getFestival() << " "
-					<< (*it)->getDate() << endl;
+					<< (*it)->getFestival() << " " << endl;
+					//<< (*it)->getDate() << endl;
 		}
 	}
 }
