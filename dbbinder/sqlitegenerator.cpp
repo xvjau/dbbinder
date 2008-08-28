@@ -172,13 +172,13 @@ String SQLiteGenerator::getReadValue(const ListElements::iterator & _item, int _
 		}
 		case stInt:
 		{
-			str << "m_" << _item->name << " = sqlite3_column_int(_stmt, " << _index << ");";
+			str << "m_" << _item->name << " = sqlite3_column_int(_parent->m_selectStmt, " << _index << ");";
 			break;
 		}
 		case stFloat:
 		case stDouble:
 		{
-			str << "m_" << _item->name << " = sqlite3_column_double(_stmt, " << _index << ");";
+			str << "m_" << _item->name << " = sqlite3_column_double(_parent->m_selectStmt, " << _index << ");";
 			break;
 		}
 		case stTimeStamp:
@@ -186,7 +186,7 @@ String SQLiteGenerator::getReadValue(const ListElements::iterator & _item, int _
 		case stDate:
 		case stText:
 		{
-			str << "{ const char *str = reinterpret_cast<const char*>( sqlite3_column_text(_stmt, " << _index << ") );\n"
+			str << "{ const char *str = reinterpret_cast<const char*>( sqlite3_column_text(_parent->m_selectStmt, " << _index << ") );\n"
 				<< "if ( str ) m_" << _item->name << " = str; }";
 			break;
 		}

@@ -42,7 +42,7 @@
 				{
 					case SQLITE_ROW:
 					{
-						m_currentRow.reset( new _row_type( m_selectStmt ));
+						m_currentRow.reset( new _row_type( this ));
 						return true;
 					}
 					case SQLITE_DONE:
