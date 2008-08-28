@@ -317,7 +317,7 @@ void OracleGenerator::addSelOutBuffers(const SelectElements * _select)
 		getOracleTypes( field.type, langType, oraType );
 
 		decl << "OCIDefine*	m_def" << field.name << ";\n";
-		init <<	"oraCheckErr( m_conn->err, OCIDefineByPos( m_selectStmt, &m_def" << field.name << ", m_conn->err, " << index << ", (dvoid*) &m_buff" << field.name << ",\n";
+		init <<	"oraCheckErr( m_conn->err, OCIDefineByPos( m_selectStmt, &m_def" << field.name << ", m_conn->err, " << index + 1 << ", (dvoid*) &m_buff" << field.name << ",\n";
 		
 		if ( field.type != stText )
 		{
