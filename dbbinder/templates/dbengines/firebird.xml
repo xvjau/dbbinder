@@ -3,63 +3,97 @@
 		<includes>
 			<file name="ibase.h" />
 		</includes>
-		<extra_headers>
-			<define>
-				#define SQLCHECK( FN ) if( FN != SQLITE_OK ) { std::cerr &lt;&lt; __FILE__ &lt;&lt; __LINE__ &lt;&lt; " SQL error: " &lt;&lt; sqlite3_errmsg(m_conn) &lt;&lt; std::endl; assert(false); };
-			</define>
-		</extra_headers>
+		<global_functions>
+			<function>
+				void checkFBError( const ISC_STATUS *_status )
+				{
+					if ( _status[0] == 1 &amp;&amp; _status[1] )
+					{
+						char str[512];
+						std::string	errMessage;
+						
+						while ( fb_interpret( str, 512, &amp;_status ) )
+						{
+							errMessage += str + '\n';
+						}
+						ASSERT_MSG( false, errMessage );
+					}
+				}
+			</function>
+			<function>
+				template&lt;typename P, typename T&gt; void add_dbd_param(P *&amp;_dpb, T _param)
+				{
+					*_dpb++ = _param;
+				}
+			</function>
+			<function>
+				template&lt;typename P, typename T&gt; void add_dbd_string(P *&amp;_dpb, T _param, const char *_str)
+				{
+					if ( _str.length() &lt; 256 )
+					{
+						*_dpb++ = _param;
+						*_dpb++ = strlen(_str);
+						
+						for ( const char *q = _str; *q; )
+							*_dpb++ = *q++;
+					}
+				}
+			</function>
+		<global_functions>
 		<types>
 			<connection>
-				<type value="sqlite3*"/>
+				<type value="isc_db_handle*"/>
 				<null value="0"/>
 			</connection>
 			<statement>
-				<type value="sqlite3_stmt*"/>
+				<type value="isc_stmt_handle*"/>
 				<null value="0"/>
 			</statement>
+			<transaction>
+				<type value="isc_tr_handle*"/>
+				<null value="0"/>
+			</transaction>
+			<error>
+				<type value="ISC_STATUS*"/>
+				<null value="0"/>
+			</error>
 		</types>
 		<connect>
-			SQLCHECK( sqlite3_open(s_dbparam_file, &amp;m_conn) );
+			{
+				char dpb [2048];
+				char *p = dpb;
+				
+				add_dbd_param(p, isc_dpb_version1);
+				add_dbd_string(p, isc_dpb_user_name, s_dbparam_user);
+				add_dbd_string(p, isc_dpb_password, s_dbparam_password);
+				add_dbd_string(p, isc_dpb_sql_role_name, s_dbparam_role);
+				add_dbd_string(p, isc_dpb_lc_ctype, s_dbparam_charset);
+			
+				int dpbLength = p - dpb;
+				
+				isc_attach_database( m_err, s_dbparam_db_len, const_cast&lt;char*&gt;(s_dbparam_db), &amp;m_conn, dpbLength, dpb );
+				checkFBError( m_err );
+			}
 		</connect>
 		<disconnect>
-			sqlite3_close( m_conn );
+			isc_detach_database( m_err, &amp;m_conn );
 		</disconnect>
 		<select>
 			<create>
+				isc_dsql_alloc_statement2( m_err, &amp;m_conn, &amp;m_stmt );
+				checkFBError( m_err );
 			</create>
 			<destroy>
-				sqlite3_finalize( m_selectStmt );
+				isc_dsql_free_statement( m_err, &amp;m_stmt, DSQL_drop );
+				checkFBError( m_err );
 			</destroy>
 			<prepare>
-				{
-					const char *tail;
-					SQLCHECK( sqlite3_prepare(m_conn, s_selectSQL, s_selectSQL_len, &amp;m_selectStmt,  &amp;tail ));
-				}
+				isc_dsql_prepare( m_err, &amp;m_tr, &amp;m_stmt, s_selectSQL_len, const_cast&lt;char*&gt;(s_selectSQL), 3, m_buffOutput );
+				checkFBError( m_err );
 			</prepare>
 			<fetch>
-				int ret = sqlite3_step( m_selectStmt );
-				switch ( ret )
-				{
-					case SQLITE_ROW:
-					{
-						m_currentRow.reset( new _row_type( m_selectStmt ));
-						return true;
-					}
-					case SQLITE_DONE:
-					{
-						m_currentRow.reset();
-						return false;
-					}
-					default:
-					{
-						m_currentRow.reset();
-						std::cerr &lt;&lt; "SQL error: " &lt;&lt; sqlite3_errmsg(m_conn) &lt;&lt; std::endl;
-						return false;
-					}
-				}
 			</fetch>
 			<reset>
-				SQLCHECK( sqlite3_reset(m_selectStmt));
 			</reset>
 		</select>
 	</lang>
