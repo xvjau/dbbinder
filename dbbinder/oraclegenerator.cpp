@@ -334,7 +334,7 @@ void OracleGenerator::addSelOutBuffers(const SelectElements * _select)
 
 		subDict = m_dict->AddSectionDictionary(tpl_SEL_OUT_FIELDS_BUFFERS);
 		subDict->SetValue(tpl_BUFFER_DECLARE, decl.str() );
-		subDict->SetValue(tpl_BUFFER_INITIALIZE, init.str() );
+		subDict->SetValue(tpl_BUFFER_ALLOC, init.str() );
 		
 		++index;
 	}

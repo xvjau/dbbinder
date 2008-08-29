@@ -52,6 +52,12 @@ const int {{CLASSNAME}}::s_selectParamCount = {{SELECT_PARAM_COUNT}};
 							):
 		m_iterator(0), m_conn( _conn ), m_selectIsActive( false ), m_needCloseConn( false )
 {
+	{{#SEL_IN_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
+	{{/SEL_IN_FIELDS_BUFFERS}}
+	
+	{{#SEL_OUT_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
+	{{/SEL_OUT_FIELDS_BUFFERS}}
+	
 	if ( !m_conn )
 	{
 		m_needCloseConn = true;
@@ -86,10 +92,10 @@ void {{CLASSNAME}}::open(
 		{{DBENGINE_RESET_SELECT}}
 	}
 
-	{{#SEL_IN_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
+	{{#SEL_IN_FIELDS_BUFFERS}}{{BUFFER_ALLOC}}
 	{{/SEL_IN_FIELDS_BUFFERS}}
 	
-	{{#SEL_OUT_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
+	{{#SEL_OUT_FIELDS_BUFFERS}}{{BUFFER_ALLOC}}
 	{{/SEL_OUT_FIELDS_BUFFERS}}
 
 	{{#SEL_IN_FIELDS}}{{SEL_IN_FIELD_BIND}}

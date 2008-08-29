@@ -28,19 +28,21 @@ using namespace TestApp;
 int main()
 {
 	{
-		cout << "Test 1\n------\nName:\t\tFestival:\t\tDate:\n";
+		cout << "\nTest 1\n------\nEmployee ID:\t\tFull Name:\t\tProject:\t\tHire Date:\t\tSalary:\n";
 		
 		selFestival stmt(2, 0);
 		
 		for( selFestival::iterator it = stmt.begin(); it != stmt.end(); ++it )
 		{
-			cout << it->getName() << "\t\t"
-					<< it->getFestival() << "\t\t"
-					<< it->getDate() << endl;
+			cout << it->getidEmployee() << "\t\t"
+					<< it->getfullName() << "\t\t"
+					<< it->getprojName() << "\t\t"
+					<< it->gethireDate() << "\t\t"
+					<< it->getsalary() << endl;
 		}
 	}
 
-	cout << "\n\nTest 2\n------\nName:\t\tFestival:\t\tDate:\n";
+	cout << "\n\nTest 2\n------\nEmployee ID:\t\tFull Name:\t\tProject:\t\tHire Date:\t\tSalary:\n";
 	
 	{
 		selFestival stmt(1, 0);
@@ -52,9 +54,13 @@ int main()
 		
 		for( MyListType::iterator it = myList.begin(); it != myList.end(); ++it )
 		{
-			cout << (*it)->getName() << "\t"
-					<< (*it)->getFestival() << "\t\t"
-					<< (*it)->getDate() << endl;
+			cout << (*it)->getidEmployee() << "\t\t"
+					<< (*it)->getfullName() << "\t\t"
+					<< (*it)->getprojName() << "\t\t"
+					<< (*it)->gethireDate() << "\t\t"
+					<< (*it)->getsalary() << endl;
 		}
 	}
+
+	cout << endl;
 }

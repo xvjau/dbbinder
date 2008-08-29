@@ -5,20 +5,26 @@
 		</includes>
 		<global_functions>
 			<function>
-				void checkFBError( const ISC_STATUS *_status )
+				static __thread ISC_STATUS err[32];
+				
+				static void printError()
 				{
-					if ( _status[0] == 1 &amp;&amp; _status[1] )
+					const ISC_STATUS *p = err;
+					char str[512];
+					std::string	errMessage;
+
+					while ( fb_interpret( str, 512, &amp;p ) )
 					{
-						char str[512];
-						std::string	errMessage;
-						
-						while ( fb_interpret( str, 512, &amp;_status ) )
-						{
-							errMessage += str + '\n';
-						}
-						ASSERT_MSG( false, errMessage );
+						errMessage += str + '\n';
 					}
-				}
+					ASSERT_MSG( false, errMessage );
+				};
+
+				inline void checkFBError()
+				{
+					if ( err[0] == 1 &amp;&amp; err[1] )
+						printError();
+				};
 			</function>
 			<function>
 				template&lt;typename P, typename T&gt; void add_dbd_param(P *&amp;_dpb, T _param)
@@ -43,27 +49,22 @@
 		</global_functions>
 		<types>
 			<connection>
-				<type value="isc_db_handle*"/>
+				<type value="isc_db_handle"/>
 				<null value="0"/>
 			</connection>
 			<statement>
-				<type value="isc_stmt_handle*"/>
+				<type value="isc_stmt_handle"/>
 				<null value="0"/>
 			</statement>
 			<transaction>
-				<type value="isc_tr_handle*"/>
+				<type value="isc_tr_handle"/>
 				<null value="0"/>
 				<name value="m_tr" />
 			</transaction>
-			<error>
-				<type value="ISC_STATUS"/>
-				<null value="0"/>
-				<name value="m_err[32]" />
-			</error>
 		</types>
 		<connect>
 			{
-				char dpb [2048];
+				char dpb [1024];
 				char *p = dpb;
 				
 				add_dbd_param(p, isc_dpb_version1);
@@ -74,25 +75,25 @@
 			
 				int dpbLength = p - dpb;
 				
-				isc_attach_database( m_err, strlen(s_dbparam_db), const_cast&lt;char*&gt;(s_dbparam_db), &amp;m_conn, dpbLength, dpb );
-				checkFBError( m_err );
+				isc_attach_database( err, strlen(s_dbparam_db), const_cast&lt;char*&gt;(s_dbparam_db), &amp;m_conn, dpbLength, dpb );
+				checkFBError();
 			}
 		</connect>
 		<disconnect>
-			isc_detach_database( m_err, &amp;m_conn );
+			isc_detach_database( err, &amp;m_conn );
 		</disconnect>
 		<select>
 			<create>
-				isc_dsql_alloc_statement2( m_err, &amp;m_conn, &amp;m_selectStmt );
-				checkFBError( m_err );
+				isc_dsql_alloc_statement2( err, &amp;m_conn, &amp;m_selectStmt );
+				checkFBError();
 			</create>
 			<destroy>
-				isc_dsql_free_statement( m_err, &amp;m_selectStmt, DSQL_drop );
-				checkFBError( m_err );
+				isc_dsql_free_statement( err, &amp;m_selectStmt, DSQL_drop );
+				checkFBError();
 			</destroy>
 			<prepare>
-				isc_dsql_prepare( m_err, &amp;m_tr, &amp;m_selectStmt, s_selectSQL_len, const_cast&lt;char*&gt;(s_selectSQL), 3, m_buffOutput );
-				checkFBError( m_err );
+				isc_dsql_prepare( err, &amp;m_tr, &amp;m_selectStmt, s_selectSQL_len, const_cast&lt;char*&gt;(s_selectSQL), 3, m_selOutBuffer );
+				checkFBError();
 			</prepare>
 			<fetch>
 			</fetch>

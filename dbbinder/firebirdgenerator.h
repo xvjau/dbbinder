@@ -44,6 +44,11 @@ class FirebirdGenerator : public AbstractGenerator
 		virtual String getBind(const ListElements::iterator& _item, int _index);
 		virtual String getReadValue(const ListElements::iterator& _item, int _index);
 
+		virtual bool   needIOBuffers() const;
+		
+		virtual void addSelInBuffers(const SelectElements* _select);
+		virtual void addSelOutBuffers(const SelectElements* _select);
+
 };
 
 }

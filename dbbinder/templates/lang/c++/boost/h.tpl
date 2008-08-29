@@ -43,6 +43,8 @@ class {{CLASSNAME}}
 		bool							m_needCloseConn;
 		{{#EXTRA_HEADERS}}{{EXTRA_HEADERS_MEMBER}}
 		{{/EXTRA_HEADERS}}
+		{{#DBENGINE_EXTRAS}}{{DBENGINE_EXTRA_VAR}}
+		{{/DBENGINE_EXTRAS}}
 {{#SELECT}}
 	public:
 		{{CLASSNAME}}(

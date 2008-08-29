@@ -88,6 +88,52 @@ SQLTypes fbtypeToSQLType(const int _fbtype)
 				return stText;
 		}
 }
+
+void getFirebirdTypes( SQLTypes _type, String &_lang, String _fb )
+{
+	switch ( _type )
+	{
+		case stUnknown:
+			FATAL("BUG BUG BUG! " << __FILE__ << __LINE__);
+		case stInt:
+		case stUInt:
+			_lang = "int";
+			_fb = "SQL_LONG";
+			break;
+		case stInt64:
+		case stUInt64:
+			_lang = "long long int";
+			_fb = "SQL_INT64";
+			break;
+		case stFloat:
+		case stUFloat:
+			_lang = "float";
+			_fb = "SQL_FLOAT";
+			break;
+		case stDouble:
+		case stUDouble:
+			_lang = "int";
+			_fb = "SQL_DOUBLE";
+			break;
+		case stTimeStamp:
+			_lang = "int";
+			_fb = "SQL_LONG";
+			break;
+		case stTime:
+			_lang = "int";
+			_fb = "SQL_LONG";
+			break;
+		case stDate:
+			_lang = "char";
+			_fb = "SQL_LONG";
+			break;
+		case stText:
+			_lang = "char";
+			_fb = "SQL_TEXT";
+			break;
+	}
+}
+
 	
 FirebirdGenerator::FirebirdGenerator()
  : AbstractGenerator(), m_conn(0)
@@ -206,4 +252,41 @@ void FirebirdGenerator::addSelect(SelectElements _elements)
     AbstractGenerator::addSelect(_elements);
 }
 
+bool FirebirdGenerator::needIOBuffers() const
+{
+	return true;
 }
+
+void FirebirdGenerator::addSelInBuffers(const SelectElements * _select)
+{
+	google::TemplateDictionary *subDict;
+	
+	subDict = m_dict->AddSectionDictionary(tpl_SEL_IN_FIELDS_BUFFERS);
+	subDict->SetValue(tpl_BUFFER_DECLARE, "XSQLDA *m_selInBuffer;" );
+	subDict->SetValue(tpl_BUFFER_INITIALIZE, "m_selInBuffer = 0;" );
+	subDict->SetValue(tpl_BUFFER_ALLOC,
+					  "if (!m_selOutBuffer)\n{\n"
+					  "m_selInBuffer = (XSQLDA *)malloc( XSQLDA_LENGTH( s_selectParamCount ) );\n"
+					  "memset(m_selInBuffer, 0, XSQLDA_LENGTH( s_selectParamCount ));\n"
+					  "m_selInBuffer->version = SQLDA_VERSION1;\n"
+					  "m_selInBuffer->sqln = s_selectParamCount;\n}"
+					 );
+}
+
+void FirebirdGenerator::addSelOutBuffers(const SelectElements * _select)
+{
+	google::TemplateDictionary *subDict;
+	subDict = m_dict->AddSectionDictionary(tpl_SEL_OUT_FIELDS_BUFFERS);
+	subDict->SetValue(tpl_BUFFER_DECLARE, "XSQLDA *m_selOutBuffer;" );
+	subDict->SetValue(tpl_BUFFER_INITIALIZE, "m_selOutBuffer = 0;" );
+	subDict->SetValue(tpl_BUFFER_ALLOC,
+					  "if (!m_selOutBuffer)\n{\n"
+					  "m_selOutBuffer = (XSQLDA *)malloc( XSQLDA_LENGTH( s_selectFieldCount ) );\n"
+					  "memset(m_selOutBuffer, 0, XSQLDA_LENGTH( s_selectFieldCount ));\n"
+					  "m_selOutBuffer->version = SQLDA_VERSION1;\n"
+					  "m_selOutBuffer->sqln = s_selectFieldCount;\n}"
+					 );
+}
+
+}
+

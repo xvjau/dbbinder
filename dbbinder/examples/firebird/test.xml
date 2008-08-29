@@ -1,7 +1,7 @@
 <xml>
 	<database>
 		<type>Firebird</type>
-		<db>//dbserver/employee</db>
+		<db>dbserver:employee</db>
 		<user>grossi</user>
 		<password>grossi</password>
 		<charset>UTF8</charset>

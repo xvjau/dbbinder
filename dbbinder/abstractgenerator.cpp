@@ -64,6 +64,7 @@ const char * const tpl_SEL_IN_FIELD_BIND = "SEL_IN_FIELD_BIND";
 const char * const tpl_SEL_IN_FIELDS_BUFFERS = "SEL_IN_FIELDS_BUFFERS";
 
 const char * const tpl_BUFFER_DECLARE = "BUFFER_DECLARE";
+const char * const tpl_BUFFER_ALLOC = "BUFFER_ALLOC";
 const char * const tpl_BUFFER_INITIALIZE = "BUFFER_INITIALIZE";
 
 const char * const tpl_SEL_OUT_FIELDS = "SEL_OUT_FIELDS";
@@ -96,6 +97,8 @@ const char * const tpl_DBENGINE_DISCONNECT = "DBENGINE_DISCONNECT";
 const char * const tpl_DBENGINE_RESET_SELECT = "DBENGINE_RESET_SELECT";
 const char * const tpl_DBENGINE_EXECUTE_SELECT = "DBENGINE_EXECUTE_SELECT";
 const char * const tpl_DBENGINE_FETCH_SELECT = "DBENGINE_FETCH_SELECT";
+const char * const tpl_DBENGINE_EXTRAS = "DBENGINE_EXTRAS";
+const char * const tpl_DBENGINE_EXTRA_VAR = "DBENGINE_EXTRA_VAR";
 
 
 SQLTypes typeNameToSQLType(String _name)
@@ -577,18 +580,29 @@ bool AbstractGenerator::loadXMLDatabase(const String& _path)
 					node = 0;
 					while( node = lang->IterateChildren( "types", node ))
 					{
-						elem = node->FirstChildElement("connection", false);
-						if ( elem )
+						subnode = 0;
+						while( subnode = node->IterateChildren( subnode ))
 						{
-							GET_TEXT_OR_ATTR_SET_TMPL( str, elem->FirstChildElement("type"), "value", m_dict, tpl_DBENGINE_CONNECTION_TYPE);
-							GET_TEXT_OR_ATTR_SET_TMPL( str, elem->FirstChildElement("null"), "value", m_dict, tpl_DBENGINE_CONNECTION_NULL);
-						}
-
-						elem = node->FirstChildElement("statement", false);
-						if ( elem )
-						{
-							GET_TEXT_OR_ATTR_SET_TMPL( str, elem->FirstChildElement("type"), "value", m_dict, tpl_DBENGINE_STATEMENT_TYPE);
-							GET_TEXT_OR_ATTR_SET_TMPL( str, elem->FirstChildElement("null"), "value", m_dict, tpl_DBENGINE_STATEMENT_NULL);
+							if ( subnode->Value() == "connection" )
+							{
+								GET_TEXT_OR_ATTR_SET_TMPL( str, subnode->FirstChildElement("type"), "value", m_dict, tpl_DBENGINE_CONNECTION_TYPE);
+								GET_TEXT_OR_ATTR_SET_TMPL( str, subnode->FirstChildElement("null"), "value", m_dict, tpl_DBENGINE_CONNECTION_NULL);
+							}
+							else if ( subnode->Value() == "statement" )
+							{
+								GET_TEXT_OR_ATTR_SET_TMPL( str, subnode->FirstChildElement("type"), "value", m_dict, tpl_DBENGINE_STATEMENT_TYPE);
+								GET_TEXT_OR_ATTR_SET_TMPL( str, subnode->FirstChildElement("null"), "value", m_dict, tpl_DBENGINE_STATEMENT_NULL);
+							}
+							else
+							{
+								elem = subnode->ToElement();
+								m_dict->ShowSection( tpl_DBENGINE_EXTRAS );
+								subDict = m_dict->AddSectionDictionary( tpl_DBENGINE_EXTRAS );
+								subDict->SetValue( tpl_DBENGINE_EXTRA_VAR,
+										elem->FirstChildElement("type")->GetAttributeOrDefault("value", "") + " " +
+										elem->FirstChildElement("name")->GetAttributeOrDefault("value", "") + ";"
+												 );
+							}
 						}
 					}
 
