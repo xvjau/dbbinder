@@ -133,12 +133,17 @@ String SQLiteGenerator::getBind(const ListElements::iterator & _item, int _index
 			FATAL("BUG BUG BUG! " << __FILE__ << __LINE__);
 		}
 		case stInt:
+		case stUInt:
+		case stInt64:
+		case stUInt64:
 		{
 			str << "int";
 			break;
 		}
 		case stFloat:
+		case stUFloat:
 		case stDouble:
+		case stUDouble:
 		{
 			str << "double";
 			break;
@@ -171,12 +176,17 @@ String SQLiteGenerator::getReadValue(const ListElements::iterator & _item, int _
 			FATAL("BUG BUG BUG! " << __FILE__ << __LINE__);
 		}
 		case stInt:
+		case stUInt:
+		case stInt64:
+		case stUInt64:
 		{
 			str << "m_" << _item->name << " = sqlite3_column_int(_parent->m_selectStmt, " << _index << ");";
 			break;
 		}
 		case stFloat:
+		case stUFloat:
 		case stDouble:
+		case stUDouble:
 		{
 			str << "m_" << _item->name << " = sqlite3_column_double(_parent->m_selectStmt, " << _index << ");";
 			break;

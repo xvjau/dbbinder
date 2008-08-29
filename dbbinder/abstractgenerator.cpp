@@ -236,14 +236,39 @@ String AbstractGenerator::getType(SQLTypes _sqlType)
 				result = "int";
 				break;
 			}
+			case stUInt:
+			{
+				result = "unsigned int";
+				break;
+			}
+			case stInt64:
+			{
+				result = "long long int";
+				break;
+			}
+			case stUInt64:
+			{
+				result = "unsigned long long int";
+				break;
+			}
 			case stFloat:
 			{
 				result = "float";
 				break;
 			}
+			case stUFloat:
+			{
+				result = "unsigned float";
+				break;
+			}
 			case stDouble:
 			{
 				result = "double";
+				break;
+			}
+			case stUDouble:
+			{
+				result = "unsigned double";
 				break;
 			}
 			case stTimeStamp:
@@ -272,8 +297,13 @@ String AbstractGenerator::getInit(SQLTypes _sqlType)
 			FATAL("BUG BUG BUG! " << __FILE__ << __LINE__);
 		}
 		case stInt:
+		case stUInt:
+		case stInt64:
+		case stUInt64:
 		case stFloat:
+		case stUFloat:
 		case stDouble:
+		case stUDouble:
 		{
 			result = "0";
 			break;

@@ -29,8 +29,13 @@ enum SQLTypes
 {
 	stUnknown,
 	stInt,
+	stInt64,
+	stUInt,
+	stUInt64,
 	stFloat,
 	stDouble,
+	stUFloat,
+	stUDouble,
 	stTimeStamp,
 	stTime,
 	stDate,
