@@ -29,17 +29,18 @@
 			<function>
 				template&lt;typename P, typename T&gt; void add_dbd_string(P *&amp;_dpb, T _param, const char *_str)
 				{
-					if ( _str.length() &lt; 256 )
+					unsigned int _strLength = strlen(_str);
+					if ( _strLength &lt; 256 )
 					{
 						*_dpb++ = _param;
-						*_dpb++ = strlen(_str);
+						*_dpb++ = _strLength;
 						
 						for ( const char *q = _str; *q; )
 							*_dpb++ = *q++;
 					}
 				}
 			</function>
-		<global_functions>
+		</global_functions>
 		<types>
 			<connection>
 				<type value="isc_db_handle*"/>
@@ -52,10 +53,12 @@
 			<transaction>
 				<type value="isc_tr_handle*"/>
 				<null value="0"/>
+				<name value="m_tr" />
 			</transaction>
 			<error>
-				<type value="ISC_STATUS*"/>
+				<type value="ISC_STATUS"/>
 				<null value="0"/>
+				<name value="m_err[32]" />
 			</error>
 		</types>
 		<connect>
@@ -71,7 +74,7 @@
 			
 				int dpbLength = p - dpb;
 				
-				isc_attach_database( m_err, s_dbparam_db_len, const_cast&lt;char*&gt;(s_dbparam_db), &amp;m_conn, dpbLength, dpb );
+				isc_attach_database( m_err, strlen(s_dbparam_db), const_cast&lt;char*&gt;(s_dbparam_db), &amp;m_conn, dpbLength, dpb );
 				checkFBError( m_err );
 			}
 		</connect>
@@ -80,15 +83,15 @@
 		</disconnect>
 		<select>
 			<create>
-				isc_dsql_alloc_statement2( m_err, &amp;m_conn, &amp;m_stmt );
+				isc_dsql_alloc_statement2( m_err, &amp;m_conn, &amp;m_selectStmt );
 				checkFBError( m_err );
 			</create>
 			<destroy>
-				isc_dsql_free_statement( m_err, &amp;m_stmt, DSQL_drop );
+				isc_dsql_free_statement( m_err, &amp;m_selectStmt, DSQL_drop );
 				checkFBError( m_err );
 			</destroy>
 			<prepare>
-				isc_dsql_prepare( m_err, &amp;m_tr, &amp;m_stmt, s_selectSQL_len, const_cast&lt;char*&gt;(s_selectSQL), 3, m_buffOutput );
+				isc_dsql_prepare( m_err, &amp;m_tr, &amp;m_selectStmt, s_selectSQL_len, const_cast&lt;char*&gt;(s_selectSQL), 3, m_buffOutput );
 				checkFBError( m_err );
 			</prepare>
 			<fetch>
