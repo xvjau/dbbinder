@@ -1,0 +1,42 @@
+database:
+  type: "SQLite3"
+  file: test.db
+
+select:
+  name: selFestival
+  param:
+    name: idUser
+    type: int
+    default: 2
+
+  param:
+    name: minDate
+    type: int
+    default: 0
+
+  sql: |
+    select
+      U."NAME" as "Name",
+      F."DATE" as "Date",
+      F."TITLE" as "Festival"
+    from
+      "USERS" U join "USERS_FESTIVALS" UF on
+        U."IDUSER" = UF."IDUSER"
+      join "FESTIVALS" F on
+        UF."IDFESTIVAL" = F."IDFESTIVAL"
+    where
+      U."NAME" = ? and
+      F."DATE" > ?
+    order by
+      F."DATE"
+
+extra:
+  types:
+    string: String
+
+  namespaces:
+    - TestApp
+
+  headers:
+    - #include <string>
+    - typedef std::string String;
