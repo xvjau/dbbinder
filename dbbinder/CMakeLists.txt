@@ -8,7 +8,7 @@ project(dbbinder)
 
 add_subdirectory(./TinyXML)
 
-add_definitions(-Wall -Wno-parentheses -g -DTIXML_USE_TICPP)
+add_definitions(-Wall -Wno-parentheses -ggdb -DTIXML_USE_TICPP)
 
 add_custom_command(OUTPUT options.h
 					COMMAND gperf
@@ -110,6 +110,34 @@ if(ENABLE_ORACLE)
 		message(STATUS "Oracle not found.")
 	endif (ORACLE_INCLUDE AND ORACLE_LIB)
 endif(ENABLE_ORACLE)
+
+# YAML
+
+string(LENGTH "${ENABLE_YAML}" ENABLE_YAML_LEN)
+if (ENABLE_YAML_LEN EQUAL 0)
+	set(ENABLE_YAML ON)
+endif(ENABLE_YAML_LEN EQUAL 0)
+
+if(ENABLE_YAML)
+	find_file(YAML_INCLUDE yaml.h)
+	find_file(YAML_LIB libyaml.so PATHS /usr/lib /usr/local/lib)
+
+	if (YAML_INCLUDE AND YAML_LIB)
+		message(STATUS "YAML found.")
+		add_definitions(-DWITH_YAML)
+		
+		get_filename_component(YAML_INCLUDE_PATH ${YAML_INCLUDE} PATH)
+		include_directories(${YAML_INCLUDE_PATH})
+		
+		list(APPEND extra_libs yaml)
+		get_filename_component(YAML_LIB_PATH ${YAML_LIB} PATH)
+		link_directories(${YAML_LIB_PATH})
+		
+	else (YAML_INCLUDE AND YAML_LIB)
+		message(STATUS "YAML not found.")
+	endif (YAML_INCLUDE AND YAML_LIB)
+endif(ENABLE_YAML)
+
 
 add_executable(dbbinder main.cpp abstractgenerator sqlitegenerator ${extra_files})
 

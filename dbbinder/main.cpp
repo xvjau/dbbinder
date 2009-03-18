@@ -21,6 +21,12 @@
 #include "abstractgenerator.h"
 #include "options.h"
 
+#ifdef WITH_YAML
+#include <yaml.h>
+#endif
+
+#include <errno.h>
+
 #define DEFAULT_TEMLPATE "c++,boost"
 
 namespace DBBinder
@@ -51,6 +57,9 @@ String cescape(const String & _string)
 		{
 			case '"':
 				result += "\\\"";
+				break;
+			case '\n':
+				result += " \\\n";
 				break;
 			default:
 				result += c;
@@ -234,6 +243,416 @@ void parseXML()
 	}
 }
 
+#ifdef WITH_YAML
+FILE *yamlFile = 0;
+
+inline void getYAMLEvent(yaml_parser_t &_parser, yaml_event_t& _event)
+{
+	if (!yaml_parser_parse(&_parser, &_event))
+	{
+		const char *problem = _parser.problem;
+		const char *context = _parser.context;
+		yaml_mark_t mark = _parser.problem_mark;
+
+		/* Destroy the Parser object. */
+		yaml_parser_delete(&_parser);
+
+		fclose(yamlFile);
+		FATAL("YAML: " << optFileName << ": " << problem << " " << context << " at line " << mark.line << " at col " << mark.column);
+	}
+}
+
+void parseYAMLDatabase(yaml_parser_t &parser, AbstractGenerator **_generator)
+{
+	yaml_event_t event;
+	getYAMLEvent(parser, event);
+	
+	if ( event.type != YAML_MAPPING_START_EVENT )
+		FATAL("YAML: Expected YAML_MAPPING_START_EVENT");
+	
+	getYAMLEvent(parser, event);
+	if ( event.type != YAML_SCALAR_EVENT )
+		FATAL("YAML: Expected YAML_SCALAR_EVENT");
+
+	if ( strcasecmp(reinterpret_cast<const char*>(event.data.scalar.value), "type") != 0)
+		FATAL("YAML: Expected database->type");
+
+	getYAMLEvent(parser, event);
+	if ( event.type != YAML_SCALAR_EVENT )
+		FATAL("YAML: Expected YAML_SCALAR_EVENT");
+	
+	*_generator = AbstractGenerator::getGenerator( reinterpret_cast<const char*>(event.data.scalar.value) );
+	
+	bool done = false;
+
+	String attr;
+	
+	while ( !done )
+	{
+		getYAMLEvent(parser, event);
+
+		switch( event.type )
+		{
+			case YAML_MAPPING_START_EVENT: // A MAPPING-START event.
+				break;
+			case YAML_MAPPING_END_EVENT:
+				done = true;
+				break;
+			case YAML_SCALAR_EVENT:
+			{
+				String value(reinterpret_cast<const char*>(event.data.scalar.value));
+
+				if ( attr.empty() )
+					attr = value;
+				else
+				{
+					(*_generator)->setDBParam( attr, value );
+					attr.clear();
+				}
+				break;
+			}
+
+			default:
+				WARNING("YAML: " << optFileName << ": Unknown YAML event: " << event.type << " in database");
+		}
+	}
+}
+
+void getYAMLParams(yaml_parser_t &parser, AbstractElements* _elements)
+{
+	yaml_event_t event;
+
+	getYAMLEvent(parser, event);
+	if ( event.type != YAML_MAPPING_START_EVENT )
+		FATAL("YAML: Expected YAML_MAPPING_START_EVENT");
+	yaml_event_delete(&event);
+
+	getYAMLEvent(parser, event);
+	if ( event.type != YAML_SCALAR_EVENT )
+		FATAL("YAML: Expected YAML_SCALAR_EVENT");
+
+	if ( strcasecmp(reinterpret_cast<const char*>(event.data.scalar.value), "name") != 0)
+		FATAL("YAML: Expected select->name");
+	yaml_event_delete(&event);
+	
+	getYAMLEvent(parser, event);
+	if ( event.type != YAML_SCALAR_EVENT )
+		FATAL("YAML: Expected YAML_SCALAR_EVENT");
+
+	_elements->name = reinterpret_cast<const char*>(event.data.scalar.value);
+	yaml_event_delete(&event);
+	
+	bool done = false;
+
+	String attr;
+
+	SQLTypes type;
+	String name, defaultValue, strType;
+	int index;
+	
+	while ( !done )
+	{
+		getYAMLEvent(parser, event);
+
+		switch( event.type )
+		{
+			case YAML_MAPPING_START_EVENT: // A MAPPING-START event.
+				break;
+			case YAML_MAPPING_END_EVENT:
+				done = true;
+				break;
+			case YAML_SCALAR_EVENT:
+			{
+				String value(reinterpret_cast<const char*>(event.data.scalar.value));
+
+				if ( attr.empty() )
+					attr = value;
+				else
+				{
+					if ( attr == "sql" )
+						_elements->sql = value;
+					else if ( attr == "param" )
+					{
+						attr = value;
+						name.clear();
+						strType.clear();
+						defaultValue.clear();
+						index = -1;
+
+						bool paramDone = false;
+						while( !paramDone )
+						{
+							getYAMLEvent(parser, event);
+
+							if ( event.type == YAML_SCALAR_EVENT )
+							{
+								value = String(reinterpret_cast<const char*>(event.data.scalar.value));
+								
+								if ( attr.empty() )
+									attr = value;
+								else
+								{
+									if ( attr == "name" )
+										name = value;
+									else if ( attr == "type" )
+										strType = value;
+									else if ( attr == "default" )
+										defaultValue = value;
+									else if ( attr == "index" )
+										index = atoi( value.c_str() );
+
+									attr.clear();
+								}
+							}
+							else if ( event.type == YAML_MAPPING_END_EVENT )
+							{
+								paramDone = true;
+							}
+							
+							yaml_event_delete(&event);
+						}
+
+						type = typeNameToSQLType(strType);
+						if ( type == stUnknown )
+						{
+							WARNING("unknown param type for: " << name);
+							type = stText;
+						}
+						
+						_elements->input.push_back( SQLElement( name, type, index, defaultValue ));
+					}
+					
+					attr.clear();
+				}
+				break;
+			}
+
+			default:
+				WARNING("YAML: " << optFileName << ": Unknown YAML event: " << event.type << " in params");
+		}
+
+		yaml_event_delete(&event);
+	}
+}
+
+void parseYAMLSelect(yaml_parser_t &parser, AbstractGenerator **_generator)
+{
+	SelectElements elements;
+	getYAMLParams( parser, &elements );
+	(*_generator)->addSelect( elements );
+}
+
+void parseYAMLInsert(yaml_parser_t &parser, AbstractGenerator **_generator)
+{
+	InsertElements elements;
+	getYAMLParams( parser, &elements );
+	(*_generator)->addInsert( elements );
+}
+
+void parseYAMLUpdate(yaml_parser_t &parser, AbstractGenerator **_generator)
+{
+	UpdateElements elements;
+	getYAMLParams( parser, &elements );
+	(*_generator)->addUpdate( elements );
+}
+
+void parseYAMLExtra(yaml_parser_t &parser, AbstractGenerator **_generator)
+{
+	yaml_event_t event;
+
+	getYAMLEvent(parser, event);
+	if ( event.type != YAML_MAPPING_START_EVENT )
+		FATAL("YAML: Expected YAML_MAPPING_START_EVENT");
+	yaml_event_delete(&event);
+
+	String sequence;
+	
+	bool done = false;
+	while( !done )
+	{
+		getYAMLEvent(parser, event);
+
+		switch( event.type )
+		{
+			case YAML_MAPPING_END_EVENT:
+				done = true;
+				break;
+
+			case YAML_SCALAR_EVENT:
+			{
+				String value(reinterpret_cast<const char*>(event.data.scalar.value));
+
+				if ( value == "types" )
+				{
+					getYAMLEvent(parser, event);
+					if ( event.type != YAML_MAPPING_START_EVENT )
+						FATAL("YAML: Expected YAML_MAPPING_START_EVENT");
+					yaml_event_delete(&event);
+
+					String attr;
+					
+					bool typesDone = false;
+					while( !typesDone )
+					{
+						getYAMLEvent(parser, event);
+						
+						if( event.type == YAML_SCALAR_EVENT )
+						{
+							value = String(reinterpret_cast<const char*>(event.data.scalar.value));
+							
+							if ( attr.empty() )
+								attr = value;
+							else
+							{
+								SQLTypes type = typeNameToSQLType( value );
+
+								if ( type == stUnknown )
+								{
+									WARNING("unknown type for: " << value);
+								}
+								else
+									(*_generator)->setType( type, value );
+								
+								attr.clear();
+							}
+						}
+						else if( event.type == YAML_MAPPING_END_EVENT )
+						{
+							typesDone = true;
+						}
+						
+						yaml_event_delete(&event);
+					}
+				}
+				else if (( value == "namespaces" ) || ( value == "headers" ))
+					sequence = value;
+				else
+					WARNING("YAML: Unknown extra: " << value);
+				break;
+			}
+			case YAML_SEQUENCE_START_EVENT:
+			{
+				bool sequenceDone = false;
+				while( !sequenceDone )
+				{
+					getYAMLEvent(parser, event);
+
+					if( event.type == YAML_SCALAR_EVENT )
+					{
+						String value(reinterpret_cast<const char*>(event.data.scalar.value));
+
+						if ( sequence == "namespaces")
+							(*_generator)->addNamespace( value );
+						else if ( sequence == "headers")
+							(*_generator)->addHeader( value );
+						else
+							WARNING("YAML: Unknown sequence: " << sequence);
+					}
+					else if( event.type == YAML_SEQUENCE_END_EVENT )
+					{
+						sequenceDone = true;
+					}
+					
+					yaml_event_delete(&event);
+				}
+				
+				break;
+			}
+			default:
+				WARNING("YAML: " << optFileName << ": Unknown YAML event: " << event.type << " in extras");
+		}
+		
+		yaml_event_delete(&event);
+	}
+}
+
+void parseYAML()
+{
+	yaml_parser_t parser;
+	yaml_event_t event;
+
+	/* Create the Parser object. */
+	yaml_parser_initialize(&parser);
+
+	/* Set a file input. */
+	yamlFile = fopen(optFileName, "rb");
+	if ( !yamlFile )
+	{
+		FATAL("YAML: " << optFileName << ": " << strerror(errno));
+	}
+
+	yaml_parser_set_input_file(&parser, yamlFile);
+
+	AbstractGenerator *generator = 0;
+	
+	String tagName;
+	
+	/* Read the event sequence. */
+	bool done = false;
+	while (!done)
+	{
+		/* Get the next event. */
+		getYAMLEvent(parser, event);
+
+		switch( event.type )
+		{
+			case YAML_STREAM_END_EVENT: // A STREAM-END event.
+				done = true;
+				break;
+				
+			case YAML_SCALAR_EVENT: // A SCALAR event.
+			{
+				String value(reinterpret_cast<const char*>(event.data.scalar.value));
+				
+				switch( value[0] )
+				{
+					case 'd':
+						if ( value == "database" )
+							parseYAMLDatabase(parser, &generator);
+						break;
+						
+					case 'e':
+						if ( value == "extra" )
+							parseYAMLExtra(parser, &generator);
+						break;
+
+					case 'i':
+						if ( value == "insert" )
+							parseYAMLInsert(parser, &generator);
+						break;
+					
+					case 's':
+						if ( value == "select" )
+							parseYAMLSelect(parser, &generator);
+						break;
+
+					case 'u':
+						if ( value == "update" )
+							parseYAMLUpdate(parser, &generator);
+						break;
+					default:
+						WARNING("YAML: Unknown value: " << value);
+				}
+				
+				break;
+			}
+			default:
+				break;
+		}
+
+		/* The application is responsible for destroying the event object. */
+		yaml_event_delete(&event);
+	}
+
+	/* Destroy the Parser object. */
+	yaml_parser_delete(&parser);
+
+	fclose(yamlFile);
+
+	generator->generate();
+}
+#endif
+
 }
 
 void printHelp()
@@ -393,11 +812,33 @@ int main(int argc, char *argv[])
 			DBBinder::optTemplateDirs.push_back( DBBinder::defaultTemplateDirs[i] );
 	}
 
+	// If not explicitly selected by the user, deduce the type fromt the file's extension
+	if ( !DBBinder::optXML && !DBBinder::optYAML )
+	{
+		const char *c = DBBinder::optFileName;
+		c += strlen( DBBinder::optFileName ) - 4;
+		
+		if ( strcasecmp(c, ".xml") == 0 )
+		{
+			DBBinder::optXML = true;
+		}
+		else
+		{
+			if ( strcasecmp(--c, ".yaml") == 0 )
+				DBBinder::optYAML = true;
+		}
+	}
+	
 	if ( DBBinder::optXML || !DBBinder::optYAML )
 		DBBinder::parseXML();
 	else
-		FATAL("YAML parser not implemented yet. sorry.");
+	{
+#ifdef WITH_YAML
+		DBBinder::parseYAML();
+#else
+		FATAL("YAML not enabled in this build.");
+#endif
+	}
 	
 	return 0;
 }
-
