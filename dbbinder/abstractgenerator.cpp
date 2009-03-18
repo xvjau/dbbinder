@@ -19,9 +19,19 @@
 
 #include "abstractgenerator.h"
 #include "sqlitegenerator.h"
+
+#ifdef WITH_ORACLE
 #include "oraclegenerator.h"
+#endif
+
+#ifdef WITH_MYSQL
 #include "mysqlgenerator.h"
+#endif
+
+#ifdef WITH_FIREBIRD
 #include "firebirdgenerator.h"
+#endif
+
 #include "main.h"
 
 namespace DBBinder
@@ -171,6 +181,7 @@ AbstractGenerator* AbstractGenerator::getGenerator(const String & _type)
 		String type = stringToLower( _type );
 		switch ( type[0] )
 		{
+#ifdef WITH_FIREBIRD
 			case 'f':
 			case 'i':
 			{
@@ -179,6 +190,8 @@ AbstractGenerator* AbstractGenerator::getGenerator(const String & _type)
 					return new FirebirdGenerator();
 				}
 			}
+#endif // WITH_FIREBRID
+#ifdef WITH_MYSQL
 			case 'm':
 			{
 				if ( type == "mysql" )
@@ -186,6 +199,8 @@ AbstractGenerator* AbstractGenerator::getGenerator(const String & _type)
 					return new MySQLGenerator();
 				}
 			}
+#endif // WITH_MYSQL
+#ifdef WITH_ORACLE
 			case 'o':
 			{
 				if ( type == "oracle" )
@@ -193,6 +208,7 @@ AbstractGenerator* AbstractGenerator::getGenerator(const String & _type)
 					return new OracleGenerator();
 				}
 			}
+#endif // WITH_ORACLE
 			case 's':
 			{
 				if ( type == "sqlite" || type == "sqlite3" )
