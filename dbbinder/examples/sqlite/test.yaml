@@ -16,19 +16,19 @@ select:
 
   sql: |
     select
-      U."NAME" as "Name",
-      F."DATE" as "Date",
-      F."TITLE" as "Festival"
+    	U."NAME" as "Name",
+    	F."TITLE" as "Festival",
+    	F."DATE" as "Date"
     from
-      "USERS" U join "USERS_FESTIVALS" UF on
-        U."IDUSER" = UF."IDUSER"
-      join "FESTIVALS" F on
-        UF."IDFESTIVAL" = F."IDFESTIVAL"
+    	"USERS" U join "USERS_FESTIVALS" UF on
+    		U."IDUSER" = UF."IDUSER"
+    	join "FESTIVALS" F on
+    		UF."IDFESTIVAL" = F."IDFESTIVAL"
     where
-      U."NAME" = ? and
-      F."DATE" > ?
+    	U."IDUSER" = ? and
+    	F."DATE" > ?
     order by
-      F."DATE"
+    	F."DATE"
 
 extra:
   types:
