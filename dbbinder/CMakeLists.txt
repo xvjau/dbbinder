@@ -15,6 +15,11 @@ add_definitions(-Wall -Wno-parentheses -g -DTIXML_USE_TICPP)
 
 add_custom_command(OUTPUT options.h COMMAND gperf ARGS -CGD -N isValid -K option -L C++ -t options.gperf > options.h DEPENDS options.gperf COMMENT build options.h)
 
+find_package( Boost )
+if(Boost_FOUND)
+	include_directories(${Boost_INCLUDE_DIRS})
+endif()
+
 add_executable(dbbinder main.cpp abstractgenerator sqlitegenerator oraclegenerator firebirdgenerator mysqlgenerator)
 
 set_source_files_properties(main.cpp PROPERTIES OBJECT_DEPENDS options.h)
