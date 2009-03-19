@@ -255,8 +255,29 @@ extern const char * const tpl_DBENGINE_STATEMENT_NULL;
 
 extern const char * const tpl_UPDATE;
 extern const char * const tpl_UPDATE_SQL;
+extern const char * const tpl_UPDATE_SQL_LEN;
+extern const char * const tpl_UPDATE_FIELD_COUNT;
+extern const char * const tpl_UPDATE_PARAM_COUNT;
+extern const char * const tpl_UPD_IN_FIELDS;
+extern const char * const tpl_UPD_IN_FIELD_TYPE;
+extern const char * const tpl_UPD_IN_FIELD_NAME;
+extern const char * const tpl_UPD_IN_FIELD_COMMA;
+extern const char * const tpl_UPD_IN_FIELD_INIT;
+extern const char * const tpl_UPD_IN_FIELD_BIND;
+extern const char * const tpl_UPD_IN_FIELDS_BUFFERS;
+
 extern const char * const tpl_INSERT;
 extern const char * const tpl_INSERT_SQL;
+extern const char * const tpl_INSERT_SQL_LEN;
+extern const char * const tpl_INSERT_FIELD_COUNT;
+extern const char * const tpl_INSERT_PARAM_COUNT;
+extern const char * const tpl_INS_IN_FIELDS;
+extern const char * const tpl_INS_IN_FIELD_TYPE;
+extern const char * const tpl_INS_IN_FIELD_NAME;
+extern const char * const tpl_INS_IN_FIELD_COMMA;
+extern const char * const tpl_INS_IN_FIELD_INIT;
+extern const char * const tpl_INS_IN_FIELD_BIND;
+extern const char * const tpl_INS_IN_FIELDS_BUFFERS;
 
 extern const char * const tpl_DBENGINE_GLOBAL_PARAMS;
 extern const char * const tpl_TYPE;

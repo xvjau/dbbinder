@@ -91,8 +91,29 @@ const char * const tpl_DBENGINE_STATEMENT_NULL = "DBENGINE_STATEMENT_NULL";
 
 const char * const tpl_UPDATE = "UPDATE";
 const char * const tpl_UPDATE_SQL = "UPDATE_SQL";
+const char * const tpl_UPDATE_SQL_LEN = "UPDATE_SQL_LEN";
+const char * const tpl_UPDATE_FIELD_COUNT = "UPDATE_FIELD_COUNT";
+const char * const tpl_UPDATE_PARAM_COUNT = "UPDATE_PARAM_COUNT";
+const char * const tpl_UPD_IN_FIELDS = "UPD_IN_FIELDS";
+const char * const tpl_UPD_IN_FIELD_TYPE = "UPD_IN_FIELD_TYPE";
+const char * const tpl_UPD_IN_FIELD_NAME = "UPD_IN_FIELD_NAME";
+const char * const tpl_UPD_IN_FIELD_COMMA = "UPD_IN_FIELD_COMMA";
+const char * const tpl_UPD_IN_FIELD_INIT = "UPD_IN_FIELD_INIT";
+const char * const tpl_UPD_IN_FIELD_BIND = "UPD_IN_FIELD_BIND";
+const char * const tpl_UPD_IN_FIELDS_BUFFERS = "UPD_IN_FIELDS_BUFFERS";
+
 const char * const tpl_INSERT = "INSERT";
 const char * const tpl_INSERT_SQL = "INSERT_SQL";
+const char * const tpl_INSERT_SQL_LEN = "INSERT_SQL_LEN";
+const char * const tpl_INSERT_FIELD_COUNT = "INSERT_FIELD_COUNT";
+const char * const tpl_INSERT_PARAM_COUNT = "INSERT_PARAM_COUNT";
+const char * const tpl_INS_IN_FIELDS = "INS_IN_FIELDS";
+const char * const tpl_INS_IN_FIELD_TYPE = "INS_IN_FIELD_TYPE";
+const char * const tpl_INS_IN_FIELD_NAME = "INS_IN_FIELD_NAME";
+const char * const tpl_INS_IN_FIELD_COMMA = "INS_IN_FIELD_COMMA";
+const char * const tpl_INS_IN_FIELD_INIT = "INS_IN_FIELD_INIT";
+const char * const tpl_INS_IN_FIELD_BIND = "INS_IN_FIELD_BIND";
+const char * const tpl_INS_IN_FIELDS_BUFFERS = "INS_IN_FIELDS_BUFFERS";
 
 const char * const tpl_DBENGINE_GLOBAL_PARAMS = "DBENGINE_GLOBAL_PARAMS";
 const char * const tpl_TYPE = "TYPE";
@@ -348,11 +369,9 @@ void AbstractGenerator::addSelect(SelectElements _elements)
 	_classParamsPtr params = m_classParams[ name ];
 
 	if ( !params )
-	{
 		params.reset( new _classParams );
-		params->select = _elements;
-	}
-
+		
+	params->select = _elements;
 	m_classParams[ name ] = params;
 }
 
@@ -363,11 +382,9 @@ void AbstractGenerator::addUpdate(UpdateElements _elements)
 	_classParamsPtr params = m_classParams[ name ];
 
 	if ( !params )
-	{
 		params.reset( new _classParams );
-		params->update = _elements;
-	}
-
+	
+	params->update = _elements;
 	m_classParams[ name ] = params;
 }
 
@@ -378,11 +395,9 @@ void AbstractGenerator::addInsert(InsertElements _elements)
 	_classParamsPtr params = m_classParams[ name ];
 
 	if ( !params )
-	{
 		params.reset( new _classParams );
-		params->insert = _elements;
-	}
 
+	params->insert = _elements;
 	m_classParams[ name ] = params;
 }
 
@@ -857,6 +872,23 @@ void AbstractGenerator::loadDictionary()
 
 			str = String("\"") + cescape(it->second->update.sql) + String("\"");
 			classDict->SetValue( tpl_UPDATE_SQL, str );
+			classDict->SetIntValue( tpl_UPDATE_SQL_LEN, it->second->update.sql.length() );
+			classDict->SetIntValue( tpl_UPDATE_PARAM_COUNT, it->second->update.input.size() );
+
+			int index = 0;
+			subDict = 0;
+			ListElements::iterator elit;
+			for(elit = it->second->update.input.begin(); elit != it->second->update.input.end(); ++elit, ++index)
+			{
+				subDict = classDict->AddSectionDictionary(tpl_UPD_IN_FIELDS);
+				subDict->SetValue( tpl_UPD_IN_FIELD_TYPE, getType( elit->type ));
+				subDict->SetValue( tpl_UPD_IN_FIELD_NAME, elit->name );
+				subDict->SetValue( tpl_UPD_IN_FIELD_COMMA, "," );
+				subDict->SetValue( tpl_UPD_IN_FIELD_INIT, getInit( elit->type ));
+				subDict->SetValue( tpl_UPD_IN_FIELD_BIND, getBind( elit, index ));
+			}
+			if ( subDict )
+				subDict->SetValue( tpl_UPD_IN_FIELD_COMMA, "" );
 		}
 
 		// ----- INSERT -----
@@ -867,6 +899,23 @@ void AbstractGenerator::loadDictionary()
 
 			str = String("\"") + cescape(it->second->insert.sql) + String("\"");
 			classDict->SetValue( tpl_INSERT_SQL, str );
+			classDict->SetIntValue( tpl_INSERT_SQL_LEN, it->second->insert.sql.length() );
+			classDict->SetIntValue( tpl_INSERT_PARAM_COUNT, it->second->insert.input.size() );
+
+			int index = 0;
+			subDict = 0;
+			ListElements::iterator elit;
+			for(elit = it->second->insert.input.begin(); elit != it->second->insert.input.end(); ++elit, ++index)
+			{
+				subDict = classDict->AddSectionDictionary(tpl_INS_IN_FIELDS);
+				subDict->SetValue( tpl_INS_IN_FIELD_TYPE, getType( elit->type ));
+				subDict->SetValue( tpl_INS_IN_FIELD_NAME, elit->name );
+				subDict->SetValue( tpl_INS_IN_FIELD_COMMA, "," );
+				subDict->SetValue( tpl_INS_IN_FIELD_INIT, getInit( elit->type ));
+				subDict->SetValue( tpl_INS_IN_FIELD_BIND, getBind( elit, index ));
+			}
+			if ( subDict )
+				subDict->SetValue( tpl_INS_IN_FIELD_COMMA, "" );
 		}
 	}
 }

@@ -12,7 +12,7 @@ SQLITE        = sqlite3
 test.db: test.sql
 	$(SQLITE) -init test.sql test.db ".quit"
 
-test.o: test.yaml test.db ../../dbbinder
+test.o: test.yaml test.db ../../dbbinder ../../templates/lang/c++/boost/h.tpl ../../templates/lang/c++/boost/cpp.tpl
 	../../dbbinder --yaml -i test.yaml -d ../../templates
 	$(CXX) -c $(CFLAGS) $(INCPATH) -o test.o -c test.cpp
 

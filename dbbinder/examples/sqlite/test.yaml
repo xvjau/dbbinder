@@ -30,6 +30,54 @@ select:
     order by
     	F."DATE"
 
+insert:
+  name: selFestival
+
+  param:
+    name: idUser
+    type: int
+  param:
+    name: userName
+    type: string
+  param:
+    name: login
+    type: string
+  param:
+    name: password
+    type: string
+
+  sql: |
+    insert into
+      "USERS" ("IDUSER", "NAME", "LOGIN", "PASSWORD")
+    values
+      (?, ?, ?, ?)
+
+update:
+  name: selFestival
+
+  param:
+    name: idUser
+    type: int
+  param:
+    name: userName
+    type: string
+  param:
+    name: login
+    type: string
+  param:
+    name: password
+    type: string
+
+  sql: |
+    update
+      "USERS"
+    set
+      "NAME" = ?,
+      "LOGIN" = ?,
+      "PASSWORD" = ?
+    where
+      "IDUSER" = ?
+
 extra:
   types:
     string: String

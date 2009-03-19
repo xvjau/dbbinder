@@ -167,11 +167,27 @@ class {{CLASSNAME}}
 	private:
 		static const char* const s_updateSQL;
 		{{DBENGINE_STATEMENT_TYPE}}	m_updateStmt;
+	public:
+		static bool update(
+					{{#UPD_IN_FIELDS}}{{UPD_IN_FIELD_TYPE}} _{{UPD_IN_FIELD_NAME}},
+					{{/UPD_IN_FIELDS}}
+					{{DBENGINE_CONNECTION_TYPE}} _conn = {{DBENGINE_CONNECTION_NULL}});
+		bool update(
+					{{#UPD_IN_FIELDS}}{{UPD_IN_FIELD_TYPE}} _{{UPD_IN_FIELD_NAME}}{{UPD_IN_FIELD_COMMA}}
+					{{/UPD_IN_FIELDS}});
 {{/UPDATE}}
 {{#INSERT}}
 	private:
 		static const char* const s_insertSQL;
 		{{DBENGINE_STATEMENT_TYPE}}	m_insertStmt;
+	public:
+		static bool insert(
+					{{#INS_IN_FIELDS}}{{INS_IN_FIELD_TYPE}} _{{INS_IN_FIELD_NAME}},
+					{{/INS_IN_FIELDS}}
+					{{DBENGINE_CONNECTION_TYPE}} _conn = {{DBENGINE_CONNECTION_NULL}});
+		bool insert(
+					{{#INS_IN_FIELDS}}{{INS_IN_FIELD_TYPE}} _{{INS_IN_FIELD_NAME}}{{INS_IN_FIELD_COMMA}}
+					{{/INS_IN_FIELDS}});
 {{/INSERT}}
 };
 {{/CLASS}}
