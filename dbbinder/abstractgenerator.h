@@ -21,6 +21,7 @@
 #define DBBINDERABSTRACTGENERATOR_H
 
 #include "main.h"
+#include <sstream>
 
 namespace DBBinder
 {

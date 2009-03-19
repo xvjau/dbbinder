@@ -32,8 +32,6 @@
 
 #include <google/template.h>
 
-#include "TinyXML/nvXML.h"
-
 namespace DBBinder
 {
 

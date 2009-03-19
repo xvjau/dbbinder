@@ -125,7 +125,8 @@ if(ENABLE_YAML)
 	if (YAML_INCLUDE AND YAML_LIB)
 		message(STATUS "YAML found.")
 		add_definitions(-DWITH_YAML)
-		
+
+		list(APPEND extra_files yaml_reader.cpp)
 		get_filename_component(YAML_INCLUDE_PATH ${YAML_INCLUDE} PATH)
 		include_directories(${YAML_INCLUDE_PATH})
 		
@@ -139,7 +140,7 @@ if(ENABLE_YAML)
 endif(ENABLE_YAML)
 
 
-add_executable(dbbinder main.cpp abstractgenerator sqlitegenerator ${extra_files})
+add_executable(dbbinder main.cpp xml_reader.cpp abstractgenerator.cpp sqlitegenerator.cpp ${extra_files})
 
 set_source_files_properties(main.cpp PROPERTIES OBJECT_DEPENDS options.h)
 

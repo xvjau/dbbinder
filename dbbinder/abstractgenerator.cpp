@@ -33,6 +33,7 @@
 #endif
 
 #include "main.h"
+#include "TinyXML/nvXML.h"
 
 namespace DBBinder
 {
