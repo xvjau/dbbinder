@@ -62,5 +62,37 @@
 				SQLCHECK( sqlite3_reset(m_selectStmt));
 			</reset>
 		</select>
+		<insert>
+			<create>
+			</create>
+			<destroy>
+				sqlite3_finalize( m_updateStmt );
+			</destroy>
+			<prepare>
+				{
+					const char *tail;
+					SQLCHECK( sqlite3_prepare(m_conn, s_updateSQL, s_updateSQL_len, &amp;m_updateStmt,  &amp;tail ));
+				}
+			</prepare>
+			<reset>
+				SQLCHECK( sqlite3_reset(m_updateStmt));
+			</reset>
+		</insert>
+		<update>
+			<create>
+			</create>
+			<destroy>
+				sqlite3_finalize( m_insertStmt );
+			</destroy>
+			<prepare>
+				{
+					const char *tail;
+					SQLCHECK( sqlite3_prepare(m_conn, s_insertSQL, s_insertSQL_len, &amp;m_insertStmt,  &amp;tail ));
+				}
+			</prepare>
+			<reset>
+				SQLCHECK( sqlite3_reset(m_insertStmt));
+			</reset>
+		</update>
 	</lang>
 </xml>

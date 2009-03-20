@@ -153,8 +153,14 @@ String SQLiteGenerator::getBind(const ListElements::iterator & _item, int _index
 		case stDate:
 		case stText:
 		{
+			/* In the case of Text, the function is slightly different:
+				1 - It needs to duplicate the strig - strdup
+				2 - It needs the length of the string - strlen
+				3 - It needs a function pointer to deallocate the string in (1) - free
+			*/
 			str << "text";
-			break;
+			str << "(m_selectStmt, " << _index + 1 << ", strdup(_" << _item->name << ") , strlen(_" << _item->name << "), free));";
+			return str.str();
 		}
 
 	}

@@ -80,11 +80,11 @@ update:
 
 extra:
   types:
-    string: String
+    string: const char*
 
   namespaces:
     - TestApp
 
-  headers:
-    - "#include <string>"
-    - typedef std::string String;
+#headers:
+#   - "#include <string>"
+#   - typedef const char* String;

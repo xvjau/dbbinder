@@ -287,11 +287,11 @@ static void parseYAMLExtra(yaml_parser_t &parser, AbstractGenerator **_generator
 								attr = value;
 							else
 							{
-								SQLTypes type = typeNameToSQLType( value );
+								SQLTypes type = typeNameToSQLType( attr );
 
 								if ( type == stUnknown )
 								{
-									WARNING("unknown type for: " << value);
+									WARNING("unknown type for: " << attr);
 								}
 								else
 									(*_generator)->setType( type, value );

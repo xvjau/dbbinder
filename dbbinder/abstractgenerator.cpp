@@ -168,7 +168,7 @@ SQLTypes typeNameToSQLType(String _name)
 			}
 			case 's':
 			{
-				if ( _name == "string" )
+				if ( _name == "str" || _name == "string" )
 					return stText;
 
 				break;

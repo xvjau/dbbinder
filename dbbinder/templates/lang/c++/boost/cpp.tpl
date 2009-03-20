@@ -128,9 +128,39 @@ bool {{CLASSNAME}}::fetchRow()
 {{/SELECT}}
 {{#UPDATE}}
 const char * const {{CLASSNAME}}::s_updateSQL = {{UPDATE_SQL}};
+
+bool {{CLASSNAME}}::update(
+			{{#UPD_IN_FIELDS}}{{UPD_IN_FIELD_TYPE}} _{{UPD_IN_FIELD_NAME}}{{UPD_IN_FIELD_COMMA}}
+			{{/UPD_IN_FIELDS}})
+
+{
+	if ( m_updateIsActive )
+	{
+		{{DBENGINE_RESET_UPDATE}}
+	}
+
+	{{#UPD_IN_FIELDS_BUFFERS}}{{BUFFER_ALLOC}}
+	{{/UPD_IN_FIELDS_BUFFERS}}
+	
+	{{#UPD_OUT_FIELDS_BUFFERS}}{{BUFFER_ALLOC}}
+	{{/UPD_OUT_FIELDS_BUFFERS}}
+
+	{{#UPD_IN_FIELDS}}{{UPD_IN_FIELD_BIND}}
+	{{/UPD_IN_FIELDS}}
+	
+	{{DBENGINE_EXECUTE_UPDATE}}
+
+	m_updateIsActive = true;
+}
 {{/UPDATE}}
 {{#INSERT}}
 const char * const {{CLASSNAME}}::s_insertSQL = {{INSERT_SQL}};
+
+bool {{CLASSNAME}}::insert(
+			{{#INS_IN_FIELDS}}{{INS_IN_FIELD_TYPE}} _{{INS_IN_FIELD_NAME}}{{INS_IN_FIELD_COMMA}}
+			{{/INS_IN_FIELDS}})
+{
+}
 {{/INSERT}}
 {{/CLASS}}
 
