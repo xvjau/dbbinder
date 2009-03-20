@@ -241,7 +241,7 @@ AbstractGenerator* AbstractGenerator::getGenerator(const String & _type)
 		}
 	}
 	
-	FATAL("AbstractGenerator: invalid generator type" << _type);
+	FATAL("AbstractGenerator: invalid generator type " << _type);
 }
 	
 AbstractGenerator::AbstractGenerator():

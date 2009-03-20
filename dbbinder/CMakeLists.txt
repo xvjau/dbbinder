@@ -4,11 +4,20 @@ if(COMMAND cmake_policy)
 	cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
 
+if (DEBUG)
+	set(CMAKE_VERBOSE_MAKEFILE ON)
+endif(DEBUG)
+
 project(dbbinder)
 
 add_subdirectory(./TinyXML)
 
-add_definitions(-Wall -Wno-parentheses -ggdb -DTIXML_USE_TICPP)
+add_definitions(-DTIXML_USE_TICPP)
+if (DEBUG)
+	add_definitions(-Wall -Wno-parentheses -ggdb)
+else(DEBUG)
+	add_definitions(-O2)
+endif(DEBUG)
 
 add_custom_command(OUTPUT options.h
 					COMMAND gperf
@@ -56,31 +65,60 @@ if (ENABLE_FIREBIRD_LEN EQUAL 0)
 endif(ENABLE_FIREBIRD_LEN EQUAL 0)
 
 if(ENABLE_FIREBIRD)
-	find_file(FIREBIRD_INCLUDE ibase.h PATH /usr/include /usr/local/include)
-	
-	find_file(FIREBIRD_LIB libfbclient.so PATHS /usr/lib /usr/local/lib)
-	set(FIREBIRD_LIB_NAME fbclient)
-	
-	if (NOT FIREBIRD_LIB)
-		find_file(FIREBIRD_LIB libgds.so PATHS /usr/lib /usr/local/lib)
-		set(FIREBIRD_LIB_NAME gds)
-	endif (NOT FIREBIRD_LIB)
-	
-	if (FIREBIRD_INCLUDE AND FIREBIRD_LIB)
-		message(STATUS "Firebird found.")
+	find_file(FIREBIRD_CONFIG fb_config PATH /usr/bin /usr/local/bin /opt/firebird/bin)
+	if (FIREBIRD_CONFIG)
+		execute_process(COMMAND ${FIREBIRD_CONFIG} --version
+					OUTPUT_VARIABLE FIREBIRD_VERSION)
+		string(REGEX REPLACE "\n" "" FIREBIRD_VERSION ${FIREBIRD_VERSION})
+		message(STATUS "Firebird found version ${FIREBIRD_VERSION}")
+		
 		add_definitions(-DWITH_FIREBIRD)
-		
 		list(APPEND extra_files firebirdgenerator.cpp)
-		get_filename_component(FIREBIRD_INCLUDE_PATH ${FIREBIRD_INCLUDE} PATH)
-		include_directories(${FIREBIRD_INCLUDE_PATH})
 
-		list(APPEND extra_libs ${FIREBIRD_LIB_NAME})
-		get_filename_component(FIREBIRD_LIB_PATH ${FIREBIRD_LIB} PATH)
-		link_directories(${FIREBIRD_LIB_PATH})
+		execute_process(COMMAND ${FIREBIRD_CONFIG} --cflags
+						OUTPUT_VARIABLE FIREBIRD_CFLAGS)
+		string(REGEX REPLACE "\n" "" FIREBIRD_CFLAGS ${FIREBIRD_CFLAGS})
+		add_definitions(${FIREBIRD_CFLAGS})
 		
-	else(FIREBIRD_INCLUDE AND FIREBIRD_LIB)
-		message(STATUS "Firebird not found.")
-	endif(FIREBIRD_INCLUDE AND FIREBIRD_LIB)
+		execute_process(COMMAND ${FIREBIRD_CONFIG} --libs
+						OUTPUT_VARIABLE FIREBIRD_LINKFLAGS)
+		string(REGEX REPLACE "\n" "" FIREBIRD_LINKFLAGS ${FIREBIRD_LINKFLAGS})
+
+		string(REGEX MATCHALL "-L([^ ]+)" FIREBIRD_LIBS ${FIREBIRD_LINKFLAGS})
+		string(REGEX REPLACE "-L" "" FIREBIRD_LIBS ${FIREBIRD_LIBS})
+		link_directories(${FIREBIRD_LIBS})
+
+		string(REGEX MATCHALL "-l([^ ]+)" FIREBIRD_LIBS ${FIREBIRD_LINKFLAGS})
+		string(REGEX REPLACE "-l" "" FIREBIRD_LIBS ${FIREBIRD_LIBS})
+		list(APPEND extra_libs ${FIREBIRD_LIBS})
+
+	else(FIREBIRD_CONFIG)
+		find_file(FIREBIRD_INCLUDE ibase.h PATH /usr/include /usr/local/include)
+		
+		find_file(FIREBIRD_LIB libfbclient.so PATHS /usr/lib /usr/local/lib)
+		set(FIREBIRD_LIB_NAME fbclient)
+		
+		if (NOT FIREBIRD_LIB)
+			find_file(FIREBIRD_LIB libgds.so PATHS /usr/lib /usr/local/lib)
+			set(FIREBIRD_LIB_NAME gds)
+		endif (NOT FIREBIRD_LIB)
+	
+		if (FIREBIRD_INCLUDE AND FIREBIRD_LIB)
+			message(STATUS "Firebird found.")
+			add_definitions(-DWITH_FIREBIRD)
+			
+			list(APPEND extra_files firebirdgenerator.cpp)
+			get_filename_component(FIREBIRD_INCLUDE_PATH ${FIREBIRD_INCLUDE} PATH)
+			include_directories(${FIREBIRD_INCLUDE_PATH})
+
+			list(APPEND extra_libs ${FIREBIRD_LIB_NAME})
+			get_filename_component(FIREBIRD_LIB_PATH ${FIREBIRD_LIB} PATH)
+			link_directories(${FIREBIRD_LIB_PATH})
+			
+		else(FIREBIRD_INCLUDE AND FIREBIRD_LIB)
+			message(STATUS "Firebird not found.")
+		endif(FIREBIRD_INCLUDE AND FIREBIRD_LIB)
+	endif(FIREBIRD_CONFIG)
 endif(ENABLE_FIREBIRD)
 
 # Oracle
