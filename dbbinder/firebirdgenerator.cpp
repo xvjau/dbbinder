@@ -259,7 +259,7 @@ bool FirebirdGenerator::needIOBuffers() const
 
 void FirebirdGenerator::addSelInBuffers(const SelectElements * _select)
 {
-	google::TemplateDictionary *subDict;
+	ctemplate::TemplateDictionary *subDict;
 	
 	subDict = m_dict->AddSectionDictionary(tpl_SEL_IN_FIELDS_BUFFERS);
 	subDict->SetValue(tpl_BUFFER_DECLARE, "XSQLDA *m_selInBuffer;" );
@@ -275,7 +275,7 @@ void FirebirdGenerator::addSelInBuffers(const SelectElements * _select)
 
 void FirebirdGenerator::addSelOutBuffers(const SelectElements * _select)
 {
-	google::TemplateDictionary *subDict;
+	ctemplate::TemplateDictionary *subDict;
 	subDict = m_dict->AddSectionDictionary(tpl_SEL_OUT_FIELDS_BUFFERS);
 	subDict->SetValue(tpl_BUFFER_DECLARE, "XSQLDA *m_selOutBuffer;" );
 	subDict->SetValue(tpl_BUFFER_INITIALIZE, "m_selOutBuffer = 0;" );

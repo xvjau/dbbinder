@@ -291,7 +291,7 @@ void OracleGenerator::addSelInBuffers(const SelectElements * _select)
 {
 	String langType, oraType;
 	int index = 0;
-	google::TemplateDictionary *subDict;
+	ctemplate::TemplateDictionary *subDict;
 	
 	foreach(SQLElement field, _select->input)
 	{
@@ -308,7 +308,7 @@ void OracleGenerator::addSelOutBuffers(const SelectElements * _select)
 {
 	String langType, oraType;
 	int index = 0;
-	google::TemplateDictionary *subDict;
+	ctemplate::TemplateDictionary *subDict;
 	
 	foreach(SQLElement field, _select->output)
 	{

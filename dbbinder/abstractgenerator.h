@@ -142,8 +142,8 @@ class AbstractGenerator
 		String	m_outIntFile;
 		String	m_outImplFile;
 		
-		google::TemplateDictionary	*m_dict;
-		google::Template			*m_templ[ftMAX];
+		ctemplate::TemplateDictionary	*m_dict;
+		ctemplate::Template			*m_templ[ftMAX];
 
 		virtual void loadDictionary();
 		

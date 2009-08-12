@@ -244,7 +244,7 @@ void MySQLGenerator::addSelInBuffers(const SelectElements* _select)
 {
 	String langType, myType;
 	int index = 0;
-	google::TemplateDictionary *subDict;
+	ctemplate::TemplateDictionary *subDict;
 	
 	foreach(SQLElement field, _select->input)
 	{
@@ -283,7 +283,7 @@ void MySQLGenerator::addSelOutBuffers(const SelectElements* _select)
 {
 	String langType, myType;
 	int index = 0;
-	google::TemplateDictionary *subDict;
+	ctemplate::TemplateDictionary *subDict;
 	
 	foreach(SQLElement field, _select->output)
 	{

@@ -464,7 +464,7 @@ void AbstractGenerator::generate()
 
 void AbstractGenerator::loadDatabase()
 {
-	google::TemplateDictionary *subDict;
+	ctemplate::TemplateDictionary *subDict;
 	_dbParams::iterator it;
 	for(it = m_dbParams.begin(); it != m_dbParams.end(); ++it)
 	{
@@ -518,7 +518,7 @@ bool AbstractGenerator::loadXMLDatabase(const String& _path)
 	
 	ListString templates = stringTok(optTemplate, ',');
 	ListString::iterator templ;
-	google::TemplateDictionary *subDict;
+	ctemplate::TemplateDictionary *subDict;
 	
 	bool result = false;
 	try
@@ -755,7 +755,7 @@ bool AbstractGenerator::loadXMLTemplate(const String & _path)
 				str = _path + '/' + str;																\
 			if ( stat(str.c_str(), &fs) == 0 )															\
 			{																							\
-				m_templ[ENUM] = google::Template::GetTemplate(str, google::DO_NOT_STRIP);				\
+				m_templ[ENUM] = ctemplate::Template::GetTemplate(str, ctemplate::DO_NOT_STRIP);				\
 			}																							\
 			else																						\
 			{																							\
@@ -789,7 +789,7 @@ bool AbstractGenerator::loadYAMLTemplate(const String & _path)
 void AbstractGenerator::loadDictionary()
 {
 	String str;
-	m_dict = new google::TemplateDictionary("dict");
+	m_dict = new ctemplate::TemplateDictionary("dict");
 
 	m_dict->SetValue( tpl_INTF_FILENAME, extractFileName( m_outIntFile ));
 	m_dict->SetValue( tpl_IMPL_FILENAME, extractFileName( m_outImplFile ));
@@ -810,7 +810,7 @@ void AbstractGenerator::loadDictionary()
 	foreach(str, m_headers)
 		m_dict->SetValueAndShowSection(tpl_EXTRA_HEADERS_HEADER, str, tpl_EXTRA_HEADERS);
 
-	google::TemplateDictionary *classDict, *subDict;
+	ctemplate::TemplateDictionary *classDict, *subDict;
 	classParams::iterator it;
 	for(it = m_classParams.begin(); it != m_classParams.end(); ++it)
 	{
