@@ -19,10 +19,10 @@ else(DEBUG)
 	add_definitions(-O2)
 endif(DEBUG)
 
-add_custom_command(OUTPUT options.h
+add_custom_command(OUTPUT ./options.h
 					COMMAND gperf
 					ARGS -CGD -N isValid -K option -L C++ -t options.gperf > options.h
-					DEPENDS options.gperf
+					DEPENDS ./options.gperf
 					COMMENT build options.h)
 
 find_package( Boost )
@@ -43,15 +43,15 @@ if(ENABLE_MYSQL)
 	if (MYSQL_INCLUDE AND MYSQL_LIB)
 		message(STATUS "MySQL found.")
 		add_definitions(-DWITH_MYSQL)
-		
+
 		list(APPEND extra_files mysqlgenerator.cpp)
 		get_filename_component(MYSQL_INCLUDE_PATH ${MYSQL_INCLUDE} PATH)
 		include_directories(${MYSQL_INCLUDE_PATH})
-		
+
 		list(APPEND extra_libs mysqlclient)
 		get_filename_component(MYSQL_LIB_PATH ${MYSQL_LIB} PATH)
 		link_directories(${MYSQL_LIB_PATH})
-		
+
 	else(MYSQL_INCLUDE AND MYSQL_LIB)
 		message(STATUS "MySQL not found.")
 	endif(MYSQL_INCLUDE AND MYSQL_LIB)
@@ -71,7 +71,7 @@ if(ENABLE_FIREBIRD)
 					OUTPUT_VARIABLE FIREBIRD_VERSION)
 		string(REGEX REPLACE "\n" "" FIREBIRD_VERSION ${FIREBIRD_VERSION})
 		message(STATUS "Firebird found version ${FIREBIRD_VERSION}")
-		
+
 		add_definitions(-DWITH_FIREBIRD)
 		list(APPEND extra_files firebirdgenerator.cpp)
 
@@ -79,7 +79,7 @@ if(ENABLE_FIREBIRD)
 						OUTPUT_VARIABLE FIREBIRD_CFLAGS)
 		string(REGEX REPLACE "\n" "" FIREBIRD_CFLAGS ${FIREBIRD_CFLAGS})
 		add_definitions(${FIREBIRD_CFLAGS})
-		
+
 		execute_process(COMMAND ${FIREBIRD_CONFIG} --libs
 						OUTPUT_VARIABLE FIREBIRD_LINKFLAGS)
 		string(REGEX REPLACE "\n" "" FIREBIRD_LINKFLAGS ${FIREBIRD_LINKFLAGS})
@@ -94,19 +94,19 @@ if(ENABLE_FIREBIRD)
 
 	else(FIREBIRD_CONFIG)
 		find_file(FIREBIRD_INCLUDE ibase.h PATH /usr/include /usr/local/include)
-		
+
 		find_file(FIREBIRD_LIB libfbclient.so PATHS /usr/lib /usr/local/lib)
 		set(FIREBIRD_LIB_NAME fbclient)
-		
+
 		if (NOT FIREBIRD_LIB)
 			find_file(FIREBIRD_LIB libgds.so PATHS /usr/lib /usr/local/lib)
 			set(FIREBIRD_LIB_NAME gds)
 		endif (NOT FIREBIRD_LIB)
-	
+
 		if (FIREBIRD_INCLUDE AND FIREBIRD_LIB)
 			message(STATUS "Firebird found.")
 			add_definitions(-DWITH_FIREBIRD)
-			
+
 			list(APPEND extra_files firebirdgenerator.cpp)
 			get_filename_component(FIREBIRD_INCLUDE_PATH ${FIREBIRD_INCLUDE} PATH)
 			include_directories(${FIREBIRD_INCLUDE_PATH})
@@ -114,7 +114,7 @@ if(ENABLE_FIREBIRD)
 			list(APPEND extra_libs ${FIREBIRD_LIB_NAME})
 			get_filename_component(FIREBIRD_LIB_PATH ${FIREBIRD_LIB} PATH)
 			link_directories(${FIREBIRD_LIB_PATH})
-			
+
 		else(FIREBIRD_INCLUDE AND FIREBIRD_LIB)
 			message(STATUS "Firebird not found.")
 		endif(FIREBIRD_INCLUDE AND FIREBIRD_LIB)
@@ -135,15 +135,15 @@ if(ENABLE_ORACLE)
 	if (ORACLE_INCLUDE AND ORACLE_LIB)
 		message(STATUS "Oracle found.")
 		add_definitions(-DWITH_ORACLE)
-		
+
 		list(APPEND extra_files oraclegenerator.cpp)
 		get_filename_component(ORACLE_INCLUDE_PATH ${ORACLE_INCLUDE} PATH)
 		include_directories(${ORACLE_INCLUDE_PATH})
-		
+
 		list(APPEND extra_libs ociei)
 		get_filename_component(ORACLE_LIB_PATH ${ORACLE_LIB} PATH)
 		link_directories(${ORACLE_LIB_PATH})
-		
+
 	else (ORACLE_INCLUDE AND ORACLE_LIB)
 		message(STATUS "Oracle not found.")
 	endif (ORACLE_INCLUDE AND ORACLE_LIB)
@@ -167,11 +167,11 @@ if(ENABLE_YAML)
 		list(APPEND extra_files yaml_reader.cpp)
 		get_filename_component(YAML_INCLUDE_PATH ${YAML_INCLUDE} PATH)
 		include_directories(${YAML_INCLUDE_PATH})
-		
+
 		list(APPEND extra_libs yaml)
 		get_filename_component(YAML_LIB_PATH ${YAML_LIB} PATH)
 		link_directories(${YAML_LIB_PATH})
-		
+
 	else (YAML_INCLUDE AND YAML_LIB)
 		message(STATUS "YAML not found.")
 	endif (YAML_INCLUDE AND YAML_LIB)
