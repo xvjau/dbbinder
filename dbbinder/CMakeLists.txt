@@ -1,12 +1,12 @@
-cmake_minimum_required(VERSION 2.4)
+cmake_minimum_required(VERSION 2.6)
 
 if(COMMAND cmake_policy)
 	cmake_policy(SET CMP0003 NEW)
-endif(COMMAND cmake_policy)
+endif()
 
 if (DEBUG)
 	set(CMAKE_VERBOSE_MAKEFILE ON)
-endif(DEBUG)
+endif()
 
 project(dbbinder)
 
@@ -17,7 +17,7 @@ if (DEBUG)
 	add_definitions(-Wall -Wno-parentheses -ggdb)
 else(DEBUG)
 	add_definitions(-O2)
-endif(DEBUG)
+endif()
 
 add_custom_command(OUTPUT ./options.h
 					COMMAND gperf
@@ -35,7 +35,7 @@ endif()
 string(LENGTH "${ENABLE_MYSQL}" ENABLE_MYSQL_LEN)
 if (ENABLE_MYSQL_LEN EQUAL 0)
 	set(ENABLE_MYSQL ON)
-endif(ENABLE_MYSQL_LEN EQUAL 0)
+endif()
 
 if(ENABLE_MYSQL)
 	find_file(MYSQL_INCLUDE mysql/mysql.h)
@@ -55,14 +55,14 @@ if(ENABLE_MYSQL)
 	else(MYSQL_INCLUDE AND MYSQL_LIB)
 		message(STATUS "MySQL not found.")
 	endif(MYSQL_INCLUDE AND MYSQL_LIB)
-endif(ENABLE_MYSQL)
+endif()
 
 # Firebird
 
 string(LENGTH "${ENABLE_FIREBIRD}" ENABLE_FIREBIRD_LEN)
 if (ENABLE_FIREBIRD_LEN EQUAL 0)
 	set(ENABLE_FIREBIRD ON)
-endif(ENABLE_FIREBIRD_LEN EQUAL 0)
+endif()
 
 if(ENABLE_FIREBIRD)
 	find_file(FIREBIRD_CONFIG fb_config PATH /usr/bin /usr/local/bin /opt/firebird/bin)
@@ -101,7 +101,7 @@ if(ENABLE_FIREBIRD)
 		if (NOT FIREBIRD_LIB)
 			find_file(FIREBIRD_LIB libgds.so PATHS /usr/lib /usr/local/lib)
 			set(FIREBIRD_LIB_NAME gds)
-		endif (NOT FIREBIRD_LIB)
+		endif ()
 
 		if (FIREBIRD_INCLUDE AND FIREBIRD_LIB)
 			message(STATUS "Firebird found.")
@@ -117,16 +117,16 @@ if(ENABLE_FIREBIRD)
 
 		else(FIREBIRD_INCLUDE AND FIREBIRD_LIB)
 			message(STATUS "Firebird not found.")
-		endif(FIREBIRD_INCLUDE AND FIREBIRD_LIB)
-	endif(FIREBIRD_CONFIG)
-endif(ENABLE_FIREBIRD)
+		endif()
+	endif()
+endif()
 
 # Oracle
 
 string(LENGTH "${ENABLE_ORACLE}" ENABLE_ORACLE_LEN)
 if (ENABLE_ORACLE_LEN EQUAL 0)
 	set(ENABLE_ORACLE ON)
-endif(ENABLE_ORACLE_LEN EQUAL 0)
+endif()
 
 if(ENABLE_ORACLE)
 	find_file(ORACLE_INCLUDE oci.h PATHS $ENV{C_INCLUDE_PATH})
@@ -146,15 +146,15 @@ if(ENABLE_ORACLE)
 
 	else (ORACLE_INCLUDE AND ORACLE_LIB)
 		message(STATUS "Oracle not found.")
-	endif (ORACLE_INCLUDE AND ORACLE_LIB)
-endif(ENABLE_ORACLE)
+	endif ()
+endif()
 
 # YAML
 
 string(LENGTH "${ENABLE_YAML}" ENABLE_YAML_LEN)
 if (ENABLE_YAML_LEN EQUAL 0)
 	set(ENABLE_YAML ON)
-endif(ENABLE_YAML_LEN EQUAL 0)
+endif()
 
 if(ENABLE_YAML)
 	find_file(YAML_INCLUDE yaml.h)
@@ -174,9 +174,8 @@ if(ENABLE_YAML)
 
 	else (YAML_INCLUDE AND YAML_LIB)
 		message(STATUS "YAML not found.")
-	endif (YAML_INCLUDE AND YAML_LIB)
-endif(ENABLE_YAML)
-
+	endif ()
+endif()
 
 add_executable(dbbinder main.cpp xml_reader.cpp abstractgenerator.cpp sqlitegenerator.cpp ${extra_files})
 
