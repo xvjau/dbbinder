@@ -9,6 +9,7 @@
 
 #include <boost/shared_ptr.hpp>
 #include <iostream>
+#include <string.h>
 
 #ifdef DEBUG
 #define ASSERT(cond) { assert(cond); }
@@ -66,7 +67,7 @@ class {{CLASSNAME}}
 
 		{{#SEL_IN_FIELDS_BUFFERS}}{{BUFFER_DECLARE}}
 		{{/SEL_IN_FIELDS_BUFFERS}}
-		
+
 		{{#SEL_OUT_FIELDS_BUFFERS}}{{BUFFER_DECLARE}}
 		{{/SEL_OUT_FIELDS_BUFFERS}}
 	public:
@@ -138,7 +139,7 @@ class {{CLASSNAME}}
 				{
 					return m_parent == _other.m_parent;
 				}
-				
+
 				bool operator!=(const iterator& _other) const
 				{
 					return m_parent != _other.m_parent;
