@@ -181,7 +181,7 @@ SQLTypes typeNameToSQLType(String _name)
 					return stTimeStamp;
 				else if ( _name == "time" )
 					return stTime;
-				
+
 				break;
 			}
 			default:
@@ -240,10 +240,10 @@ AbstractGenerator* AbstractGenerator::getGenerator(const String & _type)
 			}
 		}
 	}
-	
+
 	FATAL("AbstractGenerator: invalid generator type " << _type);
 }
-	
+
 AbstractGenerator::AbstractGenerator():
 		m_connected(false),
 		m_dict(0)
@@ -365,12 +365,12 @@ String AbstractGenerator::getInit(SQLTypes _sqlType)
 void AbstractGenerator::addSelect(SelectElements _elements)
 {
 	String name = stringToLower( _elements.name );
-	
+
 	_classParamsPtr params = m_classParams[ name ];
 
 	if ( !params )
 		params.reset( new _classParams );
-		
+
 	params->select = _elements;
 	m_classParams[ name ] = params;
 }
@@ -378,12 +378,12 @@ void AbstractGenerator::addSelect(SelectElements _elements)
 void AbstractGenerator::addUpdate(UpdateElements _elements)
 {
 	String name = stringToLower( _elements.name );
-	
+
 	_classParamsPtr params = m_classParams[ name ];
 
 	if ( !params )
 		params.reset( new _classParams );
-	
+
 	params->update = _elements;
 	m_classParams[ name ] = params;
 }
@@ -391,7 +391,7 @@ void AbstractGenerator::addUpdate(UpdateElements _elements)
 void AbstractGenerator::addInsert(InsertElements _elements)
 {
 	String name = stringToLower( _elements.name );
-	
+
 	_classParamsPtr params = m_classParams[ name ];
 
 	if ( !params )
@@ -424,7 +424,7 @@ void AbstractGenerator::generate()
 	// Defaults values - might be replaced by 'loadTemplates'
 	m_outIntFile = optOutput + ".h";
 	m_outImplFile = optOutput + ".cpp";
-	
+
 	loadTemplates();
 	loadDictionary();
 	loadDatabase();
@@ -433,16 +433,19 @@ void AbstractGenerator::generate()
 	{
 		std::ofstream out( m_outIntFile.c_str(), std::ios_base::trunc );
 		m_templ[ftIntf]->Expand(&str, m_dict);
-		
+
 		cleanExcessiveLineBreaks(str, out);
 		//out << str;
 		str.clear();
 	}
-	
+
 	// TODO Put this in an XML
 	str = "astyle --style=ansi -n > /dev/null 2>&1 ";
 	str += m_outIntFile;
-	system( str.c_str() );
+
+	if ( system( str.c_str() ) == -1 )
+		std::cerr << "warning: unable to run astyle" << std::endl;
+
 	str.clear();
 
 	{
@@ -451,14 +454,17 @@ void AbstractGenerator::generate()
 
 		cleanExcessiveLineBreaks(str, out);
 		//out << str;
-		
+
 		str.clear();
 	}
 
 	// TODO Put this in an XML
 	str = "astyle --style=ansi -n > /dev/null 2>&1 ";
 	str += m_outImplFile;
-	system( str.c_str() );
+
+	if ( system( str.c_str() ) == -1 )
+		std::cerr << "warning: unable to run astyle" << std::endl;
+
 	str.clear();
 }
 
@@ -483,7 +489,7 @@ void AbstractGenerator::loadDatabase()
 			subDict->SetValue(tpl_TYPE, "const char * const");
 		}
 	}
-	
+
 	String str;
 	ListString::iterator dirs;
 	for(dirs = optTemplateDirs.begin(); dirs != optTemplateDirs.end(); ++dirs)
@@ -505,7 +511,7 @@ void AbstractGenerator::loadDatabase()
 	}
 
 	FATAL("dbengine: template file not found for current language.");
-	
+
 LOADED:
 	{}
 }
@@ -515,18 +521,18 @@ bool AbstractGenerator::loadXMLDatabase(const String& _path)
 #define GET_TEXT_OR_ATTR_SET_TMPL( str, elem, attr, tmpl, var ) \
 	GET_TEXT_OR_ATTR( str, elem, attr ); \
 	if ( !str.empty() ) { result = true; tmpl->SetValue(var, str); }
-	
+
 	ListString templates = stringTok(optTemplate, ',');
 	ListString::iterator templ;
 	ctemplate::TemplateDictionary *subDict;
-	
+
 	bool result = false;
 	try
 	{
 		String s = _path + m_dbengine + ".xml";
 		XMLDocument xmlFile( s );
 		xmlFile.LoadFile();
-		
+
 		XMLElementPtr xml = xmlFile.FirstChildElement("xml");
 
 		XMLElementPtr lang;
@@ -534,7 +540,7 @@ bool AbstractGenerator::loadXMLDatabase(const String& _path)
 		while( node = xml->IterateChildren( "lang", node ))
 		{
 			lang = node->ToElement();
-			
+
 			for(templ = templates.begin(); templ != templates.end(); ++templ)
 			{
 				if ( lang->GetAttributeOrDefault("type", "-- INVALID LANGUAGE --") == *templ )
@@ -547,7 +553,7 @@ bool AbstractGenerator::loadXMLDatabase(const String& _path)
 					while( node = lang->IterateChildren( "includes", node ))
 					{
 						m_dict->ShowSection( tpl_DBENGINE_INCLUDES );
-						
+
 						subnode = 0;
 						while( subnode = node->IterateChildren( "file", subnode ))
 						{
@@ -568,7 +574,7 @@ bool AbstractGenerator::loadXMLDatabase(const String& _path)
 					while( node = lang->IterateChildren( "global_functions", node ))
 					{
 						m_dict->ShowSection( tpl_EXTRA_HEADERS );
-						
+
 						subnode = 0;
 						while( subnode = node->IterateChildren( "function", subnode ))
 						{
@@ -582,8 +588,8 @@ bool AbstractGenerator::loadXMLDatabase(const String& _path)
 					while( node = lang->IterateChildren( "extra_headers", node ))
 					{
 						m_dict->ShowSection( tpl_EXTRA_HEADERS );
-						
-						
+
+
 						subnode = 0;
 						while( subnode = node->IterateChildren( "define", subnode ))
 						{
@@ -591,7 +597,7 @@ bool AbstractGenerator::loadXMLDatabase(const String& _path)
 							elem = subnode->ToElement();
 							GET_TEXT_OR_ATTR_SET_TMPL( str, elem, "code", subDict, tpl_EXTRA_HEADERS_HEADER);
 						}
-						
+
 						subnode = 0;
 						while( subnode = node->IterateChildren( "type", subnode ))
 						{
@@ -664,7 +670,7 @@ bool AbstractGenerator::loadXMLDatabase(const String& _path)
 
 						elem = node->FirstChildElement("execute", false);
 						if ( elem ) m_dict->SetValue(tpl_DBENGINE_EXECUTE_SELECT, elem->GetText(false));
-						
+
 						elem = node->FirstChildElement("fetch", false);
 						if ( elem ) m_dict->SetValue(tpl_DBENGINE_FETCH_SELECT, elem->GetText(false));
 
@@ -690,13 +696,13 @@ bool AbstractGenerator::loadYAMLDatabase(const String& _path)
 void AbstractGenerator::loadTemplates()
 {
 	String str;
-	
+
 	ListString templates = stringTok(optTemplate, ',');
 	ListString::iterator templ, dirs;
 
 	int count;
 	int i;
-	
+
 	for(dirs = optTemplateDirs.begin(); dirs != optTemplateDirs.end(); ++dirs)
 	{
 		count = templates.size();
@@ -708,9 +714,9 @@ void AbstractGenerator::loadTemplates()
 				str += (*templ) + '/';
 			}
 			str = (*dirs) + "/lang/" + str;
-			
+
 			struct stat fs;
-			
+
 			if ( stat((str + "template.xml").c_str(), &fs) == 0 ) // Check if file exists
 			{
 				if ( loadXMLTemplate( str ) && m_templ[ftIntf] && m_templ[ftImpl] )
@@ -724,7 +730,7 @@ void AbstractGenerator::loadTemplates()
 		}
 		while(--count);
 	}
-	
+
 LOADED:
 	if (!( m_templ[ftIntf] && m_templ[ftImpl] ))
 		FATAL("template: template files not found.");
@@ -735,15 +741,15 @@ bool AbstractGenerator::loadXMLTemplate(const String & _path)
 	try
 	{
 		struct stat fs;
-		
+
 		XMLDocument xmlFile( _path + "template.xml" );
 		xmlFile.LoadFile();
-		
+
 		XMLElementPtr xml = xmlFile.FirstChildElement("xml");
 
 		String str;
 		XMLElementPtr elem;
-		
+
 #define READ_PARAM(XML, ENUM, STR) \
 		elem = xml->FirstChildElement(XML);																\
 		elem->GetAttribute("file", &str, false);														\
@@ -801,7 +807,7 @@ void AbstractGenerator::loadDictionary()
 		str.replace( pos, 1, "_" );
 		pos = str.find( '.' );
 	}
-	
+
 	m_dict->SetValue( tpl_HEADER_NAME, str );
 
 	foreach(str, m_namespaces)
@@ -827,7 +833,7 @@ void AbstractGenerator::loadDictionary()
 			classDict->SetIntValue( tpl_SELECT_SQL_LEN, it->second->select.sql.length() );
 			classDict->SetIntValue( tpl_SELECT_PARAM_COUNT, it->second->select.input.size() );
 			classDict->SetIntValue( tpl_SELECT_FIELD_COUNT, it->second->select.output.size() );
-			
+
 			int index = 0;
 			subDict = 0;
 			ListElements::iterator elit;
