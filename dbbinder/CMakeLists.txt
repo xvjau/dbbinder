@@ -19,10 +19,13 @@ else(DEBUG)
 	add_definitions(-O2)
 endif()
 
-add_custom_command(OUTPUT ./options.h
+get_filename_component(SRC_PATH ./options.gperf ABSOLUTE)
+get_filename_component(DST_PATH ./options.h ABSOLUTE)
+
+add_custom_command(OUTPUT options.h
 					COMMAND gperf
-					ARGS -CGD -N isValid -K option -L C++ -t options.gperf > options.h
-					DEPENDS ./options.gperf
+					ARGS -CGD -N isValid -K option -L C++ -t ${SRC_PATH} > ${DST_PATH}
+					DEPENDS options.gperf
 					COMMENT build options.h)
 
 find_package( Boost )
@@ -39,7 +42,7 @@ endif()
 
 if(ENABLE_MYSQL)
 	find_file(MYSQL_INCLUDE mysql/mysql.h)
-	find_file(MYSQL_LIB libmysqlclient.so PATHS /usr/lib /usr/lib/mysql)
+	find_library(MYSQL_LIB mysqlclient)
 	if (MYSQL_INCLUDE AND MYSQL_LIB)
 		message(STATUS "MySQL found.")
 		add_definitions(-DWITH_MYSQL)
@@ -95,11 +98,11 @@ if(ENABLE_FIREBIRD)
 	else(FIREBIRD_CONFIG)
 		find_file(FIREBIRD_INCLUDE ibase.h PATH /usr/include /usr/local/include)
 
-		find_file(FIREBIRD_LIB libfbclient.so PATHS /usr/lib /usr/local/lib)
+		find_library(FIREBIRD_LIB fbclient)
 		set(FIREBIRD_LIB_NAME fbclient)
 
 		if (NOT FIREBIRD_LIB)
-			find_file(FIREBIRD_LIB libgds.so PATHS /usr/lib /usr/local/lib)
+			find_library(FIREBIRD_LIB gds)
 			set(FIREBIRD_LIB_NAME gds)
 		endif ()
 
@@ -130,7 +133,7 @@ endif()
 
 if(ENABLE_ORACLE)
 	find_file(ORACLE_INCLUDE oci.h PATHS $ENV{C_INCLUDE_PATH})
-	find_file(ORACLE_LIB libociei.so PATHS $ENV{ORACLE_HOME}/lib)
+	find_library(ORACLE_LIB ociei PATHS $ENV{ORACLE_HOME}/lib)
 
 	if (ORACLE_INCLUDE AND ORACLE_LIB)
 		message(STATUS "Oracle found.")
@@ -158,7 +161,7 @@ endif()
 
 if(ENABLE_YAML)
 	find_file(YAML_INCLUDE yaml.h)
-	find_file(YAML_LIB libyaml.so PATHS /usr/lib /usr/local/lib)
+	find_library(YAML_LIB yaml)
 
 	if (YAML_INCLUDE AND YAML_LIB)
 		message(STATUS "YAML found.")
