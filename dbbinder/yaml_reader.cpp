@@ -154,6 +154,25 @@ static void getYAMLParams(yaml_parser_t &parser, AbstractElements* _elements)
 				{
 					if ( attr == "sql" )
 						_elements->sql = value;
+					else if ( attr == "include" )
+					{
+						std::ifstream sql(value.c_str());
+						if ( sql.good() )
+						{
+							sql.seekg(0, std::ios_base::end);
+							int size = sql.tellg();
+							sql.seekg(0);
+							
+							char *buffer = static_cast<char*>( malloc( size + 1 ) );
+							
+							sql.read(buffer, size);
+							buffer[size] = '\0';
+							
+							_elements->sql = buffer;
+							
+							free( buffer );
+						}
+					}
 					else if ( attr == "param" )
 					{
 						attr = value;

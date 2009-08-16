@@ -30,7 +30,31 @@ static void getXMLParams(XMLElementPtr _elem, AbstractElements* _elements)
 {
 	{
 		XMLElementPtr sql = _elem->FirstChildElement("sql");
-		_elements->sql = sql->GetText();
+		if ( sql )
+			_elements->sql = sql->GetText();
+		else
+		{
+			sql = _elem->FirstChildElement("include");
+			if ( sql )
+			{
+				std::ifstream include(sql->GetText().c_str());
+				if ( include.good() )
+				{
+					include.seekg(0, std::ios_base::end);
+					int size = include.tellg();
+					include.seekg(0);
+					
+					char *buffer = static_cast<char*>( malloc( size + 1 ) );
+					
+					include.read(buffer, size);
+					buffer[size] = '\0';
+					
+					_elements->sql = buffer;
+					
+					free( buffer );
+				}
+			}
+		}
 	}
 
 	SQLTypes type;
