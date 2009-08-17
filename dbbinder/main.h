@@ -104,7 +104,12 @@ inline ListString stringTok(const String &_string, const char _sep)
 
 }
 
+#ifdef NDEBUG
 #define FATAL(MSG) { std::cerr << DBBinder::appName << ": " << MSG << std::endl; exit( 1 ); }
+#else
+#define FATAL(MSG) { std::cerr << DBBinder::appName << ": " << MSG << std::endl; assert(false); }
+#endif
+
 #define WARNING(MSG) { std::cerr << DBBinder::appName << ": " << MSG << std::endl; }
 
 #define GET_TEXT_OR_ATTR( str, elem, attr ) { str = elem->GetText(false); if ( str.empty() ) elem->GetAttribute(attr, &str, false); }
