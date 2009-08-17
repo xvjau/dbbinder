@@ -41,6 +41,7 @@ typedef std::list<String> ListString;
 // Options set by command line
 extern String		appName;
 extern const char*	optFileName;
+extern const char*	optSQLFile;
 extern String		optOutput;
 extern const char*	optTemplate;
 extern ListString	optTemplateDirs;

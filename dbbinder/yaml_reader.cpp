@@ -49,10 +49,10 @@ static void parseYAMLDatabase(yaml_parser_t &parser, AbstractGenerator **_genera
 {
 	yaml_event_t event;
 	getYAMLEvent(parser, event);
-	
+
 	if ( event.type != YAML_MAPPING_START_EVENT )
 		FATAL("YAML: Expected YAML_MAPPING_START_EVENT");
-	
+
 	getYAMLEvent(parser, event);
 	if ( event.type != YAML_SCALAR_EVENT )
 		FATAL("YAML: Expected YAML_SCALAR_EVENT");
@@ -63,13 +63,13 @@ static void parseYAMLDatabase(yaml_parser_t &parser, AbstractGenerator **_genera
 	getYAMLEvent(parser, event);
 	if ( event.type != YAML_SCALAR_EVENT )
 		FATAL("YAML: Expected YAML_SCALAR_EVENT");
-	
+
 	*_generator = AbstractGenerator::getGenerator( reinterpret_cast<const char*>(event.data.scalar.value) );
-	
+
 	bool done = false;
 
 	String attr;
-	
+
 	while ( !done )
 	{
 		getYAMLEvent(parser, event);
@@ -117,14 +117,14 @@ static void getYAMLParams(yaml_parser_t &parser, AbstractElements* _elements)
 	if ( strcasecmp(reinterpret_cast<const char*>(event.data.scalar.value), "name") != 0)
 		FATAL("YAML: Expected select->name");
 	yaml_event_delete(&event);
-	
+
 	getYAMLEvent(parser, event);
 	if ( event.type != YAML_SCALAR_EVENT )
 		FATAL("YAML: Expected YAML_SCALAR_EVENT");
 
 	_elements->name = reinterpret_cast<const char*>(event.data.scalar.value);
 	yaml_event_delete(&event);
-	
+
 	bool done = false;
 
 	String attr;
@@ -132,7 +132,7 @@ static void getYAMLParams(yaml_parser_t &parser, AbstractElements* _elements)
 	SQLTypes type;
 	String name, defaultValue, strType;
 	int index;
-	
+
 	while ( !done )
 	{
 		getYAMLEvent(parser, event);
@@ -162,15 +162,19 @@ static void getYAMLParams(yaml_parser_t &parser, AbstractElements* _elements)
 							sql.seekg(0, std::ios_base::end);
 							int size = sql.tellg();
 							sql.seekg(0);
-							
+
 							char *buffer = static_cast<char*>( malloc( size + 1 ) );
-							
+
 							sql.read(buffer, size);
 							buffer[size] = '\0';
-							
+
 							_elements->sql = buffer;
-							
+
 							free( buffer );
+						}
+						else
+						{
+							FATAL(DBBinder::optFileName << ": include file not found: " << value);
 						}
 					}
 					else if ( attr == "param" )
@@ -189,7 +193,7 @@ static void getYAMLParams(yaml_parser_t &parser, AbstractElements* _elements)
 							if ( event.type == YAML_SCALAR_EVENT )
 							{
 								value = String(reinterpret_cast<const char*>(event.data.scalar.value));
-								
+
 								if ( attr.empty() )
 									attr = value;
 								else
@@ -210,7 +214,7 @@ static void getYAMLParams(yaml_parser_t &parser, AbstractElements* _elements)
 							{
 								paramDone = true;
 							}
-							
+
 							yaml_event_delete(&event);
 						}
 
@@ -220,10 +224,10 @@ static void getYAMLParams(yaml_parser_t &parser, AbstractElements* _elements)
 							WARNING("unknown param type for: " << name);
 							type = stText;
 						}
-						
+
 						_elements->input.push_back( SQLElement( name, type, index, defaultValue ));
 					}
-					
+
 					attr.clear();
 				}
 				break;
@@ -268,7 +272,7 @@ static void parseYAMLExtra(yaml_parser_t &parser, AbstractGenerator **_generator
 	yaml_event_delete(&event);
 
 	String sequence;
-	
+
 	bool done = false;
 	while( !done )
 	{
@@ -292,16 +296,16 @@ static void parseYAMLExtra(yaml_parser_t &parser, AbstractGenerator **_generator
 					yaml_event_delete(&event);
 
 					String attr;
-					
+
 					bool typesDone = false;
 					while( !typesDone )
 					{
 						getYAMLEvent(parser, event);
-						
+
 						if( event.type == YAML_SCALAR_EVENT )
 						{
 							value = String(reinterpret_cast<const char*>(event.data.scalar.value));
-							
+
 							if ( attr.empty() )
 								attr = value;
 							else
@@ -314,7 +318,7 @@ static void parseYAMLExtra(yaml_parser_t &parser, AbstractGenerator **_generator
 								}
 								else
 									(*_generator)->setType( type, value );
-								
+
 								attr.clear();
 							}
 						}
@@ -322,7 +326,7 @@ static void parseYAMLExtra(yaml_parser_t &parser, AbstractGenerator **_generator
 						{
 							typesDone = true;
 						}
-						
+
 						yaml_event_delete(&event);
 					}
 				}
@@ -354,16 +358,16 @@ static void parseYAMLExtra(yaml_parser_t &parser, AbstractGenerator **_generator
 					{
 						sequenceDone = true;
 					}
-					
+
 					yaml_event_delete(&event);
 				}
-				
+
 				break;
 			}
 			default:
 				WARNING("YAML: " << optFileName << ": Unknown YAML event: " << event.type << " in extras");
 		}
-		
+
 		yaml_event_delete(&event);
 	}
 }
@@ -386,9 +390,9 @@ void parseYAML()
 	yaml_parser_set_input_file(&parser, yamlFile);
 
 	AbstractGenerator *generator = 0;
-	
+
 	String tagName;
-	
+
 	/* Read the event sequence. */
 	bool done = false;
 	while (!done)
@@ -401,18 +405,18 @@ void parseYAML()
 			case YAML_STREAM_END_EVENT: // A STREAM-END event.
 				done = true;
 				break;
-				
+
 			case YAML_SCALAR_EVENT: // A SCALAR event.
 			{
 				String value(reinterpret_cast<const char*>(event.data.scalar.value));
-				
+
 				switch( value[0] )
 				{
 					case 'd':
 						if ( value == "database" )
 							parseYAMLDatabase(parser, &generator);
 						break;
-						
+
 					case 'e':
 						if ( value == "extra" )
 							parseYAMLExtra(parser, &generator);
@@ -422,7 +426,7 @@ void parseYAML()
 						if ( value == "insert" )
 							parseYAMLInsert(parser, &generator);
 						break;
-					
+
 					case 's':
 						if ( value == "select" )
 							parseYAMLSelect(parser, &generator);
@@ -435,7 +439,7 @@ void parseYAML()
 					default:
 						WARNING("YAML: Unknown value: " << value);
 				}
-				
+
 				break;
 			}
 			default:
@@ -453,5 +457,5 @@ void parseYAML()
 
 	generator->generate();
 }
-	
+
 }
