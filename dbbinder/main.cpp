@@ -293,7 +293,7 @@ CHECK_FILE_TYPE:
 				}
 				// no break
 			case 'y':
-				if ( strcasecmp(--c, ".yaml") == 0 )
+				if ( strcasecmp(c, ".yaml") == 0 )
 				{
 					DBBinder::optYAML = true;
 					break;
