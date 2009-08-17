@@ -47,6 +47,8 @@ extern const char*	optTemplate;
 extern ListString	optTemplateDirs;
 extern bool		optXML;
 extern bool		optYAML;
+extern const char*	optVersionMajor;
+extern const char*	optVersionMinor;
 
 // Utility funcs and defines
 inline String stringToLower(const String& _string)

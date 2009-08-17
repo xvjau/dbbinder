@@ -29,6 +29,12 @@ struct commandOptionCode
 		TEMPLATE,
 		TEMPLATE_DIR,
 		OUTPUT_FILE,
+		DATABASE,
+		SQL,
+		SQL_PARAM,
+		VERSION,
+		VERSION_MAJOR,
+		VERSION_MINOR,
 	};
 };
 typedef struct commandOptionCode commandOptionCode;
@@ -47,3 +53,9 @@ struct commandOption
 -t,		commandOptionCode::TEMPLATE
 -d,		commandOptionCode::TEMPLATE_DIR
 -o,		commandOptionCode::OUTPUT_FILE
+--database,	commandOptionCode::DATABASE
+--sql, 	commandOptionCode::SQL
+--sql-param, commandOptionCode::SQL_PARAM
+-V,		commandOptionCode::VERSION
+--vmajor, commandOptionCode::VERSION_MAJOR
+--vminor, commandOptionCode::VERSION_MINOR

@@ -28,7 +28,7 @@ add_custom_command(OUTPUT options.h
 					DEPENDS options.gperf
 					COMMENT build options.h)
 
-set_source_files_properties(main.cpp PROPERTIES OBJECT_DEPENDS options.gperf)
+set_source_files_properties(main.cpp PROPERTIES OBJECT_DEPENDS options.h)
 
 ########################## Boost ##########################
 
@@ -189,3 +189,4 @@ endif()
 add_executable(dbbinder main.cpp xml_reader.cpp abstractgenerator.cpp sqlitegenerator.cpp ${extra_files})
 
 target_link_libraries(dbbinder ticpp ctemplate_nothreads sqlite3 ${extra_libs})
+

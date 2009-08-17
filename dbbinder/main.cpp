@@ -39,6 +39,8 @@ const char*	optTemplate = 0;
 ListString	optTemplateDirs;
 bool		optXML = false;
 bool		optYAML = false;
+const char*	optVersionMajor = "0";
+const char*	optVersionMinor = "0";
 
 static const char*	defaultTemplateDirs[] =
 {
@@ -84,6 +86,15 @@ void printHelp()
 #endif
 			"	-d DIR		add a template directory\n"
 			"	-t FOO[,BAR]	set the template and optional sub-template (default: " << DEFAULT_TEMLPATE << ")\n"
+			"	--database TYPE[,CONN0[,CONN1]] Database to connect and, optionally, connection params\n"
+			"			example: --database MySQL,127.0.0.1,db,user,password\n"
+			"	--sql COMMAND	SQL command\n"
+			"			example: --sql 'select FIELD1, FIELD2 from TABLE where FIELD3 = ?'\n"
+			"	--sql-param PARAM,TYPE[,DEFAULT]	PARAM for the SQL.\n"
+			"			example: --param name,string,'no name' --param age,int\n"
+			"	-V		version\n"
+			"	--vmajor	major version\n"
+			"	--vminor	minor version\n"
 			<< std::endl;
 }
 
@@ -196,6 +207,21 @@ int main(int argc, char *argv[])
 						FATAL("missing output file name");
 
 					break;
+				}
+				case commandOptionCode::VERSION:
+				{
+					std::cout << DBBinder::optVersionMajor << '.' << DBBinder::optVersionMinor << std::endl;
+					exit(0);
+				}
+				case commandOptionCode::VERSION_MAJOR:
+				{
+					std::cout << DBBinder::optVersionMajor << std::endl;
+					exit(0);
+				}
+				case commandOptionCode::VERSION_MINOR:
+				{
+					std::cout << DBBinder::optVersionMinor << std::endl;
+					exit(0);
 				}
 				default:
 					FATAL("illegal option: " << argv[i]);
