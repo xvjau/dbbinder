@@ -4,20 +4,20 @@ if(COMMAND cmake_policy)
 	cmake_policy(SET CMP0003 NEW)
 endif()
 
+set (DEBUG ON)
 if (DEBUG)
 	set(CMAKE_VERBOSE_MAKEFILE ON)
 endif()
 
 project(dbbinder)
 
+add_definitions(-fvisibility=hidden -Wall -Wno-parentheses)
+
 add_subdirectory(./TinyXML)
 
 add_definitions(-DTIXML_USE_TICPP)
-if (DEBUG)
-	add_definitions(-Wall -Wno-parentheses -ggdb)
-else(DEBUG)
-	add_definitions(-O2)
-endif()
+
+########################## Gnu Perfect Hash ##########################
 
 get_filename_component(SRC_PATH ./options.gperf ABSOLUTE)
 get_filename_component(DST_PATH ./options.h ABSOLUTE)
@@ -28,12 +28,16 @@ add_custom_command(OUTPUT options.h
 					DEPENDS options.gperf
 					COMMENT build options.h)
 
+set_source_files_properties(main.cpp PROPERTIES OBJECT_DEPENDS options.gperf)
+
+########################## Boost ##########################
+
 find_package( Boost )
 if(Boost_FOUND)
 	include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
-# MySQL
+##########################  MySQL ##########################
 
 string(LENGTH "${ENABLE_MYSQL}" ENABLE_MYSQL_LEN)
 if (ENABLE_MYSQL_LEN EQUAL 0)
@@ -60,7 +64,7 @@ if(ENABLE_MYSQL)
 	endif(MYSQL_INCLUDE AND MYSQL_LIB)
 endif()
 
-# Firebird
+########################## Firebird ##########################
 
 string(LENGTH "${ENABLE_FIREBIRD}" ENABLE_FIREBIRD_LEN)
 if (ENABLE_FIREBIRD_LEN EQUAL 0)
@@ -124,7 +128,7 @@ if(ENABLE_FIREBIRD)
 	endif()
 endif()
 
-# Oracle
+########################## Oracle ##########################
 
 string(LENGTH "${ENABLE_ORACLE}" ENABLE_ORACLE_LEN)
 if (ENABLE_ORACLE_LEN EQUAL 0)
@@ -152,7 +156,7 @@ if(ENABLE_ORACLE)
 	endif ()
 endif()
 
-# YAML
+########################## YAML ##########################
 
 string(LENGTH "${ENABLE_YAML}" ENABLE_YAML_LEN)
 if (ENABLE_YAML_LEN EQUAL 0)
@@ -180,8 +184,8 @@ if(ENABLE_YAML)
 	endif ()
 endif()
 
-add_executable(dbbinder main.cpp xml_reader.cpp abstractgenerator.cpp sqlitegenerator.cpp ${extra_files})
+########################## Done ##########################
 
-set_source_files_properties(main.cpp PROPERTIES OBJECT_DEPENDS options.h)
+add_executable(dbbinder main.cpp xml_reader.cpp abstractgenerator.cpp sqlitegenerator.cpp ${extra_files})
 
 target_link_libraries(dbbinder ticpp ctemplate_nothreads sqlite3 ${extra_libs})
