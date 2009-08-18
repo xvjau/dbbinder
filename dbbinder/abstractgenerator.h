@@ -45,6 +45,14 @@ enum SQLTypes
 };
 SQLTypes typeNameToSQLType(String _name);
 
+enum SQLStatementTypes
+{
+	sstUnknown,
+	sstSelect,
+	sstInsert,
+	sstUpdate,
+};
+
 struct SQLElement
 {
 	SQLElement( const String& _name, SQLTypes _type, int _index = -1, int _length = 0 ):

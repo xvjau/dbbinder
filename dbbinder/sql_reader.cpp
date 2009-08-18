@@ -107,7 +107,65 @@ void parseSQL(const String& _fileName)
 		}
 
 		//TODO: Determine if this is a select, insert or update statement
-		SelectElements elements;
+		AbstractElements *elements;
+		SQLStatementTypes statementType = sstUnknown;
+
+		// Load the SQL statement
+		// We need to 'jump' all the starting lines so engines like SQLite don't get confused with comments and
+		// blank lines.
+		{
+			file.clear();
+			file.seekg(0, std::ios_base::end);
+			size_t size = file.tellg();
+			file.seekg(0);
+
+			while ( file.good() )
+			{
+				file.getline(buffer, 4096);
+				if ( strncmp(buffer, "--", 2 ) != 0 )
+				{
+					char *c = buffer;
+					while( *c )
+					{
+						if ( !isblank( *c ) )
+						{
+							if ( strcasecmp( c, "select" ) == 0 )
+							{
+								elements = new SelectElements;
+								statementType = sstSelect;
+							}
+							else
+							{
+								if ( strcasecmp( c, "update" ) == 0 )
+								{
+									elements = new UpdateElements;
+									statementType = sstUpdate;
+								}
+								else
+								{
+									elements = new InsertElements;
+									statementType = sstInsert;
+								}
+							}
+
+							file.seekg(file.gcount() * -1, std::ios_base::cur);
+							size -= file.tellg();
+
+							char* str = new char[size];
+							file.read( str, size );
+							elements->sql = str;
+							delete str;
+
+							goto END_READ_SQL;
+						}
+						else
+							c++;
+					}
+				}
+			}
+		}
+
+		END_READ_SQL:
 
 		file.clear();
 		file.seekg(0);
@@ -136,7 +194,7 @@ void parseSQL(const String& _fileName)
 						if ( list.size() > 1 )
 							WARNING(fileName << ':' << line << ": ignoreing extra params");
 
-						elements.name = list.front();
+						elements->name = list.front();
 					}
 					break;
 				case 'p':
@@ -170,51 +228,26 @@ void parseSQL(const String& _fileName)
 						if ( type == stUnknown )
 							FATAL(fileName << ':' << line << ": illegal param type");
 
-						elements.input.push_back( SQLElement( name, type, index, defaultValue ));
+						elements->input.push_back( SQLElement( name, type, index, defaultValue ));
 					}
 					break;
 			}
 		}
 
-		// Load the SQL statement
-		// We need to 'jump' all the starting lines so engines like SQLite don't get confused with comments and
-		// blank lines.
+		std::cout << "Statement type is: " << statementType << std::endl;
+		switch( statementType )
 		{
-			file.clear();
-			file.seekg(0, std::ios_base::end);
-			size_t size = file.tellg();
-			file.seekg(0);
-
-			while ( file.good() )
-			{
-				file.getline(buffer, 4096);
-				if ( strncmp(buffer, "--", 2 ) != 0 )
-				{
-					char *c = buffer;
-					while( *c )
-					{
-						if ( !isblank( *c ) )
-						{
-							file.seekg(file.gcount() * -1, std::ios_base::cur);
-							size -= file.tellg();
-
-							char* str = new char[size];
-							file.read( str, size );
-							elements.sql = str;
-							delete str;
-
-							goto END_READ_SQL;
-						}
-						else
-							c++;
-					}
-				}
-			}
+			case sstSelect:
+				generator->addSelect( *static_cast<SelectElements*>( elements ));
+				break;
+			case sstInsert:
+				generator->addInsert( *static_cast<InsertElements*>( elements ));
+				break;
+			case sstUpdate:
+				generator->addUpdate( *static_cast<UpdateElements*>( elements ));
+				break;
 		}
 
-		END_READ_SQL:
-
-		generator->addSelect( elements );
 	}
 	else
 	{
