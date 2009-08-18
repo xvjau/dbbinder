@@ -5,7 +5,7 @@
 		</includes>
 		<extra_headers>
 			<define>
-				#define SQLCHECK( FN ) if( FN != SQLITE_OK ) { std::cerr &lt;&lt; __FILE__ &lt;&lt; __LINE__ &lt;&lt; " SQL error: " &lt;&lt; sqlite3_errmsg(m_conn) &lt;&lt; std::endl; assert(false); };
+				#define SQLCHECK( FN ) if( FN != SQLITE_OK ) { std::cerr &lt;&lt; basename(__FILE__) &lt;&lt; ':' &lt;&lt; __LINE__ &lt;&lt; " SQL error: " &lt;&lt; sqlite3_errmsg(m_conn) &lt;&lt; std::endl; assert(false); };
 			</define>
 		</extra_headers>
 		<types>

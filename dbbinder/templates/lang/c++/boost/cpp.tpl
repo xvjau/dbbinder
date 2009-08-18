@@ -54,10 +54,10 @@ const int {{CLASSNAME}}::s_selectParamCount = {{SELECT_PARAM_COUNT}};
 {
 	{{#SEL_IN_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
 	{{/SEL_IN_FIELDS_BUFFERS}}
-	
+
 	{{#SEL_OUT_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
 	{{/SEL_OUT_FIELDS_BUFFERS}}
-	
+
 	if ( !m_conn )
 	{
 		m_needCloseConn = true;
@@ -66,7 +66,7 @@ const int {{CLASSNAME}}::s_selectParamCount = {{SELECT_PARAM_COUNT}};
 
 	{{DBENGINE_CREATE_SELECT}}
 	{{DBENGINE_PREPARE_SELECT}}
-	
+
 	open(
 		 {{#SEL_IN_FIELDS}}_{{SEL_IN_FIELD_NAME}}{{SEL_IN_FIELD_COMMA}}
 		 {{/SEL_IN_FIELDS}}
@@ -94,13 +94,13 @@ void {{CLASSNAME}}::open(
 
 	{{#SEL_IN_FIELDS_BUFFERS}}{{BUFFER_ALLOC}}
 	{{/SEL_IN_FIELDS_BUFFERS}}
-	
+
 	{{#SEL_OUT_FIELDS_BUFFERS}}{{BUFFER_ALLOC}}
 	{{/SEL_OUT_FIELDS_BUFFERS}}
 
 	{{#SEL_IN_FIELDS}}{{SEL_IN_FIELD_BIND}}
 	{{/SEL_IN_FIELDS}}
-	
+
 	{{DBENGINE_EXECUTE_SELECT}}
 
 	m_selectIsActive = true;
@@ -141,13 +141,13 @@ bool {{CLASSNAME}}::update(
 
 	{{#UPD_IN_FIELDS_BUFFERS}}{{BUFFER_ALLOC}}
 	{{/UPD_IN_FIELDS_BUFFERS}}
-	
+
 	{{#UPD_OUT_FIELDS_BUFFERS}}{{BUFFER_ALLOC}}
 	{{/UPD_OUT_FIELDS_BUFFERS}}
 
 	{{#UPD_IN_FIELDS}}{{UPD_IN_FIELD_BIND}}
 	{{/UPD_IN_FIELDS}}
-	
+
 	{{DBENGINE_EXECUTE_UPDATE}}
 
 	m_updateIsActive = true;
