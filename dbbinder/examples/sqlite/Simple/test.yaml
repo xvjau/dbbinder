@@ -1,0 +1,74 @@
+database:
+  type: "SQLite3"
+  file: test.db
+
+select:
+  name: selFestival
+  param:
+    name: idUser
+    type: int
+    default: 2
+
+  param:
+    name: minDate
+    type: int
+    default: 0
+
+insert:
+  name: selFestival
+
+  param:
+    name: idUser
+    type: int
+  param:
+    name: userName
+    type: string
+  param:
+    name: login
+    type: string
+  param:
+    name: password
+    type: string
+
+  sql: |
+    insert into
+      "USERS" ("IDUSER", "NAME", "LOGIN", "PASSWORD")
+    values
+      (?, ?, ?, ?)
+
+update:
+  name: selFestival
+
+  param:
+    name: idUser
+    type: int
+  param:
+    name: userName
+    type: string
+  param:
+    name: login
+    type: string
+  param:
+    name: password
+    type: string
+
+  sql: |
+    update
+      "USERS"
+    set
+      "NAME" = ?,
+      "LOGIN" = ?,
+      "PASSWORD" = ?
+    where
+      "IDUSER" = ?
+
+extra:
+  types:
+    string: const char*
+
+  namespaces:
+    - TestApp
+
+#headers:
+#   - "#include <string>"
+#   - typedef const char* String;
