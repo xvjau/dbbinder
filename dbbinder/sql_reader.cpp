@@ -234,7 +234,6 @@ void parseSQL(const String& _fileName)
 			}
 		}
 
-		std::cout << "Statement type is: " << statementType << std::endl;
 		switch( statementType )
 		{
 			case sstSelect:
