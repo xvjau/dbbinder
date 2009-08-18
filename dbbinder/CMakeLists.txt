@@ -4,8 +4,9 @@ if(COMMAND cmake_policy)
 	cmake_policy(SET CMP0003 NEW)
 endif()
 
-set (DEBUG ON)
-if (DEBUG)
+if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
+	set(COMPILE_DEFINITIONS "")
+	set(COMPILE_DEFINITIONS_DEBUG "-ggdb -pipe")
 	set(CMAKE_VERBOSE_MAKEFILE ON)
 endif()
 
@@ -186,7 +187,13 @@ endif()
 
 ########################## Done ##########################
 
-add_executable(dbbinder main.cpp xml_reader.cpp abstractgenerator.cpp sqlitegenerator.cpp ${extra_files})
+add_executable(dbbinder 
+	main.cpp
+	xml_reader.cpp
+	sql_reader.cpp
+	abstractgenerator.cpp
+	sqlitegenerator.cpp
+	${extra_files})
 
 target_link_libraries(dbbinder ticpp ctemplate_nothreads sqlite3 ${extra_libs})
 
