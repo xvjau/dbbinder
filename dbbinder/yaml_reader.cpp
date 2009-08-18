@@ -21,6 +21,7 @@
 #include <yaml.h>
 
 #include "main.h"
+#include "abstractgenerator.h"
 #include "yaml_reader.h"
 
 namespace DBBinder
@@ -45,7 +46,7 @@ inline void getYAMLEvent(yaml_parser_t &_parser, yaml_event_t& _event)
 	}
 }
 
-static void parseYAMLDatabase(yaml_parser_t &parser, AbstractGenerator **_generator)
+static void parseYAMLDatabase(yaml_parser_t &parser)
 {
 	yaml_event_t event;
 	getYAMLEvent(parser, event);
@@ -64,8 +65,7 @@ static void parseYAMLDatabase(yaml_parser_t &parser, AbstractGenerator **_genera
 	if ( event.type != YAML_SCALAR_EVENT )
 		FATAL("YAML: Expected YAML_SCALAR_EVENT");
 
-	if ( !*_generator )
-		*_generator = AbstractGenerator::getGenerator( reinterpret_cast<const char*>(event.data.scalar.value) );
+	AbstractGenerator *generator = AbstractGenerator::getGenerator( reinterpret_cast<const char*>(event.data.scalar.value) );
 
 	bool done = false;
 
@@ -90,7 +90,7 @@ static void parseYAMLDatabase(yaml_parser_t &parser, AbstractGenerator **_genera
 					attr = value;
 				else
 				{
-					(*_generator)->setDBParam( attr, value );
+					generator->setDBParam( attr, value );
 					attr.clear();
 				}
 				break;
@@ -244,28 +244,28 @@ static void getYAMLParams(yaml_parser_t &parser, AbstractElements* _elements)
 	}
 }
 
-static void parseYAMLSelect(yaml_parser_t &parser, AbstractGenerator **_generator)
+static void parseYAMLSelect(yaml_parser_t &parser)
 {
 	SelectElements elements;
 	getYAMLParams( parser, &elements );
-	(*_generator)->addSelect( elements );
+	AbstractGenerator::getGenerator()->addSelect( elements );
 }
 
-static void parseYAMLInsert(yaml_parser_t &parser, AbstractGenerator **_generator)
+static void parseYAMLInsert(yaml_parser_t &parser)
 {
 	InsertElements elements;
 	getYAMLParams( parser, &elements );
-	(*_generator)->addInsert( elements );
+	AbstractGenerator::getGenerator()->addInsert( elements );
 }
 
-static void parseYAMLUpdate(yaml_parser_t &parser, AbstractGenerator **_generator)
+static void parseYAMLUpdate(yaml_parser_t &parser)
 {
 	UpdateElements elements;
 	getYAMLParams( parser, &elements );
-	(*_generator)->addUpdate( elements );
+	AbstractGenerator::getGenerator()->addUpdate( elements );
 }
 
-static void parseYAMLExtra(yaml_parser_t &parser, AbstractGenerator **_generator)
+static void parseYAMLExtra(yaml_parser_t &parser)
 {
 	yaml_event_t event;
 
@@ -275,6 +275,7 @@ static void parseYAMLExtra(yaml_parser_t &parser, AbstractGenerator **_generator
 	yaml_event_delete(&event);
 
 	String sequence;
+	AbstractGenerator *generator = AbstractGenerator::getGenerator();
 
 	bool done = false;
 	while( !done )
@@ -320,7 +321,7 @@ static void parseYAMLExtra(yaml_parser_t &parser, AbstractGenerator **_generator
 									WARNING("unknown type for: " << attr);
 								}
 								else
-									(*_generator)->setType( type, value );
+									generator->setType( type, value );
 
 								attr.clear();
 							}
@@ -351,9 +352,9 @@ static void parseYAMLExtra(yaml_parser_t &parser, AbstractGenerator **_generator
 						String value(reinterpret_cast<const char*>(event.data.scalar.value));
 
 						if ( sequence == "namespaces")
-							(*_generator)->addNamespace( value );
+							generator->addNamespace( value );
 						else if ( sequence == "headers")
-							(*_generator)->addHeader( value );
+							generator->addHeader( value );
 						else
 							WARNING("YAML: Unknown sequence: " << sequence);
 					}
@@ -375,7 +376,7 @@ static void parseYAMLExtra(yaml_parser_t &parser, AbstractGenerator **_generator
 	}
 }
 
-void parseYAML(const String& _fileName, AbstractGenerator **_generator)
+void parseYAML(const String& _fileName)
 {
 	fileName = _fileName;
 
@@ -417,27 +418,27 @@ void parseYAML(const String& _fileName, AbstractGenerator **_generator)
 				{
 					case 'd':
 						if ( value == "database" )
-							parseYAMLDatabase(parser, _generator);
+							parseYAMLDatabase(parser);
 						break;
 
 					case 'e':
 						if ( value == "extra" )
-							parseYAMLExtra(parser, _generator);
+							parseYAMLExtra(parser);
 						break;
 
 					case 'i':
 						if ( value == "insert" )
-							parseYAMLInsert(parser, _generator);
+							parseYAMLInsert(parser);
 						break;
 
 					case 's':
 						if ( value == "select" )
-							parseYAMLSelect(parser, _generator);
+							parseYAMLSelect(parser);
 						break;
 
 					case 'u':
 						if ( value == "update" )
-							parseYAMLUpdate(parser, _generator);
+							parseYAMLUpdate(parser);
 						break;
 					default:
 						WARNING(fileName << ": Unknown value: " << value);

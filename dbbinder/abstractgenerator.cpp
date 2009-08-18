@@ -196,8 +196,12 @@ SQLTypes typeNameToSQLType(String _name)
 	return stUnknown;
 }
 
+AbstractGenerator* AbstractGenerator::s_generator = 0;
 AbstractGenerator* AbstractGenerator::getGenerator(const String & _type)
 {
+	if ( s_generator )
+		return s_generator;
+
 	if ( _type.length() > 1 )
 	{
 		String type = stringToLower( _type );
@@ -209,7 +213,8 @@ AbstractGenerator* AbstractGenerator::getGenerator(const String & _type)
 			{
 				if ( type == "firebird" || type == "interbase" )
 				{
-					return new FirebirdGenerator();
+					s_generator = new FirebirdGenerator();
+					return s_generator;
 				}
 			}
 #endif // WITH_FIREBRID
@@ -218,7 +223,8 @@ AbstractGenerator* AbstractGenerator::getGenerator(const String & _type)
 			{
 				if ( type == "mysql" )
 				{
-					return new MySQLGenerator();
+					s_generator = new MySQLGenerator();
+					return s_generator;
 				}
 			}
 #endif // WITH_MYSQL
@@ -227,7 +233,8 @@ AbstractGenerator* AbstractGenerator::getGenerator(const String & _type)
 			{
 				if ( type == "oracle" )
 				{
-					return new OracleGenerator();
+					s_generator = new OracleGenerator();
+					return s_generator;
 				}
 			}
 #endif // WITH_ORACLE
@@ -235,7 +242,8 @@ AbstractGenerator* AbstractGenerator::getGenerator(const String & _type)
 			{
 				if ( type == "sqlite" || type == "sqlite3" )
 				{
-					return new SQLiteGenerator();
+					s_generator = new SQLiteGenerator();
+					return s_generator;
 				}
 			}
 		}

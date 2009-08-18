@@ -20,6 +20,7 @@
 #include "TinyXML/nvXML.h"
 
 #include "main.h"
+#include "abstractgenerator.h"
 #include "xml_reader.h"
 
 namespace DBBinder
@@ -86,7 +87,7 @@ static void getXMLParams(XMLElementPtr _elem, AbstractElements* _elements)
 	}
 }
 
-void parseXML(const String& _fileName, AbstractGenerator **_generator)
+void parseXML(const String& _fileName)
 {
 	fileName = _fileName;
 
@@ -99,8 +100,7 @@ void parseXML(const String& _fileName, AbstractGenerator **_generator)
 
 		XMLElementPtr db = xml->FirstChildElement("database");
 
-		if ( !*_generator )
-			*_generator = AbstractGenerator::getGenerator( db->FirstChildElement("type")->GetText() );
+		AbstractGenerator *generator = AbstractGenerator::getGenerator( db->FirstChildElement("type")->GetText() );
 
 		XMLElementPtr elem;
 		XMLNodePtr node, subnode, valnode;
@@ -115,10 +115,10 @@ void parseXML(const String& _fileName, AbstractGenerator **_generator)
 
 			if ( stringToLower(str) == "int" )
 			{
-				(*_generator)->setDBParam( elem->Value(), atoi( elem->GetText().c_str() ));
+				generator->setDBParam( elem->Value(), atoi( elem->GetText().c_str() ));
 			}
 			else
-				(*_generator)->setDBParam( elem->Value(), elem->GetText() );
+				generator->setDBParam( elem->Value(), elem->GetText() );
 		}
 
 		node = 0;
@@ -130,7 +130,7 @@ void parseXML(const String& _fileName, AbstractGenerator **_generator)
 			elem->GetAttribute( "name", &elements.name );
 			getXMLParams( elem, &elements );
 
-			(*_generator)->addSelect( elements );
+			generator->addSelect( elements );
 		}
 
 		node = 0;
@@ -142,7 +142,7 @@ void parseXML(const String& _fileName, AbstractGenerator **_generator)
 			elem->GetAttribute( "name", &elements.name );
 			getXMLParams( elem, &elements );
 
-			(*_generator)->addUpdate( elements );
+			generator->addUpdate( elements );
 		}
 
 		node = 0;
@@ -154,7 +154,7 @@ void parseXML(const String& _fileName, AbstractGenerator **_generator)
 			elem->GetAttribute( "name", &elements.name );
 			getXMLParams( elem, &elements );
 
-			(*_generator)->addInsert( elements );
+			generator->addInsert( elements );
 		}
 
 		node = 0;
@@ -182,7 +182,7 @@ void parseXML(const String& _fileName, AbstractGenerator **_generator)
 							WARNING("unknown type for: " << elem->Value());
 						}
 						else
-							(*_generator)->setType( type, str );
+							generator->setType( type, str );
 					}
 				}
 			}
@@ -201,7 +201,7 @@ void parseXML(const String& _fileName, AbstractGenerator **_generator)
 						elem->GetAttribute( "name", &str, false );
 
 					if ( !str.empty() )
-						(*_generator)->addNamespace( str );
+						generator->addNamespace( str );
 				}
 			}
 
@@ -219,7 +219,7 @@ void parseXML(const String& _fileName, AbstractGenerator **_generator)
 						elem->GetAttribute( "value", &str, false );
 
 					if ( !str.empty() )
-						(*_generator)->addHeader( str );
+						generator->addHeader( str );
 				}
 			}
 		}

@@ -20,12 +20,10 @@
 #ifndef __DBBINDER_XML_READER_H
 #define __DBBINDER_XML_READER_H
 
-#include "abstractgenerator.h"
-
 namespace DBBinder
 {
 
-void parseXML(const String& _fileName, AbstractGenerator **_generator);
+void parseXML(const String& _fileName);
 
 }
 

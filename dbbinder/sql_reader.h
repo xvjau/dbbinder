@@ -20,12 +20,10 @@
 #ifndef __DBBINDER_SQL_READER_H
 #define __DBBINDER_SQL_READER_H
 
-#include "abstractgenerator.h"
-
 namespace DBBinder
 {
 
-void parseSQL(const String& _fileName, AbstractGenerator **_generator);
+void parseSQL(const String& _fileName);
 
 }
 

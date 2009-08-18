@@ -299,19 +299,17 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	DBBinder::AbstractGenerator *generator = 0;
-
 	switch ( fileType )
 	{
 		case DBBinder::ftXML:
 		{
-			DBBinder::parseXML(fileName, &generator);
+			DBBinder::parseXML(fileName);
 			break;
 		}
 		case DBBinder::ftYAML:
 		{
 			#ifdef WITH_YAML
-			DBBinder::parseYAML(fileName, &generator);
+			DBBinder::parseYAML(fileName);
 			#else
 			FATAL("no yaml support");
 			#endif
@@ -319,14 +317,14 @@ int main(int argc, char *argv[])
 		}
 		case DBBinder::ftSQL:
 		{
-			DBBinder::parseSQL(fileName, &generator);
+			DBBinder::parseSQL(fileName);
 			break;
 		}
 		default:
 			FATAL("Unknown file type.");
 	}
 
-	generator->generate();
+	DBBinder::AbstractGenerator::getGenerator()->generate();
 
 	return 0;
 }

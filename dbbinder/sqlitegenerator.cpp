@@ -46,7 +46,7 @@ bool SQLiteGenerator::checkConnection()
 		String dbName = m_dbParams["file"].value;
 		if ( dbName.empty() )
 			FATAL( "SQLite3: 'file' db parameter is empty." );
-		
+
 		int ret = sqlite3_open(dbName.c_str(), &m_db);
 		if( ret )
 		{
@@ -63,7 +63,7 @@ bool SQLiteGenerator::checkConnection()
 void SQLiteGenerator::addSelect(SelectElements _elements)
 {
 	checkConnection();
-	
+
 	const char *tail = 0;
 	sqlite3_stmt *stmt = 0;
 
@@ -87,14 +87,14 @@ void SQLiteGenerator::addSelect(SelectElements _elements)
 	{
 		FATAL( "fetch error: " << _elements.sql << " :" << ret << " " << sqlite3_errmsg(m_db) );
 	}
-	
+
 	int count = sqlite3_column_count( stmt );
 	SQLTypes type;
 	String name;
 	for( int i = 0; i < count; ++i )
 	{
 		name = sqlite3_column_name( stmt, i );
-		
+
 		switch ( sqlite3_column_type( stmt, i ) )
 		{
 			case SQLITE_INTEGER:
@@ -111,7 +111,7 @@ void SQLiteGenerator::addSelect(SelectElements _elements)
 			default:
 				type = stText;
 		};
-		
+
 		_elements.output.push_back( SQLElement( name, type, i ));
 	}
 
@@ -207,7 +207,7 @@ String SQLiteGenerator::getReadValue(const ListElements::iterator & _item, int _
 			break;
 		}
 	}
-	
+
 	return str.str();
 }
 

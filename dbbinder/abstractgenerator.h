@@ -22,6 +22,7 @@
 
 #include "main.h"
 #include <sstream>
+#include <boost/smart_ptr.hpp>
 
 namespace DBBinder
 {
@@ -156,7 +157,7 @@ class AbstractGenerator
 		virtual bool loadYAMLTemplate(const String& _path);
 
 		// <SUCKS>
-		// There must be a better way to implement this.
+		// TODO: There must be a better way to implement this.
 		virtual bool needIOBuffers() const;
 
 		virtual void addSelInBuffers(const SelectElements* _select);
@@ -166,7 +167,11 @@ class AbstractGenerator
 		virtual String getReadValue(const ListElements::iterator& _item, int _index) = 0;
 
 		// </SUCKS>
+
+		//TODO: This might be better implemented;
+		static AbstractGenerator* s_generator;
 	public:
+		static AbstractGenerator* getGenerator() { return s_generator; }
 		static AbstractGenerator* getGenerator(const String& _type);
 
 		void setDBParam(const String& _key, const String& _value)
@@ -203,6 +208,7 @@ class AbstractGenerator
 		virtual void addUpdate(UpdateElements _elements);
 		virtual void addInsert(InsertElements _elements);
 };
+typedef AbstractGenerator* AbstractGeneratorPtr;
 
 extern const char * const tpl_INTF_FILENAME;
 extern const char * const tpl_IMPL_FILENAME;
