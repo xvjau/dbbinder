@@ -21,17 +21,6 @@ execute_process(COMMAND ${DBBINDER_EXECUTABLE} --vminor
 				  OUTPUT_VARIABLE DBBINDER_VERSION_MINOR
 				  OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-if (${UNIX})
-	set(DBBINDER_OUTPUT_PATH ${CMAKE_CACHEFILE_DIR}/CMakeFiles/CMakeTmp/dbbinder/)
-	execute_process(COMMAND mkdir "${DBBINDER_OUTPUT_PATH}")
-else()
-	message(STATUS "annot create temp directory")
-	set(DBBINDER_OUTPUT_PATH ${CMAKE_CACHEFILE_DIR}/CMakeFiles/CMakeTmp/)
-endif()
-
-include_directories(${DBBINDER_OUTPUT_PATH})
-message(STATUS "Dir: ${DBBINDER_OUTPUT_PATH}")
-
 macro(generate_sql_bindings sql_files)
 	foreach(file ${sql_files})
 	
@@ -39,14 +28,24 @@ macro(generate_sql_bindings sql_files)
 		get_filename_component(SQLFILE_WE ${file} NAME_WE)
 		get_filename_component(SQLFILEPATH ${SQLFILE} PATH)
 		
+		#set(DBBINDER_OUTPUT_PATH ${SQLFILEPATH}/.tmp/dbbinder/)
+		#execute_process(COMMAND mkdir -p ${DBBINDER_OUTPUT_PATH})
+
+		set(DBBINDER_OUTPUT_PATH ${SQLFILEPATH})
+		
+		include_directories(${DBBINDER_OUTPUT_PATH})
+		
+		get_directory_property(clean_file_list ADDITIONAL_MAKE_CLEAN_FILES)
+		set(clean_file_list "${clean_file_list};${DBBINDER_OUTPUT_PATH}/${SQLFILE_WE}.h${DBBINDER_OUTPUT_PATH}/${SQLFILE_WE}.cpp")
+		set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${clean_file_list})
+		
 		list(APPEND bound_cpp_files ${DBBINDER_OUTPUT_PATH}/${SQLFILE_WE}.cpp)
 		
-		set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${DBBINDER_OUTPUT_PATH}/${SQLFILE_WE}.h)
-		
-		add_custom_command(OUTPUT ${DBBINDER_OUTPUT_PATH}/${SQLFILE_WE}.cpp
+		add_custom_command(OUTPUT "${DBBINDER_OUTPUT_PATH}/${SQLFILE_WE}.cpp"
 							COMMAND ${DBBINDER_EXECUTABLE}
 							ARGS -i ${SQLFILE} -o ${DBBINDER_OUTPUT_PATH}/${SQLFILE_WE}
 							DEPENDS ${SQLFILE}
+							WORKING_DIRECTORY ${DBBINDER_OUTPUT_PATH}
 							COMMENT dbbinder ${SQLFILE})
 	endforeach()
 endmacro() 
