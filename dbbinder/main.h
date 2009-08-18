@@ -108,6 +108,22 @@ inline ListString stringTok(const String &_string, const char _sep)
 	return result;
 }
 
+inline String getFilenameRelativeTo(const String& _relFileName, const String& _fileName)
+{
+	String result;
+
+	int i = _relFileName.find_last_of('/');
+	if ( i )
+	{
+		result = _relFileName.substr(0, i);
+		result += '/';
+	}
+
+	result += _fileName;
+
+	return result;
+}
+
 }
 
 #ifdef NDEBUG

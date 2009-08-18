@@ -25,7 +25,7 @@
 namespace DBBinder
 {
 
-void parseXML(const char* _fileName, AbstractGenerator **_generator);
+void parseXML(const String& _fileName, AbstractGenerator **_generator);
 
 }
 

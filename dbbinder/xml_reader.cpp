@@ -25,7 +25,7 @@
 namespace DBBinder
 {
 
-static const char* fileName = 0;
+static String fileName;
 
 static void getXMLParams(XMLElementPtr _elem, AbstractElements* _elements)
 {
@@ -38,7 +38,9 @@ static void getXMLParams(XMLElementPtr _elem, AbstractElements* _elements)
 			sql = _elem->FirstChildElement("include");
 			if ( sql )
 			{
-				std::ifstream include(sql->GetText().c_str());
+				String path( getFilenameRelativeTo(fileName, sql->GetText()) );
+
+				std::ifstream include(path.c_str());
 				if ( include.good() )
 				{
 					include.seekg(0, std::ios_base::end);
@@ -84,7 +86,7 @@ static void getXMLParams(XMLElementPtr _elem, AbstractElements* _elements)
 	}
 }
 
-void parseXML(const char* _fileName, AbstractGenerator **_generator)
+void parseXML(const String& _fileName, AbstractGenerator **_generator)
 {
 	fileName = _fileName;
 

@@ -17,6 +17,8 @@
     along with DBBinder++.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <libgen.h>
+
 #include "main.h"
 #include "sql_reader.h"
 #include "xml_reader.h"
@@ -25,13 +27,13 @@
 namespace DBBinder
 {
 
-static const char* fileName = 0;
+static String fileName;
 
-void parseSQL(const char* _fileName, AbstractGenerator **_generator)
+void parseSQL(const String& _fileName, AbstractGenerator **_generator)
 {
 	fileName = _fileName;
 
-	std::ifstream file(_fileName);
+	std::ifstream file(fileName.c_str());
 	if ( file.good() )
 	{
 		char buffer[4096];
@@ -74,14 +76,16 @@ void parseSQL(const char* _fileName, AbstractGenerator **_generator)
 				while( ext > start && *(ext - 1) != '.')
 					ext--;
 
+				String path( getFilenameRelativeTo(fileName, start) );
+
 				if ( strcasecmp(ext, "yaml") == 0 )
 				{
-					parseYAML(start, _generator);
+					parseYAML(path, _generator);
 					break;
 				}
 				else if ( strcasecmp(ext, "xml") == 0 )
 				{
-					parseXML(start, _generator);
+					parseXML(path, _generator);
 					break;
 				}
 				else

@@ -26,7 +26,7 @@
 namespace DBBinder
 {
 
-static const char* fileName = 0;
+static String fileName;
 static FILE *yamlFile = 0;
 
 inline void getYAMLEvent(yaml_parser_t &_parser, yaml_event_t& _event)
@@ -157,7 +157,9 @@ static void getYAMLParams(yaml_parser_t &parser, AbstractElements* _elements)
 						_elements->sql = value;
 					else if ( attr == "include" )
 					{
-						std::ifstream sql(value.c_str());
+						String path( getFilenameRelativeTo(fileName, value) );
+
+						std::ifstream sql(path.c_str());
 						if ( sql.good() )
 						{
 							sql.seekg(0, std::ios_base::end);
@@ -373,7 +375,7 @@ static void parseYAMLExtra(yaml_parser_t &parser, AbstractGenerator **_generator
 	}
 }
 
-void parseYAML(const char* _fileName, AbstractGenerator **_generator)
+void parseYAML(const String& _fileName, AbstractGenerator **_generator)
 {
 	fileName = _fileName;
 
@@ -384,10 +386,10 @@ void parseYAML(const char* _fileName, AbstractGenerator **_generator)
 	yaml_parser_initialize(&parser);
 
 	/* Set a file input. */
-	yamlFile = fopen(fileName, "rb");
+	yamlFile = fopen(fileName.c_str(), "rb");
 	if ( !yamlFile )
 	{
-		FATAL("YAML: " << fileName << ": " << strerror(errno));
+		FATAL(fileName << ": " << strerror(errno));
 	}
 
 	yaml_parser_set_input_file(&parser, yamlFile);
@@ -438,7 +440,7 @@ void parseYAML(const char* _fileName, AbstractGenerator **_generator)
 							parseYAMLUpdate(parser, _generator);
 						break;
 					default:
-						WARNING("YAML: Unknown value: " << value);
+						WARNING(fileName << ": Unknown value: " << value);
 				}
 
 				break;

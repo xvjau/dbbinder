@@ -25,7 +25,7 @@
 namespace DBBinder
 {
 
-void parseYAML(const char* _fileName, AbstractGenerator **_generator);
+void parseYAML(const String& _fileName, AbstractGenerator **_generator);
 
 }
 

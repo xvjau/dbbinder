@@ -25,7 +25,7 @@
 namespace DBBinder
 {
 
-void parseSQL(const char* _fileName, AbstractGenerator **_generator);
+void parseSQL(const String& _fileName, AbstractGenerator **_generator);
 
 }
 
