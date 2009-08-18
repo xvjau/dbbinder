@@ -711,6 +711,8 @@ void AbstractGenerator::loadTemplates()
 	int count;
 	int i;
 
+	ASSERT(optTemplateDirs.size(), "Empty list of template dirs");
+
 	for(dirs = optTemplateDirs.begin(); dirs != optTemplateDirs.end(); ++dirs)
 	{
 		count = templates.size();
