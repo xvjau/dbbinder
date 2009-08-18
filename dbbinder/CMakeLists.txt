@@ -187,7 +187,7 @@ endif()
 
 ########################## Done ##########################
 
-add_executable(dbbinder 
+add_executable(dbbinder
 	main.cpp
 	xml_reader.cpp
 	sql_reader.cpp
@@ -197,3 +197,13 @@ add_executable(dbbinder
 
 target_link_libraries(dbbinder ticpp ctemplate_nothreads sqlite3 ${extra_libs})
 
+if(NOT CMAKE_INSTALL_PREFIX)
+	set(CMAKE_INSTALL_PREFIX "/usr/local/")
+endif()
+
+install(TARGETS dbbinder RUNTIME DESTINATION bin )
+install(DIRECTORY templates
+			DESTINATION share/dbbinder/
+			PATTERN ".svn" EXCLUDE
+			PATTERN "*~" EXCLUDE
+			PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ)
