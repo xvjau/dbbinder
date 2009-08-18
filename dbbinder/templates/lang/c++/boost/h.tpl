@@ -10,6 +10,7 @@
 #include <boost/shared_ptr.hpp>
 #include <iostream>
 #include <string.h>
+#include <libgen.h>
 
 #ifdef DEBUG
 #define ASSERT(cond) { assert(cond); }
