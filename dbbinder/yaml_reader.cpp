@@ -376,6 +376,43 @@ static void parseYAMLExtra(yaml_parser_t &parser)
 	}
 }
 
+static void parseYAMLHeaders(yaml_parser_t &parser)
+{
+	yaml_event_t event;
+
+	getYAMLEvent(parser, event);
+	if ( event.type != YAML_SEQUENCE_START_EVENT )
+		FATAL("YAML: Expected YAML_MAPPING_START_EVENT");
+	yaml_event_delete(&event);
+
+	String sequence;
+	AbstractGenerator *generator = AbstractGenerator::getGenerator();
+
+	bool done = false;
+	while( !done )
+	{
+		getYAMLEvent(parser, event);
+
+		switch( event.type )
+		{
+			case YAML_SEQUENCE_END_EVENT:
+				done = true;
+				break;
+
+			case YAML_SCALAR_EVENT:
+			{
+				String value(reinterpret_cast<const char*>(event.data.scalar.value));
+				generator->addHeader( value );
+				break;
+			}
+			default:
+				WARNING("YAML: " << fileName << ": Unknown YAML event: " << event.type << " in header");
+		}
+
+		yaml_event_delete(&event);
+	}
+}
+
 void parseYAML(const String& _fileName)
 {
 	fileName = _fileName;
@@ -424,6 +461,11 @@ void parseYAML(const String& _fileName)
 					case 'e':
 						if ( value == "extra" )
 							parseYAMLExtra(parser);
+						break;
+
+					case 'h':
+						if ( value == "headers" )
+							parseYAMLHeaders(parser);
 						break;
 
 					case 'i':
