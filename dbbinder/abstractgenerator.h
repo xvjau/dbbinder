@@ -70,10 +70,18 @@ struct SQLElement
 };
 typedef std::list<SQLElement> ListElements;
 
+struct Location
+{
+	String	file;
+	int		line;
+	int		col;
+};
+
 struct AbstractElements
 {
 	String			name;
 	String			sql;
+	Location		sql_location;
 	ListElements	input;
 };
 

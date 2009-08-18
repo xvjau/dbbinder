@@ -68,7 +68,34 @@ void SQLiteGenerator::addSelect(SelectElements _elements)
 	sqlite3_stmt *stmt = 0;
 
 	int ret = sqlite3_prepare(m_db, _elements.sql.c_str(), _elements.sql.length(), &stmt,  &tail);
-	SQLCHECK("SQL statement error: " << _elements.sql << " :");
+
+	if ( ret != SQLITE_OK )
+	{
+		int line = _elements.sql_location.line;
+		int col = std::max(_elements.sql_location.col, 1);
+
+		String err = sqlite3_errmsg(m_db);
+		err.erase(0, err.find('"') + 2);
+		err.erase(err.rfind('"') - 1, std::string::npos);
+
+		size_t pos = _elements.sql.find( err );
+
+		const char *s = _elements.sql.c_str();
+		const char *e = s + pos;
+
+		while( s < e )
+		{
+			if ( *s++ == '\n' )
+			{
+				col = 1;
+				line++;
+			}
+			else
+				col++;
+		}
+
+		FATAL( _elements.sql_location.file << ':' << line << ':' << col << ": error " << sqlite3_errmsg(m_db) );
+	}
 
 	int i = 1;
 	for(ListElements::iterator it = _elements.input.begin();

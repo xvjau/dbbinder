@@ -154,10 +154,10 @@ inline String getFilenameRelativeTo(const String& _relFileName, const String& _f
 }
 
 #ifdef NDEBUG
-#define FATAL(MSG) { std::cerr << DBBinder::appName << ": " << MSG << std::endl; exit( 1 ); }
+#define FATAL(MSG) { std::cerr << MSG << std::endl; exit( 1 ); }
 #define ASSERT(COND, MSG)
 #else
-#define FATAL(MSG) { std::cerr << DBBinder::appName << ": " << MSG << std::endl; assert(false); }
+#define FATAL(MSG) { std::cerr << MSG << std::endl; assert(false); }
 #define ASSERT(COND, MSG) { if ( !COND ) std::cerr << DBBinder::appName << ": " << MSG << std::endl; assert(COND); }
 #endif
 

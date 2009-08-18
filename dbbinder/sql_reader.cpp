@@ -107,7 +107,7 @@ void parseSQL(const String& _fileName)
 		}
 
 		//TODO: Determine if this is a select, insert or update statement
-		AbstractElements *elements;
+		AbstractElements *elements = 0;
 		SQLStatementTypes statementType = sstUnknown;
 
 		// Load the SQL statement
@@ -119,9 +119,13 @@ void parseSQL(const String& _fileName)
 			size_t size = file.tellg();
 			file.seekg(0);
 
+			line = 0;
+
 			while ( file.good() )
 			{
 				file.getline(buffer, 4096);
+				line++;
+
 				if ( strncmp(buffer, "--", 2 ) != 0 )
 				{
 					char *c = buffer;
@@ -154,7 +158,12 @@ void parseSQL(const String& _fileName)
 							char* str = new char[size+1];
 							file.read( str, size );
 							str[size] = '\0';
+
 							elements->sql = str;
+							elements->sql_location.file = _fileName;
+							elements->sql_location.line = line;
+							elements->sql_location.col = c - &buffer[0];
+
 							delete str;
 
 							goto END_READ_SQL;
