@@ -108,14 +108,41 @@ inline ListString stringTok(const String &_string, const char _sep)
 	return result;
 }
 
+
+inline ListString stringTok(const String &_string)
+{
+	ListString result;
+
+	const char *p = _string.c_str();
+	const char *s;
+
+	while ( *p )
+	{
+		if ( !isspace( *p ))
+		{
+			s = p;
+			while( *s && !isspace( *s ))
+				++s;
+
+			result.push_back( String( p, s - p ));
+
+			p = s;
+		}
+		else
+			p++;
+	}
+
+	return result;
+}
+
 inline String getFilenameRelativeTo(const String& _relFileName, const String& _fileName)
 {
 	String result;
 
-	int i = _relFileName.find_last_of('/');
-	if ( i )
+	size_t pos = _relFileName.find_last_of('/');
+	if ( pos && pos != std::string::npos )
 	{
-		result = _relFileName.substr(0, i);
+		result = _relFileName.substr(0, pos);
 		result += '/';
 	}
 
