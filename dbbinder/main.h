@@ -38,15 +38,19 @@ namespace DBBinder
 typedef std::string String;
 typedef std::list<String> ListString;
 
+enum FileType
+{
+	ftNULL,
+	ftYAML,
+	ftXML,
+	ftSQL,
+};
+
 // Options set by command line
 extern String		appName;
-extern const char*	optFileName;
-extern const char*	optSQLFile;
 extern String		optOutput;
 extern const char*	optTemplate;
 extern ListString	optTemplateDirs;
-extern bool		optXML;
-extern bool		optYAML;
 extern const char*	optVersionMajor;
 extern const char*	optVersionMinor;
 

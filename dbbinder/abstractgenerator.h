@@ -43,7 +43,7 @@ enum SQLTypes
 	stText
 };
 SQLTypes typeNameToSQLType(String _name);
-	
+
 struct SQLElement
 {
 	SQLElement( const String& _name, SQLTypes _type, int _index = -1, int _length = 0 ):
@@ -89,7 +89,7 @@ class AbstractGenerator
 			dbParam():
 				isInt( false )
 			{}
-			
+
 			dbParam( const String& _value ):
 				isInt( false )
 			{
@@ -131,9 +131,9 @@ class AbstractGenerator
 
 		ListString	m_namespaces;
 		ListString	m_headers;
-		
+
 		String		m_dbengine;
-		
+
 		classParams	m_classParams;
 
 		bool m_connected;
@@ -141,16 +141,16 @@ class AbstractGenerator
 
 		String	m_outIntFile;
 		String	m_outImplFile;
-		
+
 		ctemplate::TemplateDictionary	*m_dict;
 		ctemplate::Template			*m_templ[ftMAX];
 
 		virtual void loadDictionary();
-		
+
 		virtual void loadDatabase();
 		virtual bool loadXMLDatabase(const String& _path);
 		virtual bool loadYAMLDatabase(const String& _path);
-		
+
 		virtual void loadTemplates();
 		virtual bool loadXMLTemplate(const String& _path);
 		virtual bool loadYAMLTemplate(const String& _path);
@@ -161,7 +161,7 @@ class AbstractGenerator
 
 		virtual void addSelInBuffers(const SelectElements* _select);
 		virtual void addSelOutBuffers(const SelectElements* _select);
-		
+
 		virtual String getBind(const ListElements::iterator& _item, int _index) = 0;
 		virtual String getReadValue(const ListElements::iterator& _item, int _index) = 0;
 
@@ -183,7 +183,7 @@ class AbstractGenerator
 		{
 			m_types[_sqlType] = _genType;
 		}
-		
+
 		String getType(SQLTypes _sqlType);
 		String getInit(SQLTypes _sqlType);
 
@@ -196,9 +196,9 @@ class AbstractGenerator
 		{
 			m_headers.push_back(_header);
 		}
-		
+
 		virtual void generate();
-		
+
 		virtual void addSelect(SelectElements _elements);
 		virtual void addUpdate(UpdateElements _elements);
 		virtual void addInsert(InsertElements _elements);

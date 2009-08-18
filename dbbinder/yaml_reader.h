@@ -20,10 +20,12 @@
 #ifndef __DBBINDER_YAML_READER_H
 #define __DBBINDER_YAML_READER_H
 
+#include "abstractgenerator.h"
+
 namespace DBBinder
 {
 
-void parseYAML();
+void parseYAML(const char* _fileName, AbstractGenerator **_generator);
 
 }
 

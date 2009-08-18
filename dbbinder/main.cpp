@@ -21,6 +21,7 @@
 #include "abstractgenerator.h"
 #include "options.h"
 
+#include "sql_reader.h"
 #include "xml_reader.h"
 #ifdef WITH_YAML
 #include "yaml_reader.h"
@@ -32,13 +33,9 @@ namespace DBBinder
 {
 
 String		appName;
-const char*	optFileName = 0;
-const char*	optSQLFile = 0;
 String		optOutput;
 const char*	optTemplate = 0;
 ListString	optTemplateDirs;
-bool		optXML = false;
-bool		optYAML = false;
 const char*	optVersionMajor = "0";
 const char*	optVersionMinor = "0";
 
@@ -102,6 +99,9 @@ int main(int argc, char *argv[])
 {
 	DBBinder::appName = DBBinder::extractFileName( argv[0] );
 
+	char* fileName = 0;
+	DBBinder::FileType fileType = DBBinder::ftNULL;
+
 	if ( argc <= 1 )
 	{
 		WARNING("Missing options");
@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
 								FATAL( argv[i] << ": must be a regular file");
 						}
 
-						DBBinder::optFileName = argv[i];
+						fileName = argv[i];
 					}
 					else
 						FATAL("missing input file name");
@@ -148,20 +148,20 @@ int main(int argc, char *argv[])
 				}
 				case commandOptionCode::XML:
 				{
-					if ( DBBinder::optYAML )
-						FATAL("cannot set both XML and YAML flags");
+					if ( fileType != DBBinder::ftNULL )
+						FATAL("cannot set more than one file type flag");
 
-					DBBinder::optXML = true;
+					fileType = DBBinder::ftXML;
 					break;
 				}
 
 				case commandOptionCode::YAML:
 				{
 #ifdef WITH_YAML
-					if ( DBBinder::optXML )
-						FATAL("cannot set both XML and YAML flags");
+					if ( fileType != DBBinder::ftNULL )
+						FATAL("cannot set more than one file type flag");
 
-					DBBinder::optYAML = true;
+					fileType = DBBinder::ftYAML;
 					break;
 #else
 					FATAL("no yaml support");
@@ -233,7 +233,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if ( !DBBinder::optFileName )
+	if ( !fileName )
 		FATAL("missing input file name");
 
 	if ( !DBBinder::optTemplate )
@@ -242,7 +242,7 @@ int main(int argc, char *argv[])
 	if ( DBBinder::optOutput.empty() )
 	{
 		using namespace DBBinder;
-		optOutput = optFileName;
+		optOutput = fileName;
 		size_t pos = optOutput.find_last_of('.');
 		if ( pos == String::npos )
 		{
@@ -263,14 +263,13 @@ int main(int argc, char *argv[])
 			DBBinder::optTemplateDirs.push_back( DBBinder::defaultTemplateDirs[i] );
 	}
 
-CHECK_FILE_TYPE:
 	// If not explicitly selected by the user, deduce the type fromt the file's extension
-	if ( !DBBinder::optXML && !DBBinder::optYAML )
+	if ( fileType == DBBinder::ftNULL )
 	{
-		const char *c = DBBinder::optFileName;
-		c += strlen( DBBinder::optFileName ) - 3;
+		const char *c = fileName;
+		c += strlen( fileName ) - 3;
 
-		while( c > DBBinder::optFileName && *c != '.')
+		while( c > fileName && *c != '.')
 			--c;
 
 		switch( *(c+1) )
@@ -278,68 +277,56 @@ CHECK_FILE_TYPE:
 			case 's':
 				if ( strcasecmp(c, ".sql") == 0 )
 				{
-					if ( DBBinder::optSQLFile )
-					{
-						FATAL(DBBinder::optSQLFile << ": SQL file must not use another SQL file.");
-					}
-
-					std::ifstream file(DBBinder::optFileName);
-					if ( file.good() )
-					{
-						char buffer[4096];
-
-						while ( file.good() )
-						{
-							file.getline(buffer, 4096);
-
-							if ( strncmp(buffer, "--! use", 7 ) == 0 )
-							{
-								c = &buffer[7];
-								while( isblank(*c) )
-									c++;
-
-								DBBinder::optSQLFile = DBBinder::optFileName;
-								DBBinder::optFileName = c;
-								goto CHECK_FILE_TYPE;
-							}
-						}
-
-						FATAL(DBBinder::optFileName << ": unable to determine use file.");
-					}
-					else
-					{
-						FATAL(DBBinder::optFileName << ": unable to open file.");
-					}
+					fileType = DBBinder::ftSQL;
+					break;
 				}
 			case 'x':
 				if ( strcasecmp(c, ".xml") == 0 )
 				{
-					DBBinder::optXML = true;
+					fileType = DBBinder::ftXML;
 					break;
 				}
 				// no break
 			case 'y':
 				if ( strcasecmp(c, ".yaml") == 0 )
 				{
-					DBBinder::optYAML = true;
+					fileType = DBBinder::ftYAML;
 					break;
 				}
 				// no break
 			default:
-				FATAL(DBBinder::optFileName << ": unknown file extension - " << c);
+				FATAL(fileName << ": unknown file extension - " << c);
 		}
 	}
 
-	if ( DBBinder::optXML || !DBBinder::optYAML )
-		DBBinder::parseXML();
-	else
+	DBBinder::AbstractGenerator *generator = 0;
+
+	switch ( fileType )
 	{
-		#ifdef WITH_YAML
-		DBBinder::parseYAML();
-		#else
-		FATAL("no yaml support");
-		#endif
+		case DBBinder::ftXML:
+		{
+			DBBinder::parseXML(fileName, &generator);
+			break;
+		}
+		case DBBinder::ftYAML:
+		{
+			#ifdef WITH_YAML
+			DBBinder::parseYAML(fileName, &generator);
+			#else
+			FATAL("no yaml support");
+			#endif
+			break;
+		}
+		case DBBinder::ftSQL:
+		{
+			DBBinder::parseSQL(fileName, &generator);
+			break;
+		}
+		default:
+			FATAL("Unknown file type.");
 	}
+
+	generator->generate();
 
 	return 0;
 }

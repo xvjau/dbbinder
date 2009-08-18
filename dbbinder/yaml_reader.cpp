@@ -21,12 +21,12 @@
 #include <yaml.h>
 
 #include "main.h"
-#include "abstractgenerator.h"
 #include "yaml_reader.h"
 
 namespace DBBinder
 {
 
+static const char* fileName = 0;
 static FILE *yamlFile = 0;
 
 inline void getYAMLEvent(yaml_parser_t &_parser, yaml_event_t& _event)
@@ -41,7 +41,7 @@ inline void getYAMLEvent(yaml_parser_t &_parser, yaml_event_t& _event)
 		yaml_parser_delete(&_parser);
 
 		fclose(yamlFile);
-		FATAL("YAML: " << optFileName << ": " << problem << " " << context << " at line " << mark.line << " at col " << mark.column);
+		FATAL("YAML: " << fileName << ": " << problem << " " << context << " at line " << mark.line << " at col " << mark.column);
 	}
 }
 
@@ -64,7 +64,8 @@ static void parseYAMLDatabase(yaml_parser_t &parser, AbstractGenerator **_genera
 	if ( event.type != YAML_SCALAR_EVENT )
 		FATAL("YAML: Expected YAML_SCALAR_EVENT");
 
-	*_generator = AbstractGenerator::getGenerator( reinterpret_cast<const char*>(event.data.scalar.value) );
+	if ( !*_generator )
+		*_generator = AbstractGenerator::getGenerator( reinterpret_cast<const char*>(event.data.scalar.value) );
 
 	bool done = false;
 
@@ -96,7 +97,7 @@ static void parseYAMLDatabase(yaml_parser_t &parser, AbstractGenerator **_genera
 			}
 
 			default:
-				WARNING("YAML: " << optFileName << ": Unknown YAML event: " << event.type << " in database");
+				WARNING("YAML: " << fileName << ": Unknown YAML event: " << event.type << " in database");
 		}
 	}
 }
@@ -174,7 +175,7 @@ static void getYAMLParams(yaml_parser_t &parser, AbstractElements* _elements)
 						}
 						else
 						{
-							FATAL(DBBinder::optFileName << ": include file not found: " << value);
+							FATAL(DBBinder::fileName << ": include file not found: " << value);
 						}
 					}
 					else if ( attr == "param" )
@@ -234,7 +235,7 @@ static void getYAMLParams(yaml_parser_t &parser, AbstractElements* _elements)
 			}
 
 			default:
-				WARNING("YAML: " << optFileName << ": Unknown YAML event: " << event.type << " in params");
+				WARNING("YAML: " << fileName << ": Unknown YAML event: " << event.type << " in params");
 		}
 
 		yaml_event_delete(&event);
@@ -365,15 +366,17 @@ static void parseYAMLExtra(yaml_parser_t &parser, AbstractGenerator **_generator
 				break;
 			}
 			default:
-				WARNING("YAML: " << optFileName << ": Unknown YAML event: " << event.type << " in extras");
+				WARNING("YAML: " << fileName << ": Unknown YAML event: " << event.type << " in extras");
 		}
 
 		yaml_event_delete(&event);
 	}
 }
 
-void parseYAML()
+void parseYAML(const char* _fileName, AbstractGenerator **_generator)
 {
+	fileName = _fileName;
+
 	yaml_parser_t parser;
 	yaml_event_t event;
 
@@ -381,15 +384,13 @@ void parseYAML()
 	yaml_parser_initialize(&parser);
 
 	/* Set a file input. */
-	yamlFile = fopen(optFileName, "rb");
+	yamlFile = fopen(fileName, "rb");
 	if ( !yamlFile )
 	{
-		FATAL("YAML: " << optFileName << ": " << strerror(errno));
+		FATAL("YAML: " << fileName << ": " << strerror(errno));
 	}
 
 	yaml_parser_set_input_file(&parser, yamlFile);
-
-	AbstractGenerator *generator = 0;
 
 	String tagName;
 
@@ -414,27 +415,27 @@ void parseYAML()
 				{
 					case 'd':
 						if ( value == "database" )
-							parseYAMLDatabase(parser, &generator);
+							parseYAMLDatabase(parser, _generator);
 						break;
 
 					case 'e':
 						if ( value == "extra" )
-							parseYAMLExtra(parser, &generator);
+							parseYAMLExtra(parser, _generator);
 						break;
 
 					case 'i':
 						if ( value == "insert" )
-							parseYAMLInsert(parser, &generator);
+							parseYAMLInsert(parser, _generator);
 						break;
 
 					case 's':
 						if ( value == "select" )
-							parseYAMLSelect(parser, &generator);
+							parseYAMLSelect(parser, _generator);
 						break;
 
 					case 'u':
 						if ( value == "update" )
-							parseYAMLUpdate(parser, &generator);
+							parseYAMLUpdate(parser, _generator);
 						break;
 					default:
 						WARNING("YAML: Unknown value: " << value);
@@ -454,8 +455,6 @@ void parseYAML()
 	yaml_parser_delete(&parser);
 
 	fclose(yamlFile);
-
-	generator->generate();
 }
 
 }

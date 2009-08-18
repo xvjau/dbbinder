@@ -20,11 +20,12 @@
 #include "TinyXML/nvXML.h"
 
 #include "main.h"
-#include "abstractgenerator.h"
 #include "xml_reader.h"
 
 namespace DBBinder
 {
+
+static const char* fileName = 0;
 
 static void getXMLParams(XMLElementPtr _elem, AbstractElements* _elements)
 {
@@ -43,14 +44,14 @@ static void getXMLParams(XMLElementPtr _elem, AbstractElements* _elements)
 					include.seekg(0, std::ios_base::end);
 					int size = include.tellg();
 					include.seekg(0);
-					
+
 					char *buffer = static_cast<char*>( malloc( size + 1 ) );
-					
+
 					include.read(buffer, size);
 					buffer[size] = '\0';
-					
+
 					_elements->sql = buffer;
-					
+
 					free( buffer );
 				}
 			}
@@ -60,13 +61,13 @@ static void getXMLParams(XMLElementPtr _elem, AbstractElements* _elements)
 	SQLTypes type;
 	String name, defaultValue, strType;
 	int index;
-	
+
 	XMLElementPtr param;
 	XMLNodePtr node = 0;
 	while( node = _elem->IterateChildren( "param", node ))
 	{
 		param = node->ToElement();
-				
+
 		param->GetAttribute( "name", &name );
 		param->GetAttributeOrDefault( "type", &strType, "" );
 		param->GetAttributeOrDefault( "default", &defaultValue, "" );
@@ -78,22 +79,26 @@ static void getXMLParams(XMLElementPtr _elem, AbstractElements* _elements)
 			WARNING("unknown param type for: " << name);
 			type = stText;
 		}
-		
+
 		_elements->input.push_back( SQLElement( name, type, index, defaultValue ));
 	}
 }
 
-void parseXML()
+void parseXML(const char* _fileName, AbstractGenerator **_generator)
 {
+	fileName = _fileName;
+
 	try
 	{
-		XMLDocument xmlFile( optFileName );
+		XMLDocument xmlFile( fileName );
 		xmlFile.LoadFile();
-		
+
 		XMLElementPtr xml = xmlFile.FirstChildElement("xml");
 
 		XMLElementPtr db = xml->FirstChildElement("database");
-		AbstractGenerator *generator = AbstractGenerator::getGenerator( db->FirstChildElement("type")->GetText() );
+
+		if ( !*_generator )
+			*_generator = AbstractGenerator::getGenerator( db->FirstChildElement("type")->GetText() );
 
 		XMLElementPtr elem;
 		XMLNodePtr node, subnode, valnode;
@@ -108,46 +113,46 @@ void parseXML()
 
 			if ( stringToLower(str) == "int" )
 			{
-				generator->setDBParam( elem->Value(), atoi( elem->GetText().c_str() ));
+				(*_generator)->setDBParam( elem->Value(), atoi( elem->GetText().c_str() ));
 			}
 			else
-				generator->setDBParam( elem->Value(), elem->GetText() );
+				(*_generator)->setDBParam( elem->Value(), elem->GetText() );
 		}
 
 		node = 0;
 		while( node = xml->IterateChildren( "select", node ))
 		{
 			elem = node->ToElement();
-			
+
 			SelectElements elements;
 			elem->GetAttribute( "name", &elements.name );
 			getXMLParams( elem, &elements );
-			
-			generator->addSelect( elements );
+
+			(*_generator)->addSelect( elements );
 		}
 
 		node = 0;
 		while( node = xml->IterateChildren( "update", node ))
 		{
 			elem = node->ToElement();
-			
+
 			UpdateElements elements;
 			elem->GetAttribute( "name", &elements.name );
 			getXMLParams( elem, &elements );
-			
-			generator->addUpdate( elements );
+
+			(*_generator)->addUpdate( elements );
 		}
 
 		node = 0;
 		while( node = xml->IterateChildren( "insert", node ))
 		{
 			elem = node->ToElement();
-			
+
 			InsertElements elements;
 			elem->GetAttribute( "name", &elements.name );
 			getXMLParams( elem, &elements );
-			
-			generator->addInsert( elements );
+
+			(*_generator)->addInsert( elements );
 		}
 
 		node = 0;
@@ -169,13 +174,13 @@ void parseXML()
 					if ( str.length() )
 					{
 						SQLTypes type = typeNameToSQLType( elem->Value() );
-						
+
 						if ( type == stUnknown )
 						{
 							WARNING("unknown type for: " << elem->Value());
 						}
 						else
-							generator->setType( type, str );
+							(*_generator)->setType( type, str );
 					}
 				}
 			}
@@ -194,7 +199,7 @@ void parseXML()
 						elem->GetAttribute( "name", &str, false );
 
 					if ( !str.empty() )
-						generator->addNamespace( str );
+						(*_generator)->addNamespace( str );
 				}
 			}
 
@@ -212,16 +217,14 @@ void parseXML()
 						elem->GetAttribute( "value", &str, false );
 
 					if ( !str.empty() )
-						generator->addHeader( str );
+						(*_generator)->addHeader( str );
 				}
 			}
 		}
-		
-		generator->generate();
 	}
 	catch( ticpp::Exception &e )
 	{
-		FATAL("XML: " << optFileName << ": " << e.what());
+		FATAL("XML: " << fileName << ": " << e.what());
 	}
 }
 
