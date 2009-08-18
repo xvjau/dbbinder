@@ -259,7 +259,7 @@ int main(int argc, char *argv[])
 	{
 		// Check to see if default dirs exists before adding them
 		struct stat fs;
-		if (( stat(DBBinder::defaultTemplateDirs[i], &fs) == 0 ) && (( fs.st_mode & S_IFMT ) != S_IFDIR ))
+		if (( stat(DBBinder::defaultTemplateDirs[i], &fs) == 0 ) && S_ISDIR( fs.st_mode & S_IFMT ))
 			DBBinder::optTemplateDirs.push_back( DBBinder::defaultTemplateDirs[i] );
 	}
 
