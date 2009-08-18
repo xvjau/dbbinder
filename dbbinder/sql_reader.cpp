@@ -151,8 +151,9 @@ void parseSQL(const String& _fileName)
 							file.seekg(file.gcount() * -1, std::ios_base::cur);
 							size -= file.tellg();
 
-							char* str = new char[size];
+							char* str = new char[size+1];
 							file.read( str, size );
+							str[size] = '\0';
 							elements->sql = str;
 							delete str;
 
