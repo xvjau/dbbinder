@@ -54,6 +54,9 @@ String cescape(const String & _string)
 	{
 		switch( c )
 		{
+			case '\\':
+				result += "\\\\";
+				break;
 			case '"':
 				result += "\\\"";
 				break;
