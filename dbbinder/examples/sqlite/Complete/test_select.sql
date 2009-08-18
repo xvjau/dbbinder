@@ -1,4 +1,7 @@
---! use test.yaml   
+--! use test.yaml
+--! name selFestival
+--! param idUser int 2
+--! param minDate int 0
 
 select
 	U."NAME" as "Name",
