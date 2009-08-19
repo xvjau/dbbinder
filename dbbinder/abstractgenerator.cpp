@@ -419,9 +419,14 @@ static void cleanExcessiveLineBreaks(String &_str, std::ostream &_stream)
 	{
 		if ( c == '\n' )
 			++ln;
+		else if ( c == '\t' )
+		{
+			_stream << "    ";
+			continue;
+		}
 		else
 		{
-			if ( c != ' ' && c != '\t' )
+			if ( c != ' ' )
 				ln = 0;
 		}
 
