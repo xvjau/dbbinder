@@ -19,9 +19,6 @@
 {{#NAMESPACES}}namespace {{NAMESPACE}} {
 {{/NAMESPACES}}
 
-{{#DBENGINE_GLOBAL_PARAMS}}static {{TYPE}} s_dbparam_{{PARAM}} = {{VALUE}};
-{{/DBENGINE_GLOBAL_PARAMS}}
-
 {{#DBENGINE_GLOBAL_FUNCTIONS}}
 {{FUNCTION}}
 {{/DBENGINE_GLOBAL_FUNCTIONS}}
@@ -36,11 +33,7 @@ const int {{CLASSNAME}}::s_selectParamCount = {{SELECT_PARAM_COUNT}};
 {{CLASSNAME}}::{{CLASSNAME}}({{DBENGINE_CONNECTION_TYPE}} _conn):
 		m_conn( _conn ), m_needCloseConn( false ), m_selectIsActive( false ), m_iterator(0)
 {
-	if ( !m_conn )
-	{
-		m_needCloseConn = true;
-		{{DBENGINE_CONNECT}}
-	}
+	ASSERT_MSG(m_conn, "Connection must not be null!");
 
 	{{DBENGINE_PREPARE}}
 }
@@ -58,11 +51,7 @@ const int {{CLASSNAME}}::s_selectParamCount = {{SELECT_PARAM_COUNT}};
 	{{#SEL_OUT_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
 	{{/SEL_OUT_FIELDS_BUFFERS}}
 
-	if ( !m_conn )
-	{
-		m_needCloseConn = true;
-		{{DBENGINE_CONNECT}}
-	}
+	ASSERT_MSG(m_conn, "Connection must not be null!");
 
 	{{DBENGINE_CREATE_SELECT}}
 	{{DBENGINE_PREPARE_SELECT}}
