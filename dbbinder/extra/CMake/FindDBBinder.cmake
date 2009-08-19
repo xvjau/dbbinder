@@ -28,7 +28,7 @@ execute_process(COMMAND ${DBBINDER_EXECUTABLE} --vminor
 				  OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 macro(generate_sql_bindings sql_files)
-	foreach(file ${ARGN})
+	foreach(file ${ARGV})
 		get_filename_component(SQLFILE ${file} ABSOLUTE)
 		get_filename_component(SQLFILE_WE ${file} NAME_WE)
 		get_filename_component(SQLFILEPATH ${SQLFILE} PATH)
