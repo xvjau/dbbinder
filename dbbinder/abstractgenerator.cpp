@@ -62,6 +62,7 @@ const char * const tpl_DBENGINE_CONNECTION_NULL = "DBENGINE_CONNECTION_NULL";
 
 const char * const tpl_SELECT = "SELECT";
 const char * const tpl_SELECT_SQL = "SELECT_SQL";
+const char * const tpl_SELECT_SQL_UNESCAPED = "SELECT_SQL_UNESCAPED";
 const char * const tpl_SELECT_SQL_LEN = "SELECT_SQL_LEN";
 const char * const tpl_SELECT_FIELD_COUNT = "SELECT_FIELD_COUNT";
 const char * const tpl_SELECT_PARAM_COUNT = "SELECT_PARAM_COUNT";
@@ -91,6 +92,7 @@ const char * const tpl_DBENGINE_STATEMENT_NULL = "DBENGINE_STATEMENT_NULL";
 
 const char * const tpl_UPDATE = "UPDATE";
 const char * const tpl_UPDATE_SQL = "UPDATE_SQL";
+const char * const tpl_UPDATE_SQL_UNESCAPED = "UPDATE_SQL_UNESCAPED";
 const char * const tpl_UPDATE_SQL_LEN = "UPDATE_SQL_LEN";
 const char * const tpl_UPDATE_FIELD_COUNT = "UPDATE_FIELD_COUNT";
 const char * const tpl_UPDATE_PARAM_COUNT = "UPDATE_PARAM_COUNT";
@@ -104,6 +106,7 @@ const char * const tpl_UPD_IN_FIELDS_BUFFERS = "UPD_IN_FIELDS_BUFFERS";
 
 const char * const tpl_INSERT = "INSERT";
 const char * const tpl_INSERT_SQL = "INSERT_SQL";
+const char * const tpl_INSERT_SQL_UNESCAPED = "INSERT_SQL_UNESCAPED";
 const char * const tpl_INSERT_SQL_LEN = "INSERT_SQL_LEN";
 const char * const tpl_INSERT_FIELD_COUNT = "INSERT_FIELD_COUNT";
 const char * const tpl_INSERT_PARAM_COUNT = "INSERT_PARAM_COUNT";
@@ -843,6 +846,7 @@ void AbstractGenerator::loadDictionary()
 			classDict->SetIntValue( tpl_SELECT_SQL_LEN, it->second->select.sql.length() );
 			classDict->SetIntValue( tpl_SELECT_PARAM_COUNT, it->second->select.input.size() );
 			classDict->SetIntValue( tpl_SELECT_FIELD_COUNT, it->second->select.output.size() );
+			classDict->SetValue( tpl_SELECT_SQL_UNESCAPED, it->second->select.sql );
 
 			int index = 0;
 			subDict = 0;
@@ -890,6 +894,7 @@ void AbstractGenerator::loadDictionary()
 			classDict->SetValue( tpl_UPDATE_SQL, str );
 			classDict->SetIntValue( tpl_UPDATE_SQL_LEN, it->second->update.sql.length() );
 			classDict->SetIntValue( tpl_UPDATE_PARAM_COUNT, it->second->update.input.size() );
+			classDict->SetValue( tpl_UPDATE_SQL_UNESCAPED, it->second->update.sql );
 
 			int index = 0;
 			subDict = 0;
@@ -917,6 +922,7 @@ void AbstractGenerator::loadDictionary()
 			classDict->SetValue( tpl_INSERT_SQL, str );
 			classDict->SetIntValue( tpl_INSERT_SQL_LEN, it->second->insert.sql.length() );
 			classDict->SetIntValue( tpl_INSERT_PARAM_COUNT, it->second->insert.input.size() );
+			classDict->SetValue( tpl_INSERT_SQL_UNESCAPED, it->second->insert.sql );
 
 			int index = 0;
 			subDict = 0;
