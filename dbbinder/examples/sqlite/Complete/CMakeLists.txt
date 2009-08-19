@@ -11,16 +11,11 @@ add_custom_target(test.db
 					SOURCES test.sql
 					)
 
-get_source_file_property(SQLFILE test_select.sql LOCATION)
-get_filename_component(SQLFILEPATH ${SQLFILE} PATH)
+find_package(DBBinder REQUIRED)
 
-add_custom_command(OUTPUT ${SQLFILEPATH}/test_select.cpp
-					COMMAND ${SQLFILEPATH}/../../../dbbinder
-					ARGS -i ${SQLFILE} -o ${SQLFILEPATH}/test_select -d ${SQLFILEPATH}/../../../templates/
-					DEPENDS ${SQLFILE}
-					COMMENT dbbinder ${SQLFILE})
+generate_sql_bindings(test_select.sql)
 
-add_executable(example_sqlite  main.cpp test_select.cpp)
+add_executable(example_sqlite main.cpp ${bound_cpp_files})
 
 add_dependencies(example_sqlite test.db)
 
