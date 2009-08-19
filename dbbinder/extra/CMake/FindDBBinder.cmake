@@ -28,8 +28,7 @@ execute_process(COMMAND ${DBBINDER_EXECUTABLE} --vminor
 				  OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 macro(generate_sql_bindings sql_files)
-	foreach(file ${sql_files})
-
+	foreach(file ${ARGN})
 		get_filename_component(SQLFILE ${file} ABSOLUTE)
 		get_filename_component(SQLFILE_WE ${file} NAME_WE)
 		get_filename_component(SQLFILEPATH ${SQLFILE} PATH)
@@ -41,9 +40,9 @@ macro(generate_sql_bindings sql_files)
 
 		include_directories(${DBBINDER_OUTPUT_PATH})
 
-		get_directory_property(clean_file_list ADDITIONAL_MAKE_CLEAN_FILES)
-		set(clean_file_list "${clean_file_list};${DBBINDER_OUTPUT_PATH}/${SQLFILE_WE}.h${DBBINDER_OUTPUT_PATH}/${SQLFILE_WE}.cpp")
-		set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${clean_file_list})
+		#get_directory_property(clean_file_list ADDITIONAL_MAKE_CLEAN_FILES)
+		#set(clean_file_list "${clean_file_list};${DBBINDER_OUTPUT_PATH}/${SQLFILE_WE}.h${DBBINDER_OUTPUT_PATH}/${SQLFILE_WE}.cpp")
+		#set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${clean_file_list})
 
 		list(APPEND bound_cpp_files ${DBBINDER_OUTPUT_PATH}/${SQLFILE_WE}.cpp)
 
