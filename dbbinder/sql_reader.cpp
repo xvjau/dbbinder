@@ -37,6 +37,8 @@ void parseSQL(const String& _fileName)
 	std::ifstream file(fileName.c_str());
 	if ( file.good() )
 	{
+		DBBinder::optDepends.push_back( fileName );
+
 		char buffer[4096];
 
 		int line = 0;
@@ -255,6 +257,8 @@ void parseSQL(const String& _fileName)
 			case sstUpdate:
 				generator->addUpdate( *static_cast<UpdateElements*>( elements ));
 				break;
+			default:
+				FATAL("Unknwon statement type.");
 		}
 
 	}

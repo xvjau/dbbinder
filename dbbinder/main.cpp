@@ -38,6 +38,8 @@ const char*	optTemplate = 0;
 ListString	optTemplateDirs;
 const char*	optVersionMajor = "0";
 const char*	optVersionMinor = "0";
+bool		optListDepends = false;
+ListString	optDepends;
 
 static const char*	defaultTemplateDirs[] =
 {
@@ -84,6 +86,7 @@ void printHelp()
 #ifdef WITH_YAML
 			"	--yaml		set the input format to YAML\n"
 #endif
+			"	--depends	do nothing, just list the dependencies for a target\n"
 			"	-d DIR		add a template directory\n"
 			"	-t FOO[,BAR]	set the template and optional sub-template (default: " << DEFAULT_TEMLPATE << ")\n"
 			"	--database TYPE[,CONN0[,CONN1]] Database to connect and, optionally, connection params\n"
@@ -169,6 +172,12 @@ int main(int argc, char *argv[])
 #else
 					FATAL("no yaml support");
 #endif
+				}
+
+				case commandOptionCode::DEPENDS:
+				{
+					DBBinder::optListDepends = true;
+					break;
 				}
 
 				case commandOptionCode::TEMPLATE:
@@ -329,5 +338,17 @@ int main(int argc, char *argv[])
 
 	DBBinder::AbstractGenerator::getGenerator()->generate();
 
+	if ( DBBinder::optListDepends )
+	{
+		using namespace DBBinder;
+
+		std::cout << "Depends:\n";
+
+		ListString::iterator it;
+		for(it = optDepends.begin(); it != optDepends.end(); ++it)
+			std::cout << *it << "\n";
+
+		std::cout << std::flush;
+	}
 	return 0;
 }

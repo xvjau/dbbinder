@@ -445,6 +445,9 @@ void AbstractGenerator::generate()
 	loadDictionary();
 	loadDatabase();
 
+	if ( DBBinder::optListDepends )
+		return;
+
 	String str;
 	{
 		std::ofstream out( m_outIntFile.c_str(), std::ios_base::trunc );
@@ -548,6 +551,8 @@ bool AbstractGenerator::loadXMLDatabase(const String& _path)
 		String s = _path + m_dbengine + ".xml";
 		XMLDocument xmlFile( s );
 		xmlFile.LoadFile();
+
+		DBBinder::optDepends.push_back( s );
 
 		XMLElementPtr xml = xmlFile.FirstChildElement("xml");
 
@@ -707,6 +712,7 @@ bool AbstractGenerator::loadXMLDatabase(const String& _path)
 bool AbstractGenerator::loadYAMLDatabase(const String& _path)
 {
 	FATAL("YAML parser not implemented yet. sorry.");
+	DBBinder::optDepends.push_back( _path );
 }
 
 void AbstractGenerator::loadTemplates()
@@ -763,6 +769,8 @@ bool AbstractGenerator::loadXMLTemplate(const String & _path)
 		XMLDocument xmlFile( _path + "template.xml" );
 		xmlFile.LoadFile();
 
+		DBBinder::optDepends.push_back( _path + "template.xml" );
+
 		XMLElementPtr xml = xmlFile.FirstChildElement("xml");
 
 		String str;
@@ -808,6 +816,7 @@ bool AbstractGenerator::loadXMLTemplate(const String & _path)
 bool AbstractGenerator::loadYAMLTemplate(const String & _path)
 {
 	FATAL("YAML parser not implemented yet. sorry.");
+	DBBinder::optDepends.push_back( _path );
 }
 
 void AbstractGenerator::loadDictionary()

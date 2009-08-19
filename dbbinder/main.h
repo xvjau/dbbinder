@@ -53,6 +53,8 @@ extern const char*	optTemplate;
 extern ListString	optTemplateDirs;
 extern const char*	optVersionMajor;
 extern const char*	optVersionMinor;
+extern bool			optListDepends;
+extern ListString	optDepends;
 
 // Utility funcs and defines
 inline String stringToLower(const String& _string)

@@ -52,5 +52,27 @@ macro(generate_sql_bindings sql_files)
 							DEPENDS ${SQLFILE}
 							WORKING_DIRECTORY ${DBBINDER_OUTPUT_PATH}
 							COMMENT dbbinder ${SQLFILE})
+						
+		execute_process(COMMAND ${DBBINDER_EXECUTABLE} --depends -i ${SQLFILE} -o ${DBBINDER_OUTPUT_PATH}/${SQLFILE_WE}
+						WORKING_DIRECTORY ${DBBINDER_OUTPUT_PATH}
+						OUTPUT_VARIABLE DEPENDS
+						OUTPUT_STRIP_TRAILING_WHITESPACE)
+		
+		string(REPLACE "\n" ";" DEPENDS ${DEPENDS})
+		
+		list(FIND DEPENDS "Depends:" pos)
+		math(EXPR pos "${pos} + 1")
+		
+		while(${pos} GREATER -1)
+			list(REMOVE_AT DEPENDS ${pos})
+			math(EXPR pos "${pos} - 1") 
+		endwhile()
+		
+		foreach(FILE ${DEPENDS})
+			set_source_files_properties("${DBBINDER_OUTPUT_PATH}/${SQLFILE_WE}.cpp"
+										PROPERTIES OBJECT_DEPENDS ${FILE})
+        endforeach()
+        
+        
 	endforeach()
 endmacro()

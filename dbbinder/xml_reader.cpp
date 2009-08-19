@@ -96,6 +96,8 @@ void parseXML(const String& _fileName)
 		XMLDocument xmlFile( fileName );
 		xmlFile.LoadFile();
 
+		DBBinder::optDepends.push_back( fileName );
+
 		XMLElementPtr xml = xmlFile.FirstChildElement("xml");
 
 		XMLElementPtr db = xml->FirstChildElement("database");

@@ -430,6 +430,8 @@ void parseYAML(const String& _fileName)
 		FATAL(fileName << ": " << strerror(errno));
 	}
 
+	DBBinder::optDepends.push_back( fileName );
+
 	yaml_parser_set_input_file(&parser, yamlFile);
 
 	String tagName;
