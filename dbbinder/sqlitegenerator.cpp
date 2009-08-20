@@ -75,8 +75,16 @@ void SQLiteGenerator::addSelect(SelectElements _elements)
 		int col = std::max(_elements.sql_location.col, 1);
 
 		String err = sqlite3_errmsg(m_db);
-		err.erase(0, err.find('"') + 2);
-		err.erase(err.rfind('"') - 1, std::string::npos);
+
+		if ( err.find("near") != std::string::npos )
+		{
+			err.erase(0, err.find('"') + 2);
+			err.erase(err.rfind('"') - 1, std::string::npos);
+		}
+		else
+		{
+			err.erase(0, err.find(':') + 2);
+		}
 
 		size_t pos = _elements.sql.find( err );
 
