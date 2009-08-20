@@ -21,6 +21,8 @@
 #include "abstractgenerator.h"
 #include "options.h"
 
+#include <libgen.h>
+
 #include "sql_reader.h"
 #include "xml_reader.h"
 #ifdef WITH_YAML
@@ -266,6 +268,18 @@ int main(int argc, char *argv[])
 		}
 	}
 
+
+	//Add the program's own path
+	{
+		char buffer[4096];
+		strcpy(buffer, argv[0]);
+		dirname(buffer);
+		strcpy(&buffer[strlen(buffer)], "/templates");
+
+		struct stat fs;
+		if (( stat(buffer, &fs) == 0 ) && S_ISDIR( fs.st_mode & S_IFMT ))
+			DBBinder::optTemplateDirs.push_back( buffer );
+	}
 	i = -1;
 	while ( DBBinder::defaultTemplateDirs[++i] )
 	{
