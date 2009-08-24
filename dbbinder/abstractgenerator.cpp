@@ -67,6 +67,8 @@ const char * const tpl_SELECT_SQL_LEN = "SELECT_SQL_LEN";
 const char * const tpl_SELECT_FIELD_COUNT = "SELECT_FIELD_COUNT";
 const char * const tpl_SELECT_PARAM_COUNT = "SELECT_PARAM_COUNT";
 
+const char * const tpl_SELECT_HAS_PARAMS = "SELECT_HAS_PARAMS";
+
 const char * const tpl_SEL_IN_FIELDS = "SEL_IN_FIELDS";
 const char * const tpl_SEL_IN_FIELD_TYPE = "SEL_IN_FIELD_TYPE";
 const char * const tpl_SEL_IN_FIELD_NAME = "SEL_IN_FIELD_NAME";
@@ -419,11 +421,6 @@ static void cleanExcessiveLineBreaks(String &_str, std::ostream &_stream)
 	{
 		if ( c == '\n' )
 			++ln;
-		else if ( c == '\t' )
-		{
-			_stream << "    ";
-			continue;
-		}
 		else
 		{
 			if ( c != ' ' )
@@ -865,17 +862,23 @@ void AbstractGenerator::loadDictionary()
 			int index = 0;
 			subDict = 0;
 			ListElements::iterator elit;
-			for(elit = it->second->select.input.begin(); elit != it->second->select.input.end(); ++elit, ++index)
+
+			if ( it->second->select.input.size() )
 			{
-				subDict = classDict->AddSectionDictionary(tpl_SEL_IN_FIELDS);
-				subDict->SetValue( tpl_SEL_IN_FIELD_TYPE, getType( elit->type ));
-				subDict->SetValue( tpl_SEL_IN_FIELD_NAME, elit->name );
-				subDict->SetValue( tpl_SEL_IN_FIELD_COMMA, "," );
-				subDict->SetValue( tpl_SEL_IN_FIELD_INIT, getInit( elit->type ));
-				subDict->SetValue( tpl_SEL_IN_FIELD_BIND, getBind( elit, index ));
+				classDict->ShowSection( tpl_SELECT_HAS_PARAMS );
+
+				for(elit = it->second->select.input.begin(); elit != it->second->select.input.end(); ++elit, ++index)
+				{
+					subDict = classDict->AddSectionDictionary(tpl_SEL_IN_FIELDS);
+					subDict->SetValue( tpl_SEL_IN_FIELD_TYPE, getType( elit->type ));
+					subDict->SetValue( tpl_SEL_IN_FIELD_NAME, elit->name );
+					subDict->SetValue( tpl_SEL_IN_FIELD_COMMA, "," );
+					subDict->SetValue( tpl_SEL_IN_FIELD_INIT, getInit( elit->type ));
+					subDict->SetValue( tpl_SEL_IN_FIELD_BIND, getBind( elit, index ));
+				}
+				if ( subDict )
+					subDict->SetValue( tpl_SEL_IN_FIELD_COMMA, "" );
 			}
-			if ( subDict )
-				subDict->SetValue( tpl_SEL_IN_FIELD_COMMA, "" );
 
 			index = 0;
 			subDict = 0;
