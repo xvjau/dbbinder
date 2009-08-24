@@ -27,6 +27,8 @@ execute_process(COMMAND ${DBBINDER_EXECUTABLE} --vminor
 				  OUTPUT_VARIABLE DBBINDER_VERSION_MINOR
 				  OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+include(AddFileDependencies)
+
 macro(generate_sql_bindings sql_files)
 	foreach(file ${ARGV})
 		get_filename_component(SQLFILE ${file} ABSOLUTE)
@@ -52,27 +54,28 @@ macro(generate_sql_bindings sql_files)
 							DEPENDS ${SQLFILE}
 							WORKING_DIRECTORY ${DBBINDER_OUTPUT_PATH}
 							COMMENT dbbinder ${SQLFILE})
-						
+
 		execute_process(COMMAND ${DBBINDER_EXECUTABLE} --depends -i ${SQLFILE} -o ${DBBINDER_OUTPUT_PATH}/${SQLFILE_WE}
 						WORKING_DIRECTORY ${DBBINDER_OUTPUT_PATH}
+						RESULT_VARIABLE DEPENDS_RES
 						OUTPUT_VARIABLE DEPENDS
 						OUTPUT_STRIP_TRAILING_WHITESPACE)
-		
-		string(REPLACE "\n" ";" DEPENDS ${DEPENDS})
-		
-		list(FIND DEPENDS "Depends:" pos)
-		math(EXPR pos "${pos} + 1")
-		
-		while(${pos} GREATER -1)
-			list(REMOVE_AT DEPENDS ${pos})
-			math(EXPR pos "${pos} - 1") 
-		endwhile()
-		
-		foreach(FILE ${DEPENDS})
-			set_source_files_properties("${DBBINDER_OUTPUT_PATH}/${SQLFILE_WE}.cpp"
-										PROPERTIES OBJECT_DEPENDS ${FILE})
-        endforeach()
-        
-        
+
+		if (${DEPENDS_RES} EQUAL 0)
+			string(REPLACE "\n" ";" DEPENDS ${DEPENDS})
+
+			list(FIND DEPENDS "Depends:" pos)
+			math(EXPR pos "${pos} + 1")
+
+			while(${pos} GREATER -1)
+				list(REMOVE_AT DEPENDS ${pos})
+				math(EXPR pos "${pos} - 1")
+			endwhile()
+
+			foreach(FILE ${DEPENDS})
+				ADD_FILE_DEPENDENCIES("${SQLFILE}" "${FILE}")
+			endforeach()
+		endif()
+
 	endforeach()
 endmacro()
