@@ -27,10 +27,13 @@ using namespace TestApp;
 
 int main()
 {
+	sqlite3* m_conn = 0;
+	SQLCHECK( sqlite3_open("test.db", &m_conn) );
+
 	{
 		cout << "Test 1\n------\nName:\t\tFestival:\t\tDate:\n";
 
-		selFestival stmt(2, 0);
+		selFestival stmt(2, 0, m_conn);
 
 		for( selFestival::iterator it = stmt.begin(); it != stmt.end(); ++it )
 		{
@@ -43,7 +46,7 @@ int main()
 	cout << "\n\nTest 2\n------\nName:\t\tFestival:\t\tDate:\n";
 
 	{
-		selFestival stmt(1, 0);
+		selFestival stmt(1, 0, m_conn);
 
 		typedef std::list<selFestival::row> MyListType;
 		MyListType myList;

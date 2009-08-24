@@ -24,14 +24,14 @@
 
 using namespace std;
 using namespace TestApp;
-	
+
 int main()
 {
 	{
 		cout << "Test 1\n------\nName:\t\tFestival:\t\tDate:\n";
-		
+
 		selFestival stmt(2, 0);
-	
+
 		for( selFestival::iterator it = stmt.begin(); it != stmt.end(); ++it )
 		{
 			cout << it->getName() << "\t\t"
@@ -41,15 +41,15 @@ int main()
 	}
 
 	cout << "\n\nTest 2\n------\nName:\t\tFestival:\t\tDate:\n";
-	
+
 	{
 		selFestival stmt(1, 0);
-		
+
 		typedef std::list<selFestival::row> MyListType;
 		MyListType myList;
-		
+
 		myList.assign( stmt.begin(), stmt.end() );
-		
+
 		for( MyListType::iterator it = myList.begin(); it != myList.end(); ++it )
 		{
 			cout << (*it)->getName() << "\t"
