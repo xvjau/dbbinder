@@ -45,6 +45,7 @@
 						m_currentRow.reset( new _row_type( this ));
 						return true;
 					}
+					case SQLITE_MISUSE: /* This seems to indicate empty result */
 					case SQLITE_DONE:
 					{
 						m_currentRow.reset();
