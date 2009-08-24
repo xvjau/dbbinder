@@ -58,6 +58,7 @@ class {{CLASSNAME}}
 {
 	public:
 		{{CLASSNAME}}({{DBENGINE_CONNECTION_TYPE}} _conn);
+		~{{CLASSNAME}}();
 	private:
 		{{DBENGINE_CONNECTION_TYPE}}	m_conn;
 		bool							m_needCloseConn;
@@ -67,11 +68,12 @@ class {{CLASSNAME}}
 		{{/DBENGINE_EXTRAS}}
 {{#SELECT}}
 	public:
+		{{#SELECT_HAS_PARAMS}}
 		{{CLASSNAME}}(
 						{{#SEL_IN_FIELDS}}{{SEL_IN_FIELD_TYPE}} _{{SEL_IN_FIELD_NAME}},
 						{{/SEL_IN_FIELDS}}
 						{{DBENGINE_CONNECTION_TYPE}} _conn);
-		~{{CLASSNAME}}();
+		{{/SELECT_HAS_PARAMS}}
 
 	private:
 		static const char* const s_selectSQL;
@@ -175,13 +177,13 @@ class {{CLASSNAME}}
 		iterator& begin();
 		iterator& end()
 		{
-			return *m_endIterator;
+			return s_endIterator;
 		}
 
 	private:
 		row 		m_currentRow;
 		iterator	*m_iterator;
-		iterator	*m_endIterator;
+		static iterator	s_endIterator;
 {{/SELECT}}
 {{#UPDATE}}
 	private:

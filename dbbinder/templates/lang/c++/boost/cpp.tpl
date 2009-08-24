@@ -29,6 +29,7 @@ const char * const {{CLASSNAME}}::s_selectSQL = {{SELECT_SQL}};
 const int {{CLASSNAME}}::s_selectSQL_len = {{SELECT_SQL_LEN}};
 const int {{CLASSNAME}}::s_selectFieldCount = {{SELECT_FIELD_COUNT}};
 const int {{CLASSNAME}}::s_selectParamCount = {{SELECT_PARAM_COUNT}};
+selFestival::iterator {{CLASSNAME}}::s_endIterator(0);
 
 {{CLASSNAME}}::{{CLASSNAME}}({{DBENGINE_CONNECTION_TYPE}} _conn):
 		m_conn( _conn ), m_needCloseConn( false ), m_selectIsActive( false ), m_iterator(0)
@@ -38,6 +39,7 @@ const int {{CLASSNAME}}::s_selectParamCount = {{SELECT_PARAM_COUNT}};
 	{{DBENGINE_PREPARE}}
 }
 
+{{#SELECT_HAS_PARAMS}}
 {{CLASSNAME}}::{{CLASSNAME}}(
 							 {{#SEL_IN_FIELDS}}{{SEL_IN_FIELD_TYPE}} _{{SEL_IN_FIELD_NAME}},
 							 {{/SEL_IN_FIELDS}}
@@ -61,6 +63,7 @@ const int {{CLASSNAME}}::s_selectParamCount = {{SELECT_PARAM_COUNT}};
 		 {{/SEL_IN_FIELDS}}
 		);
 }
+{{/SELECT_HAS_PARAMS}}
 
 {{CLASSNAME}}::~{{CLASSNAME}}()
 {
@@ -102,17 +105,16 @@ bool {{CLASSNAME}}::fetchRow()
 
 {{CLASSNAME}}::iterator & {{CLASSNAME}}::begin()
 {
-	m_endIterator = new {{CLASSNAME}}::iterator(0);
+	if ( m_iterator )
+		return *m_iterator;
 
 	if ( fetchRow() )
 	{
-		if ( !m_iterator )
-			m_iterator = new {{CLASSNAME}}::iterator(this);
-
+		m_iterator = new {{CLASSNAME}}::iterator(this);
 		return *m_iterator;
 	}
 	else
-		return *m_endIterator;
+		return s_endIterator;
 }
 {{/SELECT}}
 {{#UPDATE}}
