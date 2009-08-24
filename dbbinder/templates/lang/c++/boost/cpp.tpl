@@ -29,7 +29,7 @@ const char * const {{CLASSNAME}}::s_selectSQL = {{SELECT_SQL}};
 const int {{CLASSNAME}}::s_selectSQL_len = {{SELECT_SQL_LEN}};
 const int {{CLASSNAME}}::s_selectFieldCount = {{SELECT_FIELD_COUNT}};
 const int {{CLASSNAME}}::s_selectParamCount = {{SELECT_PARAM_COUNT}};
-selFestival::iterator {{CLASSNAME}}::s_endIterator(0);
+{{CLASSNAME}}::iterator {{CLASSNAME}}::s_endIterator(0);
 
 {{CLASSNAME}}::{{CLASSNAME}}({{DBENGINE_CONNECTION_TYPE}} _conn):
 		m_conn( _conn ), m_needCloseConn( false ), m_selectIsActive( false ), m_iterator(0)
