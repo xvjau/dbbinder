@@ -187,6 +187,7 @@ class {{CLASSNAME}}
 {{#UPDATE}}
 	private:
 		static const char* const s_updateSQL;
+		static const int s_updateSQL_len;
 		{{DBENGINE_STATEMENT_TYPE}}	m_updateStmt;
 	public:
 		bool update(
@@ -196,6 +197,7 @@ class {{CLASSNAME}}
 {{#INSERT}}
 	private:
 		static const char* const s_insertSQL;
+		static const int s_insertSQL_len;
 		{{DBENGINE_STATEMENT_TYPE}}	m_insertStmt;
 	public:
 		bool insert(

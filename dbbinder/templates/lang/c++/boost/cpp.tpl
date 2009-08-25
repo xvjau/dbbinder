@@ -30,11 +30,11 @@ const char * const {{CLASSNAME}}::s_selectSQL = {{SELECT_SQL}};
 const int {{CLASSNAME}}::s_selectSQL_len = {{SELECT_SQL_LEN}};
 {{/SELECT}}
 {{#UPDATE}}
-const char * const {{CLASSNAME}}::s_selectSQL = {{UPDATE_SQL}};
+const char * const {{CLASSNAME}}::s_updateSQL = {{UPDATE_SQL}};
 const int {{CLASSNAME}}::s_updateSQL_len = {{UPDATE_SQL_LEN}};
 {{/UPDATE}}
 {{#INSERT}}
-const char * const {{CLASSNAME}}::s_selectSQL = {{INSERT_SQL}};
+const char * const {{CLASSNAME}}::s_insertSQL = {{INSERT_SQL}};
 const int {{CLASSNAME}}::s_insertSQL_len = {{INSERT_SQL_LEN}};
 {{/INSERT}}
 
