@@ -63,7 +63,7 @@
 				SQLCHECK( sqlite3_reset(m_selectStmt));
 			</reset>
 		</select>
-		<insert>
+		<update>
 			<create>
 			</create>
 			<destroy>
@@ -75,11 +75,14 @@
 					SQLCHECK( sqlite3_prepare(m_conn, s_updateSQL, s_updateSQL_len, &amp;m_updateStmt,  &amp;tail ));
 				}
 			</prepare>
+			<execute>
+				SQLCHECK( sqlite3_step( m_updateStmt ) );
+			</execute>
 			<reset>
 				SQLCHECK( sqlite3_reset(m_updateStmt));
 			</reset>
-		</insert>
-		<update>
+		</update>
+		<insert>
 			<create>
 			</create>
 			<destroy>
@@ -91,9 +94,12 @@
 					SQLCHECK( sqlite3_prepare(m_conn, s_insertSQL, s_insertSQL_len, &amp;m_insertStmt,  &amp;tail ));
 				}
 			</prepare>
+			<execute>
+				SQLCHECK( sqlite3_step( m_insertStmt ) );
+			</execute>
 			<reset>
 				SQLCHECK( sqlite3_reset(m_insertStmt));
 			</reset>
-		</update>
+		</insert>
 	</lang>
 </xml>

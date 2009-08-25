@@ -48,17 +48,17 @@ void mysqlCheckStmtErr( MYSQL_STMT *_stmt, int _status )
 				FATAL( "The buffer type is MYSQL_TYPE_DATE, MYSQL_TYPE_TIME, MYSQL_TYPE_DATETIME, or MYSQL_TYPE_TIMESTAMP, but the data type is not DATE, TIME, DATETIME, or TIMESTAMP." );
 				break;
 		}
-		
+
 		FATAL( "MySQL: " << mysql_stmt_error(_stmt) );
 		exit(-1);
 	}
 }
-	
+
 MySQLGenerator::MySQLGenerator()
  : AbstractGenerator(), m_conn(0)
 {
 	m_dbengine = "mysql";
-	
+
 	std::cout << "Using MySQL version: " << mysql_get_client_info() << std::endl;
 }
 
@@ -76,16 +76,16 @@ bool MySQLGenerator::checkConnection()
 		String NAME = m_dbParams[# NAME].value; \
 		if ( NAME.empty() ) \
 			FATAL( "MySQL: '" # NAME "' db parameter is empty." );
-		
+
 		READ_PARAM(host);
 		READ_PARAM(db);
 		READ_PARAM(user);
 		READ_PARAM(password);
 		READ_PARAM(port);
-		
+
 		m_conn = mysql_init(0);
-		
-		if ( !mysql_real_connect(m_conn, host.c_str(), user.c_str(), password.c_str(), db.c_str(), 
+
+		if ( !mysql_real_connect(m_conn, host.c_str(), user.c_str(), password.c_str(), db.c_str(),
 								  atoi( port.c_str() ), 0, CLIENT_COMPRESS) )
 		{
 			FATAL("Mysql connect:" << mysql_error(m_conn));
@@ -93,17 +93,19 @@ bool MySQLGenerator::checkConnection()
 		else
 			m_connected = true;
 	}
-	
+
 	return m_connected;
 }
 
-String MySQLGenerator::getBind(const ListElements::iterator& _item, int _index)
+String MySQLGenerator::getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
 {
+	UNUSED(_type);
 	return String("m_param") + _item->name + " = _" + _item->name + ";";
 }
 
-String MySQLGenerator::getReadValue(const ListElements::iterator& _item, int _index)
+String MySQLGenerator::getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
 {
+	UNUSED(_type);
 	return String("m_") + _item->name + " = _parent->m_buff" + _item->name + ";";
 }
 
@@ -116,7 +118,7 @@ void MySQLGenerator::addInsert(InsertElements _elements)
 void MySQLGenerator::addSelect(SelectElements _elements)
 {
 	checkConnection();
-	
+
 	MYSQL_STMT *stmt = mysql_stmt_init( m_conn );
 
 	mysqlCheckStmtErr( stmt, mysql_stmt_prepare(stmt, _elements.sql.c_str(), _elements.sql.length() ));
@@ -124,10 +126,10 @@ void MySQLGenerator::addSelect(SelectElements _elements)
 	//std::cout << "Param count: " << mysql_stmt_param_count(stmt) << std::endl;
 
 	MYSQL_RES *meta = mysql_stmt_result_metadata(stmt);
-	
+
 	MYSQL_FIELD *field = mysql_fetch_field( meta );
 	SQLTypes type;
-	
+
 	int i = 0;
 	while( field )
 	{
@@ -140,29 +142,29 @@ void MySQLGenerator::addSelect(SelectElements _elements)
 			case MYSQL_TYPE_INT24:
 				type = stInt;
 				break;
-				
+
 			case MYSQL_TYPE_DECIMAL:
 			case MYSQL_TYPE_NEWDECIMAL:
 			case MYSQL_TYPE_FLOAT:
 			case MYSQL_TYPE_DOUBLE:
 				type = stFloat;
 				break;
-				
+
 			case MYSQL_TYPE_TIMESTAMP:
 			case MYSQL_TYPE_DATETIME:
 				type = stTimeStamp;
 				break;
-				
+
 			case MYSQL_TYPE_TIME:
 				type = stTime;
 				break;
-			
+
 			case MYSQL_TYPE_DATE:
 			case MYSQL_TYPE_YEAR:
 			case MYSQL_TYPE_NEWDATE:
 				type = stDate;
 				break;
-				
+
 			case MYSQL_TYPE_NULL:
 			case MYSQL_TYPE_VARCHAR:
 			case MYSQL_TYPE_VAR_STRING:
@@ -170,9 +172,9 @@ void MySQLGenerator::addSelect(SelectElements _elements)
 			default:
 				type = stText;
 		};
-		
+
 		_elements.output.push_back( SQLElement( field->name, type, i++, field->length ));
-		
+
 		field = mysql_fetch_field( meta );
 	}
 
@@ -199,22 +201,22 @@ void getMySQLTypes(SQLTypes _type, String& _lang, String& _mysql)
 	{
 		case stUnknown:
 			FATAL("BUG BUG BUG! " << __FILE__ << __LINE__);
-			
+
 		case stInt:
 			_lang = "int";
 			_mysql = "MYSQL_TYPE_LONG";
 			break;
-			
+
 		case stFloat:
 			_lang = "float";
 			_mysql = "MYSQL_TYPE_FLOAT";
 			break;
-			
+
 		case stDouble:
 			_lang = "double";
 			_mysql = "MYSQL_TYPE_DOUBLE";
 			break;
-			
+
 		case stTimeStamp:
 			_lang = "MYSQL_TIME";
 			_mysql = "MYSQL_TYPE_TIMESTAMP";
@@ -229,7 +231,7 @@ void getMySQLTypes(SQLTypes _type, String& _lang, String& _mysql)
 			_lang = "MYSQL_TIME";
 			_mysql = "MYSQL_TYPE_DATE";
 			break;
-			
+
 		case stText:
 		default:
 		{
@@ -245,11 +247,11 @@ void MySQLGenerator::addSelInBuffers(const SelectElements* _select)
 	String langType, myType;
 	int index = 0;
 	ctemplate::TemplateDictionary *subDict;
-	
+
 	foreach(SQLElement field, _select->input)
 	{
 		std::stringstream decl, init;
-		
+
 		getMySQLTypes( field.type, langType, myType );
 
 		if ( index == 0 )
@@ -257,14 +259,14 @@ void MySQLGenerator::addSelInBuffers(const SelectElements* _select)
 			decl << "MYSQL_BIND selInBuffer[" << _select->input.size() << "];\n\n";
 			init << "memset(selInBuffer, 0, sizeof(selInBuffer));\n\n";
 		}
-		
+
 		if ( field.type != stText )
 			decl << langType << " m_param" << field.name << ";\n";
 		else
 			decl << langType << " m_param" << field.name << "[" << field.length + 1 << "];\n";
 
 		decl << "long unsigned m_param" << field.name << "Length;\n";
-		
+
 		init << "selInBuffer[" << index << "].buffer_type = " << myType << ";\n"
 				<< "selInBuffer[" << index << "].buffer = reinterpret_cast<void *>(&m_param" << field.name << ");\n"
 				<< "selInBuffer[" << index << "].is_null = 0;\n"
@@ -284,11 +286,11 @@ void MySQLGenerator::addSelOutBuffers(const SelectElements* _select)
 	String langType, myType;
 	int index = 0;
 	ctemplate::TemplateDictionary *subDict;
-	
+
 	foreach(SQLElement field, _select->output)
 	{
 		std::stringstream init, decl;
-		
+
 		getMySQLTypes( field.type, langType, myType );
 
 		if ( index == 0 )
@@ -296,10 +298,10 @@ void MySQLGenerator::addSelOutBuffers(const SelectElements* _select)
 			decl << "MYSQL_BIND selOutBuffer[" << _select->output.size() << "];\n\n";
 			init << "memset(selOutBuffer, 0, sizeof(selOutBuffer));\n\n";
 		}
-		
+
 		decl << "my_bool	m_" << field.name << "IsNull;\n"
 				<< "long unsigned m_" << field.name << "Length;\n";
-				
+
 		if ( field.type != stText )
 		{
 			decl << langType << " m_buff" << field.name << ";\n";
@@ -320,7 +322,7 @@ void MySQLGenerator::addSelOutBuffers(const SelectElements* _select)
 		subDict = m_dict->AddSectionDictionary(tpl_SEL_OUT_FIELDS_BUFFERS);
 		subDict->SetValue(tpl_BUFFER_DECLARE, decl.str() );
 		subDict->SetValue(tpl_BUFFER_ALLOC, init.str() );
-		
+
 		++index;
 	}
 }

@@ -26,7 +26,7 @@ namespace DBBinder
 {
 
 SQLiteGenerator::SQLiteGenerator(): AbstractGenerator(),
-								 m_db( 0 )
+		m_db( 0 )
 {
 	m_dbengine = "sqlite3";
 
@@ -35,8 +35,8 @@ SQLiteGenerator::SQLiteGenerator(): AbstractGenerator(),
 
 SQLiteGenerator::~SQLiteGenerator()
 {
-	if ( m_db)
-		sqlite3_close(m_db);
+	if ( m_db )
+		sqlite3_close( m_db );
 }
 
 bool SQLiteGenerator::checkConnection()
@@ -44,14 +44,16 @@ bool SQLiteGenerator::checkConnection()
 	if ( !m_connected )
 	{
 		String dbName = m_dbParams["file"].value;
+
 		if ( dbName.empty() )
 			FATAL( "SQLite3: 'file' db parameter is empty." );
 
-		int ret = sqlite3_open(dbName.c_str(), &m_db);
-		if( ret )
+		int ret = sqlite3_open( dbName.c_str(), &m_db );
+
+		if ( ret )
 		{
 			SQLFATAL( "Can't open database: " );
-			sqlite3_close(m_db);
+			sqlite3_close( m_db );
 		}
 		else
 			m_connected = true;
@@ -60,38 +62,145 @@ bool SQLiteGenerator::checkConnection()
 	return m_connected;
 }
 
-void SQLiteGenerator::addSelect(SelectElements _elements)
+String SQLiteGenerator::getBind( SQLStatementTypes _type, const ListElements::iterator & _item, int _index )
+{
+	// TODO Abstract this
+	std::stringstream str;
+	str << "SQLCHECK( sqlite3_bind_";
+
+	String typeName;
+	switch( _type )
+	{
+		case sstSelect: typeName = "select"; break;
+		case sstInsert: typeName = "insert"; break;
+		case sstUpdate: typeName = "update"; break;
+		default:
+			FATAL("Uknown type!");
+	}
+
+	switch ( _item->type )
+	{
+		case stUnknown:
+		{
+			FATAL( "BUG BUG BUG! " << __FILE__ << __LINE__ );
+		}
+
+		case stInt:
+		case stUInt:
+		case stInt64:
+		case stUInt64:
+		{
+			str << "int";
+			break;
+		}
+
+		case stFloat:
+		case stUFloat:
+		case stDouble:
+		case stUDouble:
+		{
+			str << "double";
+			break;
+		}
+
+		case stTimeStamp:
+		case stTime:
+		case stDate:
+		case stText:
+		{
+			/* In the case of Text, the function is slightly different:
+				1 - It needs to duplicate the strig - strdup
+				2 - It needs the length of the string - strlen
+				3 - It needs a function pointer to deallocate the string in (1) - free
+			*/
+			str << "text";
+			str << "(m_" << typeName << "Stmt, " << _index + 1 << ", strdup(_" << _item->name << ") , strlen(_" << _item->name << "), free));";
+			return str.str();
+		}
+
+	}
+
+	str << "(m_" << typeName << "Stmt, " << _index + 1 << ", _" << _item->name << "));";
+
+	return str.str();
+}
+
+String SQLiteGenerator::getReadValue( SQLStatementTypes _type, const ListElements::iterator & _item, int _index )
+{
+	// TODO Abstract this
+	std::stringstream str;
+
+	switch ( _item->type )
+	{
+		case stUnknown:
+		{
+			FATAL( "BUG BUG BUG! " << __FILE__ << __LINE__ );
+		}
+
+		case stInt:
+		case stUInt:
+		case stInt64:
+		case stUInt64:
+		{
+			str << "m_" << _item->name << " = sqlite3_column_int(_parent->m_selectStmt, " << _index << ");";
+			break;
+		}
+
+		case stFloat:
+		case stUFloat:
+		case stDouble:
+		case stUDouble:
+		{
+			str << "m_" << _item->name << " = sqlite3_column_double(_parent->m_selectStmt, " << _index << ");";
+			break;
+		}
+
+		case stTimeStamp:
+		case stTime:
+		case stDate:
+		case stText:
+		{
+			str << "{ const char *str = reinterpret_cast<const char*>( sqlite3_column_text(_parent->m_selectStmt, " << _index << ") );\n"
+			<< "if ( str ) m_" << _item->name << " = str; }";
+			break;
+		}
+	}
+
+	return str.str();
+}
+
+sqlite3_stmt *SQLiteGenerator::execSQL( AbstractElements &_elements )
 {
 	checkConnection();
 
 	const char *tail = 0;
 	sqlite3_stmt *stmt = 0;
 
-	int ret = sqlite3_prepare(m_db, _elements.sql.c_str(), _elements.sql.length(), &stmt,  &tail);
+	int ret = sqlite3_prepare( m_db, _elements.sql.c_str(), _elements.sql.length(), &stmt,  &tail );
 
 	if ( ret != SQLITE_OK )
 	{
 		int line = _elements.sql_location.line;
-		int col = std::max(_elements.sql_location.col, 1);
+		int col = std::max( _elements.sql_location.col, 1 );
 
-		String err = sqlite3_errmsg(m_db);
+		String err = sqlite3_errmsg( m_db );
 
-		if ( err.find("near") != std::string::npos )
+		if ( err.find( "near" ) != std::string::npos )
 		{
-			err.erase(0, err.find('"') + 2);
-			err.erase(err.rfind('"') - 1, std::string::npos);
+			err.erase( 0, err.find( '"' ) + 2 );
+			err.erase( err.rfind( '"' ) - 1, std::string::npos );
 		}
 		else
 		{
-			err.erase(0, err.find(':') + 2);
+			err.erase( 0, err.find( ':' ) + 2 );
 		}
 
-		size_t pos = _elements.sql.find( err );
+		String::size_type pos = _elements.sql.find( err );
 
 		const char *s = _elements.sql.c_str();
 		const char *e = s + pos;
 
-		while( s < e )
+		while ( s < e )
 		{
 			if ( *s++ == '\n' )
 			{
@@ -102,31 +211,42 @@ void SQLiteGenerator::addSelect(SelectElements _elements)
 				col++;
 		}
 
-		FATAL( _elements.sql_location.file << ':' << line << ':' << col << ": error " << sqlite3_errmsg(m_db) );
+		FATAL( _elements.sql_location.file << ':' << line << ':' << col << ": error " << sqlite3_errmsg( m_db ) );
 	}
 
-	int i = 1;
-	for(ListElements::iterator it = _elements.input.begin();
-		it != _elements.input.end(); ++it, ++i
-	   )
+	return stmt;
+}
+
+void SQLiteGenerator::addSelect( SelectElements _elements )
+{
+	sqlite3_stmt *stmt = execSQL( _elements );
+
+	int ret, i = 1;
+
+	for ( ListElements::iterator it = _elements.input.begin();
+	        it != _elements.input.end(); ++it, ++i
+	    )
 	{
 		if ( !it->defaultValue.empty() )
 		{
 			ret = sqlite3_bind_text( stmt, i, it->defaultValue.c_str(), -1, 0 );
-			SQLCHECK("SQL bind error: " << ret << " ");
+			SQLCHECK( "SQL bind error: " << ret << " " );
 		}
 	}
 
 	ret = sqlite3_step( stmt );
-	if (!(( ret == SQLITE_ROW ) || ( ret == SQLITE_DONE )))
+
+	if ( !(( ret == SQLITE_ROW ) || ( ret == SQLITE_DONE ) ) )
 	{
-		FATAL( "fetch error: " << _elements.sql << " :" << ret << " " << sqlite3_errmsg(m_db) );
+		FATAL( "fetch error: " << _elements.sql << " :" << ret << " " << sqlite3_errmsg( m_db ) );
 	}
 
 	int count = sqlite3_column_count( stmt );
+
 	SQLTypes type;
 	String name;
-	for( int i = 0; i < count; ++i )
+
+	for ( int i = 0; i < count; ++i )
 	{
 		name = sqlite3_column_name( stmt, i );
 
@@ -147,103 +267,25 @@ void SQLiteGenerator::addSelect(SelectElements _elements)
 				type = stText;
 		};
 
-		_elements.output.push_back( SQLElement( name, type, i ));
+		_elements.output.push_back( SQLElement( name, type, i ) );
 	}
 
-	sqlite3_finalize(stmt);
+	sqlite3_finalize( stmt );
 
-	AbstractGenerator::addSelect(_elements);
+	AbstractGenerator::addSelect( _elements );
 }
 
-String SQLiteGenerator::getBind(const ListElements::iterator & _item, int _index)
+void SQLiteGenerator::addUpdate( UpdateElements _elements )
 {
-	// TODO Abstract this
-	std::stringstream str;
-	str << "SQLCHECK( sqlite3_bind_";
-
-	switch ( _item->type )
-	{
-		case stUnknown:
-		{
-			FATAL("BUG BUG BUG! " << __FILE__ << __LINE__);
-		}
-		case stInt:
-		case stUInt:
-		case stInt64:
-		case stUInt64:
-		{
-			str << "int";
-			break;
-		}
-		case stFloat:
-		case stUFloat:
-		case stDouble:
-		case stUDouble:
-		{
-			str << "double";
-			break;
-		}
-		case stTimeStamp:
-		case stTime:
-		case stDate:
-		case stText:
-		{
-			/* In the case of Text, the function is slightly different:
-				1 - It needs to duplicate the strig - strdup
-				2 - It needs the length of the string - strlen
-				3 - It needs a function pointer to deallocate the string in (1) - free
-			*/
-			str << "text";
-			str << "(m_selectStmt, " << _index + 1 << ", strdup(_" << _item->name << ") , strlen(_" << _item->name << "), free));";
-			return str.str();
-		}
-
-	}
-
-	str << "(m_selectStmt, " << _index + 1 << ", _" << _item->name << "));";
-
-	return str.str();
+	execSQL( _elements );
+	AbstractGenerator::addUpdate( _elements );
 }
 
-String SQLiteGenerator::getReadValue(const ListElements::iterator & _item, int _index)
+void SQLiteGenerator::addInsert( InsertElements _elements )
 {
-	// TODO Abstract this
-	std::stringstream str;
-
-	switch ( _item->type )
-	{
-		case stUnknown:
-		{
-			FATAL("BUG BUG BUG! " << __FILE__ << __LINE__);
-		}
-		case stInt:
-		case stUInt:
-		case stInt64:
-		case stUInt64:
-		{
-			str << "m_" << _item->name << " = sqlite3_column_int(_parent->m_selectStmt, " << _index << ");";
-			break;
-		}
-		case stFloat:
-		case stUFloat:
-		case stDouble:
-		case stUDouble:
-		{
-			str << "m_" << _item->name << " = sqlite3_column_double(_parent->m_selectStmt, " << _index << ");";
-			break;
-		}
-		case stTimeStamp:
-		case stTime:
-		case stDate:
-		case stText:
-		{
-			str << "{ const char *str = reinterpret_cast<const char*>( sqlite3_column_text(_parent->m_selectStmt, " << _index << ") );\n"
-				<< "if ( str ) m_" << _item->name << " = str; }";
-			break;
-		}
-	}
-
-	return str.str();
+	execSQL( _elements );
+	AbstractGenerator::addInsert( _elements );
 }
 
 }
+// kate: indent-mode cstyle; replace-tabs off; tab-width 4;

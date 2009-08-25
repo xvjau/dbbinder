@@ -27,12 +27,12 @@ namespace DBBinder
 {
 
 /**
-	@author 
+	@author
 */
 class OracleGenerator : public AbstractGenerator
 {
 	friend class AbstractGenerator; //wtf??
-	
+
 	protected:
 		OracleGenerator();
 		virtual ~OracleGenerator();
@@ -42,14 +42,14 @@ class OracleGenerator : public AbstractGenerator
 		OCIServer	*m_srv;
 		OCISvcCtx	*m_svc;
 		OCISession	*m_auth;
-		
+
 		virtual bool checkConnection();
 
-		virtual String getBind(const ListElements::iterator& _item, int _index);
-		virtual String getReadValue(const ListElements::iterator& _item, int _index);
+		virtual String getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+		virtual String getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
 
 		virtual bool   needIOBuffers() const;
-		
+
 		virtual void addSelInBuffers(const SelectElements* _select);
 		virtual void addSelOutBuffers(const SelectElements* _select);
 

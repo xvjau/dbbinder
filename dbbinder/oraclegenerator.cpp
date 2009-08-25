@@ -36,10 +36,10 @@ void oraCheckErrFn ( OCIError *_err, sword _status, const char* _file, unsigned 
 		{
 			text errbuf[2048];
 			sb4 errcode;
-			
+
 			OCIErrorGet ( _err, ( ub4 ) 1, ( text * ) NULL, &errcode,
 			                       errbuf, ( ub4 ) sizeof ( errbuf ), OCI_HTYPE_ERROR );
-			
+
 			FATAL( errbuf );
 		}
 		case OCI_INVALID_HANDLE: FATAL("OCI_INVALID_HANDLE");
@@ -57,22 +57,22 @@ void getOracleTypes(SQLTypes _type, String& _lang, String& _oracle)
 	{
 		case stUnknown:
 			FATAL("BUG BUG BUG! " << __FILE__ << __LINE__);
-			
+
 		case stInt:
 			_lang = "int";
 			_oracle = "SQLT_INT";
 			break;
-			
+
 		case stFloat:
 			_lang = "float";
 			_oracle = "SQLT_FLT";
 			break;
-			
+
 		case stDouble:
 			_lang = "double";
 			_oracle = "SQLT_FLT";
 			break;
-			
+
 		case stTimeStamp:
 		case stTime:
 			_lang = "OCIDateTime";
@@ -83,7 +83,7 @@ void getOracleTypes(SQLTypes _type, String& _lang, String& _oracle)
 			_lang = "char[7]";
 			_oracle = "SQLT_DAT";
 			break;
-			
+
 		case stText:
 		default:
 		{
@@ -113,7 +113,7 @@ SQLTypes getSQLTypes(ub2 _oracleType)
 		case SQLT_TIMESTAMP_TZ:
 		case SQLT_TIMESTAMP_LTZ:
 			return stTimeStamp;
-			
+
 		case SQLT_CHR:
 		case SQLT_NUM:
 		case SQLT_STR:
@@ -123,7 +123,7 @@ SQLTypes getSQLTypes(ub2 _oracleType)
 	}
 }
 
-	
+
 OracleGenerator::OracleGenerator()
  : AbstractGenerator(), m_env(0), m_err(0), m_srv(0), m_svc(0), m_auth(0)
 {
@@ -136,7 +136,7 @@ OracleGenerator::~OracleGenerator()
 	{
 		/* Disconnect */
 		oraCheckErr( m_err, OCILogoff ( m_svc, m_err ));
-		
+
 		/* Free handles */
 		OCIHandleFree ( ( dvoid * ) m_svc, OCI_HTYPE_SVCCTX );
 		OCIHandleFree ( ( dvoid * ) m_err, OCI_HTYPE_ERROR );
@@ -150,7 +150,7 @@ bool OracleGenerator::checkConnection()
 		String dbName = m_dbParams["db"].value;
 		String user = m_dbParams["user"].value;
 		String pass = m_dbParams["password"].value;
-	
+
 		int errcode = OCIEnvCreate ( &m_env, OCI_DEFAULT,
 		                             0, ( dvoid * ( * ) ( dvoid *,size_t ) ) 0,
 		                             ( dvoid * ( * ) ( dvoid *, dvoid *, size_t ) ) 0,
@@ -160,7 +160,7 @@ bool OracleGenerator::checkConnection()
 			std::cerr << "OCIEnvCreate failed with errcode = " << errcode << std::endl;
 			exit ( 1 );
 		}
-	
+
 		/* Initialize handles */
 		OCIHandleAlloc( m_env, (dvoid**)&m_err, OCI_HTYPE_ERROR, 0, 0 );
 		OCIHandleAlloc( m_env, (dvoid**)&m_srv, OCI_HTYPE_SERVER, 0, 0 );
@@ -169,36 +169,36 @@ bool OracleGenerator::checkConnection()
 
 		/* Connect/Attach to the Server */
 		oraCheckErr ( m_err, OCIServerAttach( m_srv, m_err, (text *) dbName.c_str(), dbName.length(), 0) );
-		
+
 		/* set username and password */
 		oraCheckErr ( m_err, OCIAttrSet ( m_svc, OCI_HTYPE_SVCCTX, m_srv, 0, OCI_ATTR_SERVER, m_err ) );
-		
+
 		oraCheckErr ( m_err, OCIAttrSet ( m_auth, OCI_HTYPE_SESSION,
 		                                  const_cast<char*>(user.c_str()), user.length(),
 		                                  OCI_ATTR_USERNAME, m_err ) );
-		
+
 		oraCheckErr ( m_err, OCIAttrSet ( m_auth, OCI_HTYPE_SESSION,
 		                                  const_cast<char*>(pass.c_str()), pass.length(),
 		                                  OCI_ATTR_PASSWORD, m_err ));
-		
+
 		/* Authenticate / Start session */
 		int ret = OCISessionBegin ( m_svc, m_err, m_auth, OCI_CRED_RDBMS, OCI_DEFAULT);
 		oraCheckErr ( m_err, ret );
-	
+
 		m_connected = ret == OCI_SUCCESS;
 
 		oraCheckErr ( m_err, OCIAttrSet((dvoid *)m_svc, OCI_HTYPE_SVCCTX,
                    (dvoid *)m_auth, 0, OCI_ATTR_SESSION, m_err));
 	}
-	
+
 	return m_connected;
 }
 
-String OracleGenerator::getBind(const ListElements::iterator & _item, int _index)
+String OracleGenerator::getBind(SQLStatementTypes _type, const ListElements::iterator & _item, int _index)
 {
 	String langType, oraType;
 	getOracleTypes( _item->type, langType, oraType );
-	
+
 	std::stringstream result;
 
 	result << "oraCheckErr( m_conn->err, OCIBindByPos( m_selectStmt, &m_param" << _item->name << ", m_conn->err, " << _index << ",\n"
@@ -214,7 +214,7 @@ String OracleGenerator::getBind(const ListElements::iterator & _item, int _index
 	return result.str();
 }
 
-String OracleGenerator::getReadValue(const ListElements::iterator & _item, int _index)
+String OracleGenerator::getReadValue(SQLStatementTypes _type, const ListElements::iterator & _item, int _index)
 {
 	return String("m_") + _item->name + " = _parent->m_buff" + _item->name + ";";
 }
@@ -225,7 +225,7 @@ void OracleGenerator::addSelect(SelectElements _elements)
 
 	/* Allocate and prepare SQL statement */
 	OCIStmt *_stmt = 0;
-	
+
 	oraCheckErr( m_err, OCIHandleAlloc ( (dvoid*) m_env, ( dvoid ** ) &_stmt, OCI_HTYPE_STMT, 0, 0));
 
 	oraCheckErr( m_err, OCIStmtPrepare ( _stmt, m_err, (const OraText * )_elements.sql.c_str(),
@@ -243,7 +243,7 @@ void OracleGenerator::addSelect(SelectElements _elements)
 
 	ub4 nameLen, colWidth, charSemantics;
 	text *name;
-	
+
 	for (ub4 i = 1; i <= colCount; i++)
 	{
 		/* get parameter for column i */
@@ -263,7 +263,7 @@ void OracleGenerator::addSelect(SelectElements _elements)
 		charSemantics = 0;
 		oraCheckErr( m_err, OCIAttrGet((dvoid*)col, OCI_DTYPE_PARAM,
 				(dvoid*) &charSemantics,0, OCI_ATTR_CHAR_USED, m_err ));
-		
+
 		colWidth = 0;
 		if (charSemantics)
 			/* Retrieve the column width in characters */
@@ -273,10 +273,10 @@ void OracleGenerator::addSelect(SelectElements _elements)
 			/* Retrieve the column width in bytes */
 			oraCheckErr( m_err, OCIAttrGet((dvoid*)col, OCI_DTYPE_PARAM,
 					(dvoid*) &colWidth,0, OCI_ATTR_DATA_SIZE, m_err ));
-		
+
 		_elements.output.push_back( SQLElement( String(reinterpret_cast<char*>(name), nameLen), getSQLTypes( oraType ), i, colWidth ));
 	}
-	
+
 	OCIHandleFree ( (dvoid*) _stmt, OCI_HTYPE_STMT );
 
 	AbstractGenerator::addSelect(_elements);
@@ -292,7 +292,7 @@ void OracleGenerator::addSelInBuffers(const SelectElements * _select)
 	String langType, oraType;
 	int index = 0;
 	ctemplate::TemplateDictionary *subDict;
-	
+
 	foreach(SQLElement field, _select->input)
 	{
 		getOracleTypes( field.type, langType, oraType );
@@ -309,16 +309,16 @@ void OracleGenerator::addSelOutBuffers(const SelectElements * _select)
 	String langType, oraType;
 	int index = 0;
 	ctemplate::TemplateDictionary *subDict;
-	
+
 	foreach(SQLElement field, _select->output)
 	{
 		std::stringstream init, decl;
-		
+
 		getOracleTypes( field.type, langType, oraType );
 
 		decl << "OCIDefine*	m_def" << field.name << ";\n";
 		init <<	"oraCheckErr( m_conn->err, OCIDefineByPos( m_selectStmt, &m_def" << field.name << ", m_conn->err, " << index + 1 << ", (dvoid*) &m_buff" << field.name << ",\n";
-		
+
 		if ( field.type != stText )
 		{
 			decl << langType << " m_buff" << field.name << ";\n";
@@ -335,7 +335,7 @@ void OracleGenerator::addSelOutBuffers(const SelectElements * _select)
 		subDict = m_dict->AddSectionDictionary(tpl_SEL_OUT_FIELDS_BUFFERS);
 		subDict->SetValue(tpl_BUFFER_DECLARE, decl.str() );
 		subDict->SetValue(tpl_BUFFER_ALLOC, init.str() );
-		
+
 		++index;
 	}
 }

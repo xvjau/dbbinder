@@ -29,7 +29,7 @@ namespace DBBinder
 class SQLiteGenerator : public AbstractGenerator
 {
 	friend class AbstractGenerator; //wtf??
-	
+
 	protected:
 		SQLiteGenerator();
 		virtual ~SQLiteGenerator();
@@ -38,10 +38,14 @@ class SQLiteGenerator : public AbstractGenerator
 
 		sqlite3 *m_db;
 
-		virtual String getBind(const ListElements::iterator& _item, int _index);
-		virtual String getReadValue(const ListElements::iterator& _item, int _index);
+		sqlite3_stmt *execSQL(AbstractElements &_elements);
+
+		virtual String getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+		virtual String getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
 	public:
 		virtual void addSelect(SelectElements _elements);
+		virtual void addUpdate(UpdateElements _elements);
+		virtual void addInsert(InsertElements _elements);
 };
 
 }

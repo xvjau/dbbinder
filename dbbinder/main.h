@@ -171,4 +171,6 @@ inline String getFilenameRelativeTo(const String& _relFileName, const String& _f
 #include <boost/foreach.hpp>
 #define foreach(X, Y) BOOST_FOREACH(X, Y)
 
+#define UNUSED(VAR) (void)(VAR);
+
 #endif // __DBBINDER_MAIN_H

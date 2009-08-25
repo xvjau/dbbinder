@@ -24,20 +24,68 @@
 {{/DBENGINE_GLOBAL_FUNCTIONS}}
 
 {{#CLASS}}
+
 {{#SELECT}}
 const char * const {{CLASSNAME}}::s_selectSQL = {{SELECT_SQL}};
 const int {{CLASSNAME}}::s_selectSQL_len = {{SELECT_SQL_LEN}};
-const int {{CLASSNAME}}::s_selectFieldCount = {{SELECT_FIELD_COUNT}};
-const int {{CLASSNAME}}::s_selectParamCount = {{SELECT_PARAM_COUNT}};
-{{CLASSNAME}}::iterator {{CLASSNAME}}::s_endIterator(0);
+{{/SELECT}}
+{{#UPDATE}}
+const char * const {{CLASSNAME}}::s_selectSQL = {{UPDATE_SQL}};
+const int {{CLASSNAME}}::s_updateSQL_len = {{UPDATE_SQL_LEN}};
+{{/UPDATE}}
+{{#INSERT}}
+const char * const {{CLASSNAME}}::s_selectSQL = {{INSERT_SQL}};
+const int {{CLASSNAME}}::s_insertSQL_len = {{INSERT_SQL_LEN}};
+{{/INSERT}}
 
 {{CLASSNAME}}::{{CLASSNAME}}({{DBENGINE_CONNECTION_TYPE}} _conn):
-		m_conn( _conn ), m_needCloseConn( false ), m_selectIsActive( false ), m_iterator(0)
+		m_conn( _conn )
+{{#SELECT}}
+		,m_selectIsActive( false )
+		,m_iterator(0)
+{{/SELECT}}
 {
 	ASSERT_MSG(m_conn, "Connection must not be null!");
 
 	{{DBENGINE_PREPARE}}
+
+{{#SELECT}}
+	{{#SEL_IN_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
+	{{/SEL_IN_FIELDS_BUFFERS}}
+
+	{{#SEL_OUT_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
+	{{/SEL_OUT_FIELDS_BUFFERS}}
+
+	{{DBENGINE_CREATE_SELECT}}
+	{{DBENGINE_PREPARE_SELECT}}
+{{/SELECT}}
+{{#UPDATE}}
+	{{#UPD_IN_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
+	{{/UPD_IN_FIELDS_BUFFERS}}
+
+	{{DBENGINE_CREATE_UPDATE}}
+	{{DBENGINE_PREPARE_UPDATE}}
+{{/UPDATE}}
+{{#INSERT}}
+	{{#INS_IN_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
+	{{/INS_IN_FIELDS_BUFFERS}}
+
+	{{DBENGINE_CREATE_INSERT}}
+	{{DBENGINE_PREPARE_INSERT}}
+{{/INSERT}}
 }
+
+{{CLASSNAME}}::~{{CLASSNAME}}()
+{
+	{{#SELECT}}{{DBENGINE_DESTROY_SELECT}}{{/SELECT}}
+	{{#UPDATE}}{{DBENGINE_DESTROY_UPDATE}}{{/UPDATE}}
+	{{#INSERT}}{{DBENGINE_DESTROY_INSERT}}{{/INSERT}}
+}
+
+{{#SELECT}}
+const int {{CLASSNAME}}::s_selectFieldCount = {{SELECT_FIELD_COUNT}};
+const int {{CLASSNAME}}::s_selectParamCount = {{SELECT_PARAM_COUNT}};
+{{CLASSNAME}}::iterator {{CLASSNAME}}::s_endIterator(0);
 
 {{#SELECT_HAS_PARAMS}}
 {{CLASSNAME}}::{{CLASSNAME}}(
@@ -45,15 +93,17 @@ const int {{CLASSNAME}}::s_selectParamCount = {{SELECT_PARAM_COUNT}};
 							 {{/SEL_IN_FIELDS}}
 							 {{DBENGINE_CONNECTION_TYPE}} _conn
 							):
-		m_iterator(0), m_conn( _conn ), m_selectIsActive( false ), m_needCloseConn( false )
+		m_iterator(0), m_conn( _conn ), m_selectIsActive( false )
 {
+	ASSERT_MSG(m_conn, "Connection must not be null!");
+
+	{{DBENGINE_PREPARE}}
+
 	{{#SEL_IN_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
 	{{/SEL_IN_FIELDS_BUFFERS}}
 
 	{{#SEL_OUT_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
 	{{/SEL_OUT_FIELDS_BUFFERS}}
-
-	ASSERT_MSG(m_conn, "Connection must not be null!");
 
 	{{DBENGINE_CREATE_SELECT}}
 	{{DBENGINE_PREPARE_SELECT}}
@@ -64,15 +114,6 @@ const int {{CLASSNAME}}::s_selectParamCount = {{SELECT_PARAM_COUNT}};
 		);
 }
 {{/SELECT_HAS_PARAMS}}
-
-{{CLASSNAME}}::~{{CLASSNAME}}()
-{
-	{{DBENGINE_DESTROY_SELECT}}
-	if ( m_needCloseConn )
-	{
-		{{DBENGINE_DISCONNECT}}
-	}
-}
 
 void {{CLASSNAME}}::open(
 						 {{#SEL_IN_FIELDS}}{{SEL_IN_FIELD_TYPE}} _{{SEL_IN_FIELD_NAME}}{{SEL_IN_FIELD_COMMA}}
@@ -118,8 +159,6 @@ bool {{CLASSNAME}}::fetchRow()
 }
 {{/SELECT}}
 {{#UPDATE}}
-const char * const {{CLASSNAME}}::s_updateSQL = {{UPDATE_SQL}};
-
 bool {{CLASSNAME}}::update(
 			{{#UPD_IN_FIELDS}}{{UPD_IN_FIELD_TYPE}} _{{UPD_IN_FIELD_NAME}}{{UPD_IN_FIELD_COMMA}}
 			{{/UPD_IN_FIELDS}})
@@ -145,12 +184,17 @@ bool {{CLASSNAME}}::update(
 }
 {{/UPDATE}}
 {{#INSERT}}
-const char * const {{CLASSNAME}}::s_insertSQL = {{INSERT_SQL}};
-
 bool {{CLASSNAME}}::insert(
 			{{#INS_IN_FIELDS}}{{INS_IN_FIELD_TYPE}} _{{INS_IN_FIELD_NAME}}{{INS_IN_FIELD_COMMA}}
 			{{/INS_IN_FIELDS}})
 {
+	{{#INS_IN_FIELDS_BUFFERS}}{{BUFFER_ALLOC}}
+	{{/INS_IN_FIELDS_BUFFERS}}
+
+	{{#INS_IN_FIELDS}}{{INS_IN_FIELD_BIND}}
+	{{/INS_IN_FIELDS}}
+
+	{{DBENGINE_EXECUTE_INSERT}}
 }
 {{/INSERT}}
 {{/CLASS}}

@@ -127,16 +127,28 @@ const char * const tpl_VALUE = "VALUE";
 
 const char * const tpl_DBENGINE_CONNECT = "DBENGINE_CONNECT";
 const char * const tpl_DBENGINE_PREPARE = "DBENGINE_PREPARE";
+const char * const tpl_DBENGINE_EXTRAS = "DBENGINE_EXTRAS";
+const char * const tpl_DBENGINE_EXTRA_VAR = "DBENGINE_EXTRA_VAR";
+const char * const tpl_DBENGINE_DISCONNECT = "DBENGINE_DISCONNECT";
+
 const char * const tpl_DBENGINE_CREATE_SELECT = "DBENGINE_CREATE_SELECT";
 const char * const tpl_DBENGINE_PREPARE_SELECT = "DBENGINE_PREPARE_SELECT";
 const char * const tpl_DBENGINE_DESTROY_SELECT = "DBENGINE_DESTROY_SELECT";
-const char * const tpl_DBENGINE_DISCONNECT = "DBENGINE_DISCONNECT";
 const char * const tpl_DBENGINE_RESET_SELECT = "DBENGINE_RESET_SELECT";
 const char * const tpl_DBENGINE_EXECUTE_SELECT = "DBENGINE_EXECUTE_SELECT";
 const char * const tpl_DBENGINE_FETCH_SELECT = "DBENGINE_FETCH_SELECT";
-const char * const tpl_DBENGINE_EXTRAS = "DBENGINE_EXTRAS";
-const char * const tpl_DBENGINE_EXTRA_VAR = "DBENGINE_EXTRA_VAR";
 
+const char * const tpl_DBENGINE_CREATE_UPDATE = "DBENGINE_CREATE_UPDATE";
+const char * const tpl_DBENGINE_PREPARE_UPDATE = "DBENGINE_PREPARE_UPDATE";
+const char * const tpl_DBENGINE_DESTROY_UPDATE = "DBENGINE_DESTROY_UPDATE";
+const char * const tpl_DBENGINE_RESET_UPDATE = "DBENGINE_RESET_UPDATE";
+const char * const tpl_DBENGINE_EXECUTE_UPDATE = "DBENGINE_EXECUTE_UPDATE";
+
+const char * const tpl_DBENGINE_CREATE_INSERT = "DBENGINE_CREATE_INSERT";
+const char * const tpl_DBENGINE_PREPARE_INSERT = "DBENGINE_PREPARE_INSERT";
+const char * const tpl_DBENGINE_DESTROY_INSERT = "DBENGINE_DESTROY_INSERT";
+const char * const tpl_DBENGINE_RESET_INSERT = "DBENGINE_RESET_INSERT";
+const char * const tpl_DBENGINE_EXECUTE_INSERT = "DBENGINE_EXECUTE_INSERT";
 
 SQLTypes typeNameToSQLType(String _name)
 {
@@ -695,6 +707,44 @@ bool AbstractGenerator::loadXMLDatabase(const String& _path)
 						elem = node->FirstChildElement("reset", false);
 						if ( elem ) m_dict->SetValue(tpl_DBENGINE_RESET_SELECT, elem->GetText(false));
 					}
+
+					node = 0;
+					while( node = lang->IterateChildren( "update", node ))
+					{
+						elem = node->FirstChildElement("create", false);
+						if ( elem ) m_dict->SetValue(tpl_DBENGINE_CREATE_UPDATE, elem->GetText(false));
+
+						elem = node->FirstChildElement("destroy", false);
+						if ( elem ) m_dict->SetValue(tpl_DBENGINE_DESTROY_UPDATE, elem->GetText(false));
+
+						elem = node->FirstChildElement("prepare", false);
+						if ( elem ) m_dict->SetValue(tpl_DBENGINE_PREPARE_UPDATE, elem->GetText(false));
+
+						elem = node->FirstChildElement("execute", false);
+						if ( elem ) m_dict->SetValue(tpl_DBENGINE_EXECUTE_UPDATE, elem->GetText(false));
+
+						elem = node->FirstChildElement("reset", false);
+						if ( elem ) m_dict->SetValue(tpl_DBENGINE_RESET_UPDATE, elem->GetText(false));
+					}
+
+					node = 0;
+					while( node = lang->IterateChildren( "insert", node ))
+					{
+						elem = node->FirstChildElement("create", false);
+						if ( elem ) m_dict->SetValue(tpl_DBENGINE_CREATE_INSERT, elem->GetText(false));
+
+						elem = node->FirstChildElement("destroy", false);
+						if ( elem ) m_dict->SetValue(tpl_DBENGINE_DESTROY_INSERT, elem->GetText(false));
+
+						elem = node->FirstChildElement("prepare", false);
+						if ( elem ) m_dict->SetValue(tpl_DBENGINE_PREPARE_INSERT, elem->GetText(false));
+
+						elem = node->FirstChildElement("execute", false);
+						if ( elem ) m_dict->SetValue(tpl_DBENGINE_EXECUTE_INSERT, elem->GetText(false));
+
+						elem = node->FirstChildElement("reset", false);
+						if ( elem ) m_dict->SetValue(tpl_DBENGINE_RESET_INSERT, elem->GetText(false));
+					}
 				}
 			}
 		}
@@ -825,7 +875,7 @@ void AbstractGenerator::loadDictionary()
 	m_dict->SetValue( tpl_IMPL_FILENAME, extractFileName( m_outImplFile ));
 
 	str = extractFileName( stringToUpper( m_outIntFile ));
-	size_t pos = str.find( '.' );
+	String::size_type pos = str.find( '.' );
 	while ( pos != String::npos )
 	{
 		str.replace( pos, 1, "_" );
@@ -874,7 +924,7 @@ void AbstractGenerator::loadDictionary()
 					subDict->SetValue( tpl_SEL_IN_FIELD_NAME, elit->name );
 					subDict->SetValue( tpl_SEL_IN_FIELD_COMMA, "," );
 					subDict->SetValue( tpl_SEL_IN_FIELD_INIT, getInit( elit->type ));
-					subDict->SetValue( tpl_SEL_IN_FIELD_BIND, getBind( elit, index ));
+					subDict->SetValue( tpl_SEL_IN_FIELD_BIND, getBind( sstSelect, elit, index ));
 				}
 				if ( subDict )
 					subDict->SetValue( tpl_SEL_IN_FIELD_COMMA, "" );
@@ -889,7 +939,7 @@ void AbstractGenerator::loadDictionary()
 				subDict->SetValue( tpl_SEL_OUT_FIELD_NAME, elit->name );
 				subDict->SetValue( tpl_SEL_OUT_FIELD_COMMA, "," );
 				subDict->SetValue( tpl_SEL_OUT_FIELD_INIT, getInit( elit->type ));
-				subDict->SetValue( tpl_SEL_OUT_FIELD_GETVALUE, getReadValue( elit, index ));
+				subDict->SetValue( tpl_SEL_OUT_FIELD_GETVALUE, getReadValue( sstSelect, elit, index ));
 			}
 			if ( subDict )
 				subDict->SetValue( tpl_SEL_OUT_FIELD_COMMA, "" );
@@ -923,7 +973,7 @@ void AbstractGenerator::loadDictionary()
 				subDict->SetValue( tpl_UPD_IN_FIELD_NAME, elit->name );
 				subDict->SetValue( tpl_UPD_IN_FIELD_COMMA, "," );
 				subDict->SetValue( tpl_UPD_IN_FIELD_INIT, getInit( elit->type ));
-				subDict->SetValue( tpl_UPD_IN_FIELD_BIND, getBind( elit, index ));
+				subDict->SetValue( tpl_UPD_IN_FIELD_BIND, getBind( sstUpdate, elit, index ));
 			}
 			if ( subDict )
 				subDict->SetValue( tpl_UPD_IN_FIELD_COMMA, "" );
@@ -951,7 +1001,7 @@ void AbstractGenerator::loadDictionary()
 				subDict->SetValue( tpl_INS_IN_FIELD_NAME, elit->name );
 				subDict->SetValue( tpl_INS_IN_FIELD_COMMA, "," );
 				subDict->SetValue( tpl_INS_IN_FIELD_INIT, getInit( elit->type ));
-				subDict->SetValue( tpl_INS_IN_FIELD_BIND, getBind( elit, index ));
+				subDict->SetValue( tpl_INS_IN_FIELD_BIND, getBind( sstInsert, elit, index ));
 			}
 			if ( subDict )
 				subDict->SetValue( tpl_INS_IN_FIELD_COMMA, "" );

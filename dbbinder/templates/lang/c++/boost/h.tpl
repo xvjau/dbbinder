@@ -61,7 +61,6 @@ class {{CLASSNAME}}
 		~{{CLASSNAME}}();
 	private:
 		{{DBENGINE_CONNECTION_TYPE}}	m_conn;
-		bool							m_needCloseConn;
 		{{#EXTRA_HEADERS}}{{EXTRA_HEADERS_MEMBER}}
 		{{/EXTRA_HEADERS}}
 		{{#DBENGINE_EXTRAS}}{{DBENGINE_EXTRA_VAR}}
@@ -189,7 +188,6 @@ class {{CLASSNAME}}
 	private:
 		static const char* const s_updateSQL;
 		{{DBENGINE_STATEMENT_TYPE}}	m_updateStmt;
-		bool						m_updateIsActive;
 	public:
 		bool update(
 					{{#UPD_IN_FIELDS}}{{UPD_IN_FIELD_TYPE}} _{{UPD_IN_FIELD_NAME}}{{UPD_IN_FIELD_COMMA}}

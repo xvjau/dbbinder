@@ -29,22 +29,22 @@ namespace DBBinder
 class MySQLGenerator : public AbstractGenerator
 {
 	friend class AbstractGenerator; //wtf??
-	
+
 	protected:
 		MySQLGenerator();
 		virtual ~MySQLGenerator();
 
 		MYSQL *m_conn;
-		
+
 		virtual bool checkConnection();
-		virtual String getBind(const ListElements::iterator& _item, int _index);
-		virtual String getReadValue(const ListElements::iterator& _item, int _index);
+		virtual String getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+		virtual String getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
 
 		virtual bool   needIOBuffers() const;
-		
+
 		virtual void addSelInBuffers(const SelectElements* _select);
 		virtual void addSelOutBuffers(const SelectElements* _select);
-		
+
 	public:
 		virtual void addInsert(InsertElements _elements);
 		virtual void addSelect(SelectElements _elements);

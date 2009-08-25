@@ -26,7 +26,7 @@
 namespace DBBinder {
 
 /**
-	@author 
+	@author
 */
 class FirebirdGenerator : public AbstractGenerator
 {
@@ -35,17 +35,17 @@ class FirebirdGenerator : public AbstractGenerator
 		virtual ~FirebirdGenerator();
 
 		virtual void addSelect(SelectElements _elements);
-		
+
 	private:
 		isc_db_handle	m_conn;
 
 	protected:
 		virtual bool checkConnection();
-		virtual String getBind(const ListElements::iterator& _item, int _index);
-		virtual String getReadValue(const ListElements::iterator& _item, int _index);
+		virtual String getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+		virtual String getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
 
 		virtual bool   needIOBuffers() const;
-		
+
 		virtual void addSelInBuffers(const SelectElements* _select);
 		virtual void addSelOutBuffers(const SelectElements* _select);
 

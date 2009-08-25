@@ -83,17 +83,25 @@ struct AbstractElements
 	String			sql;
 	Location		sql_location;
 	ListElements	input;
+	SQLStatementTypes	type;
 };
 
 struct SelectElements: public AbstractElements
 {
+	SelectElements(): AbstractElements() { type = sstSelect; }
+
 	ListElements	output;
 };
 
 struct UpdateElements: public AbstractElements
 {
+	UpdateElements(): AbstractElements() { type = sstUpdate; }
 };
-typedef UpdateElements InsertElements;
+
+struct InsertElements: public AbstractElements
+{
+	InsertElements(): AbstractElements() { type = sstInsert; }
+};
 
 class AbstractGenerator
 {
@@ -179,8 +187,8 @@ class AbstractGenerator
 		virtual void addSelInBuffers(const SelectElements* _select);
 		virtual void addSelOutBuffers(const SelectElements* _select);
 
-		virtual String getBind(const ListElements::iterator& _item, int _index) = 0;
-		virtual String getReadValue(const ListElements::iterator& _item, int _index) = 0;
+		virtual String getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) = 0;
+		virtual String getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) = 0;
 
 		// </SUCKS>
 
