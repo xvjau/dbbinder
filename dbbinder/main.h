@@ -79,7 +79,7 @@ inline String stringToUpper(const String& _string)
 
 inline String extractFileName(const String& _string)
 {
-	size_t pos = _string.find_last_of( '/' );
+	String::size_type pos = _string.rfind( '/' );
 	if ( pos != String::npos )
 		return _string.substr( pos + 1 );
 	else
@@ -141,7 +141,7 @@ inline String getFilenameRelativeTo(const String& _relFileName, const String& _f
 {
 	String result;
 
-	size_t pos = _relFileName.find_last_of('/');
+	String::size_type pos = _relFileName.rfind('/');
 	if ( pos && pos != std::string::npos )
 	{
 		result = _relFileName.substr(0, pos);

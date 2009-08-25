@@ -257,7 +257,7 @@ int main(int argc, char *argv[])
 	{
 		using namespace DBBinder;
 		optOutput = fileName;
-		size_t pos = optOutput.find_last_of('.');
+		String::size_type pos = optOutput.rfind('.');
 		if ( pos == String::npos )
 		{
 			optOutput += "_out";
