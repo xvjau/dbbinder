@@ -234,35 +234,27 @@ void SQLiteGenerator::addSelect( SelectElements _elements )
 		}
 	}
 
-	ret = sqlite3_step( stmt );
-
-	if ( !(( ret == SQLITE_ROW ) || ( ret == SQLITE_DONE ) ) )
-	{
-		FATAL( "fetch error: " << _elements.sql << " :" << ret << " " << sqlite3_errmsg( m_db ) );
-	}
-
 	int count = sqlite3_column_count( stmt );
 
+	const char* typeStr;
 	SQLTypes type;
 	String name;
 
 	for ( int i = 0; i < count; ++i )
 	{
 		name = sqlite3_column_name( stmt, i );
+		typeStr = sqlite3_column_decltype( stmt, i );
 
-		switch ( sqlite3_column_type( stmt, i ) )
+		switch ( *typeStr )
 		{
-			case SQLITE_INTEGER:
+			case 'i': // Integer
 				type = stInt;
 				break;
-			case SQLITE_FLOAT:
+			case 'f': // Float
 				type = stFloat;
 				break;
-			case SQLITE_BLOB:
-			case SQLITE_TEXT:
-#if SQLITE_TEXT != SQLITE3_TEXT
-			case SQLITE3_TEXT:
-#endif
+			case 'b': // blob
+			case 't': // text
 			default:
 				type = stText;
 		};
