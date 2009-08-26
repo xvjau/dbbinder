@@ -109,6 +109,11 @@ String MySQLGenerator::getReadValue(SQLStatementTypes _type, const ListElements:
 	return String("m_") + _item->name + " = _parent->m_buff" + _item->name + ";";
 }
 
+String MySQLGenerator::getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
+{
+	FATAL("Not implemented!");
+}
+
 void MySQLGenerator::addInsert(InsertElements _elements)
 {
 	checkConnection();

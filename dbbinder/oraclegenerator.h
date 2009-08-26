@@ -47,6 +47,7 @@ class OracleGenerator : public AbstractGenerator
 
 		virtual String getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
 		virtual String getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+		virtual String getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
 
 		virtual bool   needIOBuffers() const;
 

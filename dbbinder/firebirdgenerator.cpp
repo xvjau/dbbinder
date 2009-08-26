@@ -195,6 +195,11 @@ String FirebirdGenerator::getReadValue(SQLStatementTypes _type, const ListElemen
 	return "";
 }
 
+String FirebirdGenerator::getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
+{
+	FATAL("Not implemented!");
+}
+
 void FirebirdGenerator::addSelect(SelectElements _elements)
 {
 	checkConnection();

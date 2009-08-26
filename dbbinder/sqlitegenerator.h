@@ -42,6 +42,7 @@ class SQLiteGenerator : public AbstractGenerator
 
 		virtual String getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
 		virtual String getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+		virtual String getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
 	public:
 		virtual void addSelect(SelectElements _elements);
 		virtual void addUpdate(UpdateElements _elements);

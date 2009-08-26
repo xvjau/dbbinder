@@ -197,6 +197,7 @@ class AbstractGenerator
 
 		virtual String getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) = 0;
 		virtual String getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) = 0;
+		virtual String getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) = 0;
 
 		// </SUCKS>
 
@@ -286,6 +287,7 @@ extern const char * const tpl_SEL_OUT_FIELD_NAME;
 extern const char * const tpl_SEL_OUT_FIELD_COMMA;
 extern const char * const tpl_SEL_OUT_FIELD_INIT;
 extern const char * const tpl_SEL_OUT_FIELD_GETVALUE;
+extern const char * const tpl_SEL_OUT_FIELD_ISNULL;
 extern const char * const tpl_SEL_OUT_FIELDS_BUFFERS;
 
 extern const char * const tpl_DBENGINE_STATEMENT_TYPE;
