@@ -160,11 +160,7 @@ String SQLiteGenerator::getReadValue( SQLStatementTypes _type, const ListElement
 		case stDate:
 		case stText:
 		{
-			str << "{\n"
-				<< "if ( sqlite3_column_type( _parent->m_selectStmt, " << _index << " ) != SQLITE_NULL )\n{\n"
-				<< "  const char *str = reinterpret_cast<const char*>( sqlite3_column_text(_parent->m_selectStmt, " << _index << ") );\n"
-				<< "if ( str )\n  m_" << _item->name << " = str; else\n  m_" << _item->name << " = NULL; }\n"
-				<< "else\n  m_"<< _item->name << " = NULL;\n}";
+			str << "m_" << _item->name << " = reinterpret_cast<const char*>( sqlite3_column_text(_parent->m_selectStmt, " << _index << ") );";
 			break;
 		}
 	}
