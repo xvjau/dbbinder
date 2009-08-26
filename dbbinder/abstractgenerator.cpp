@@ -38,6 +38,7 @@
 namespace DBBinder
 {
 
+const char * const tpl_FILENAME = "FILENAME";
 const char * const tpl_INTF_FILENAME = "INTF_FILENAME";
 const char * const tpl_IMPL_FILENAME = "IMPL_FILENAME";
 
@@ -120,10 +121,11 @@ const char * const tpl_INS_IN_FIELD_INIT = "INS_IN_FIELD_INIT";
 const char * const tpl_INS_IN_FIELD_BIND = "INS_IN_FIELD_BIND";
 const char * const tpl_INS_IN_FIELDS_BUFFERS = "INS_IN_FIELDS_BUFFERS";
 
-const char * const tpl_DBENGINE_GLOBAL_PARAMS = "DBENGINE_GLOBAL_PARAMS";
-const char * const tpl_TYPE = "TYPE";
-const char * const tpl_PARAM = "PARAM";
-const char * const tpl_VALUE = "VALUE";
+const char * const tpl_DBENGINE_CONNECT_PARAMS = "DBENGINE_CONNECT_PARAMS";
+const char * const tpl_DBENGINE_CONNECT_PARAM_TYPE = "DBENGINE_CONNECT_PARAM_TYPE";
+const char * const tpl_DBENGINE_CONNECT_PARAM_PARAM = "DBENGINE_CONNECT_PARAM_PARAM";
+const char * const tpl_DBENGINE_CONNECT_PARAM_VALUE = "DBENGINE_CONNECT_PARAM_VALUE";
+const char * const tpl_DBENGINE_CONNECT_PARAM_COMMA = "DBENGINE_CONNECT_PARAM_COMMA";
 
 const char * const tpl_DBENGINE_CONNECT = "DBENGINE_CONNECT";
 const char * const tpl_DBENGINE_PREPARE = "DBENGINE_PREPARE";
@@ -493,30 +495,58 @@ void AbstractGenerator::generate()
 	if ( system( str.c_str() ) == -1 )
 		std::cerr << "warning: unable to run astyle" << std::endl;
 
+	for( ListTplDestPair::const_iterator it = m_extraFiles.begin();
+			it != m_extraFiles.end(); ++it )
+	{
+		str.clear();
+
+		m_dict->SetValue(tpl_FILENAME, it->dest);
+
+		ctemplate::Template *tmpl = ctemplate::Template::GetTemplate(it->tmpl, ctemplate::DO_NOT_STRIP);
+
+		std::ofstream out( it->dest.c_str(), std::ios_base::trunc );
+		tmpl->Expand(&str, m_dict);
+
+		cleanExcessiveLineBreaks(str, out);
+		//out << str;
+
+		str.clear();
+
+		// TODO Put this in an XML
+		str = "astyle --style=ansi -n > /dev/null 2>&1 ";
+		str += it->dest;
+
+		if ( system( str.c_str() ) == -1 )
+			std::cerr << "warning: unable to run astyle" << std::endl;
+	}
+
 	str.clear();
 }
 
 void AbstractGenerator::loadDatabase()
 {
-	ctemplate::TemplateDictionary *subDict;
+	ctemplate::TemplateDictionary *subDict = 0;
 	_dbParams::iterator it;
 	for(it = m_dbParams.begin(); it != m_dbParams.end(); ++it)
 	{
-		subDict = m_dict->AddSectionDictionary(tpl_DBENGINE_GLOBAL_PARAMS);
+		subDict = m_dict->AddSectionDictionary(tpl_DBENGINE_CONNECT_PARAMS);
 
-		subDict->SetValue(tpl_PARAM, it->first);
+		subDict->SetValue(tpl_DBENGINE_CONNECT_PARAM_PARAM, it->first);
 
 		if ( it->second.isInt )
 		{
-			subDict->SetValue(tpl_VALUE, it->second.value);
-			subDict->SetValue(tpl_TYPE, "const int");
+			subDict->SetValue(tpl_DBENGINE_CONNECT_PARAM_VALUE, it->second.value);
+			subDict->SetValue(tpl_DBENGINE_CONNECT_PARAM_TYPE, "const int");
 		}
 		else
 		{
-			subDict->SetValue(tpl_VALUE, String("\"") + cescape(it->second.value) + String("\""));
-			subDict->SetValue(tpl_TYPE, "const char * const");
+			subDict->SetValue(tpl_DBENGINE_CONNECT_PARAM_VALUE, String("\"") + cescape(it->second.value) + String("\""));
+			subDict->SetValue(tpl_DBENGINE_CONNECT_PARAM_TYPE, "const char * const");
 		}
+		subDict->SetValue( tpl_DBENGINE_CONNECT_PARAM_COMMA, "," );
 	}
+	if ( subDict )
+		subDict->SetValue( tpl_DBENGINE_CONNECT_PARAM_COMMA, "" );
 
 	String str;
 	ListString::iterator dirs;
@@ -825,32 +855,52 @@ bool AbstractGenerator::loadXMLTemplate(const String & _path)
 
 #define READ_PARAM(XML, ENUM, STR) \
 		elem = xml->FirstChildElement(XML);																\
-		elem->GetAttribute("file", &str, false);														\
-		if ( str.empty() )																				\
-			elem->GetText( &str, false );																\
-		if ( str.length() )																				\
+		if ( elem )																						\
 		{																								\
-			if ( str[0] != '/' )																		\
-				str = _path + '/' + str;																\
-			if ( stat(str.c_str(), &fs) == 0 )															\
+			elem->GetAttribute("file", &str, false);													\
+			if ( str.empty() )																			\
+				elem->GetText( &str, false );															\
+			if ( str.length() )																			\
 			{																							\
-				m_templ[ENUM] = ctemplate::Template::GetTemplate(str, ctemplate::DO_NOT_STRIP);				\
+				if ( str[0] != '/' )																	\
+					str = _path + '/' + str;															\
+				if ( stat(str.c_str(), &fs) == 0 )														\
+				{																						\
+					m_templ[ENUM] = ctemplate::Template::GetTemplate(str, ctemplate::DO_NOT_STRIP);		\
+				}																						\
+				else																					\
+				{																						\
+					WARNING("file :" << str << " does not exist!");										\
+				}																						\
 			}																							\
-			else																						\
-			{																							\
-				WARNING("file :" << str << " does not exist!");											\
-			}																							\
-		}																								\
-		str.clear();																					\
-		elem->GetAttribute("extension", &str, false);													\
-		if ( str.empty() )																				\
-			elem->GetText( &str, false );																\
-		if ( str.length() )																				\
-			STR = optOutput + str;
+			str.clear();																				\
+			elem->GetAttribute("extension", &str, false);												\
+			if ( str.empty() )																			\
+				elem->GetText( &str, false );															\
+			if ( str.length() )																			\
+				STR = optOutput + str;																	\
+		}
 
 		READ_PARAM("interface", ftIntf, m_outIntFile);
 		READ_PARAM("implementation", ftImpl, m_outImplFile);
 #undef READ_PARAM
+
+		elem = xml->FirstChildElement("extra");
+		if ( elem )
+		{
+			XMLNodePtr node = 0;
+			while( node = elem->IterateChildren( "file", node ))
+			{
+				TmplDestPair pair;
+
+				node->ToElement()->GetAttribute("file", &pair.tmpl, false);
+				node->ToElement()->GetAttribute("dest", &pair.dest, false);
+
+				pair.tmpl = getFilenameRelativeTo(_path + "/.", pair.tmpl);
+				m_extraFiles.push_back( pair );
+			}
+		}
+
 		return true;
 	}
 	catch( ticpp::Exception &e )

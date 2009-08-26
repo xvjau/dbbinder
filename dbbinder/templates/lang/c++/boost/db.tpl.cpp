@@ -1,0 +1,22 @@
+#include "db.h"
+
+{{#NAMESPACES}}namespace {{NAMESPACE}} {
+{{/NAMESPACES}}
+
+namespace DBBinder
+{
+
+Connection::Connection({{#DBENGINE_CONNECT_PARAMS}} {{DBENGINE_CONNECT_PARAM_TYPE}} _{{DBENGINE_CONNECT_PARAM_PARAM}}{{DBENGINE_CONNECT_PARAM_COMMA}}{{/DBENGINE_CONNECT_PARAMS}})
+{
+	{{DBENGINE_CONNECT}}
+}
+
+Connection::~Connection()
+{
+	{{DBENGINE_DISCONNECT}}
+}
+
+}
+
+{{#NAMESPACES}}} //{{NAMESPACE}}
+{{/NAMESPACES}}

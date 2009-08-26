@@ -21,19 +21,19 @@
 #include <list>
 
 #include "test_select.h"
+#include "db.h"
 
 using namespace std;
 using namespace TestApp;
 
 int main()
 {
-	sqlite3* m_conn = 0;
-	SQLCHECK( sqlite3_open("test.db", &m_conn) );
+	TestApp::DBBinder::Connection conn("test.db");
 
 	{
 		cout << "Test 1\n------\nName:\t\tFestival:\t\tDate:\n";
 
-		selFestival stmt(2, 0, m_conn);
+		selFestival stmt(2, 0, conn);
 
 		for( selFestival::iterator it = stmt.begin(); it != stmt.end(); ++it )
 		{
@@ -46,7 +46,7 @@ int main()
 	cout << "\n\nTest 2\n------\nName:\t\tFestival:\t\tDate:\n";
 
 	{
-		selFestival stmt(1, 0, m_conn);
+		selFestival stmt(1, 0, conn);
 
 		typedef std::list<selFestival::row> MyListType;
 		MyListType myList;

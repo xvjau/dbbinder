@@ -19,7 +19,7 @@
 			</statement>
 		</types>
 		<connect>
-			SQLCHECK( sqlite3_open(s_dbparam_file, &amp;m_conn) );
+			SQLCHECK( sqlite3_open(_file, &amp;m_conn) );
 		</connect>
 		<disconnect>
 			sqlite3_close( m_conn );

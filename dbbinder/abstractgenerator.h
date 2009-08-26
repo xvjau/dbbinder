@@ -157,6 +157,14 @@ class AbstractGenerator
 		ListString	m_namespaces;
 		ListString	m_headers;
 
+		struct TmplDestPair
+		{
+			String tmpl;
+			String dest;
+		};
+		typedef std::list<TmplDestPair> ListTplDestPair;
+		ListTplDestPair m_extraFiles;
+
 		String		m_dbengine;
 
 		classParams	m_classParams;
@@ -309,10 +317,11 @@ extern const char * const tpl_INS_IN_FIELD_INIT;
 extern const char * const tpl_INS_IN_FIELD_BIND;
 extern const char * const tpl_INS_IN_FIELDS_BUFFERS;
 
-extern const char * const tpl_DBENGINE_GLOBAL_PARAMS;
-extern const char * const tpl_TYPE;
-extern const char * const tpl_PARAM;
-extern const char * const tpl_VALUE;
+extern const char * const tpl_DBENGINE_CONNECT_PARAMS;
+extern const char * const tpl_DBENGINE_CONNECT_PARAM_TYPE;
+extern const char * const tpl_DBENGINE_CONNECT_PARAM_PARAM;
+extern const char * const tpl_DBENGINE_CONNECT_PARAM_VALUE;
+extern const char * const tpl_DBENGINE_CONNECT_PARAM_COMMA;
 
 extern const char * const tpl_DBENGINE_CONNECT;
 extern const char * const tpl_DBENGINE_PREPARE;

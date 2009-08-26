@@ -1,4 +1,8 @@
 <xml>
 	<interface file="h.tpl" extension=".h"/>
 	<implementation file="cpp.tpl" extension=".cpp"/>
+	<extra>
+		<file file="db.tpl.h" dest="db.h" />
+		<file file="db.tpl.cpp" dest="db.cpp" />
+	</extra>
 </xml>

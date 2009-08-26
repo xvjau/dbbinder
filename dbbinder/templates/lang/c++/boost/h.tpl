@@ -22,8 +22,7 @@
 #define ASSERT_MSG_FILE_LINE(cond, msg, file, line) { if (!(cond)) { std::cerr << " WARNING: " << msg << std::endl; }}
 #endif
 
-{{#DBENGINE_INCLUDES}}
-{{DBENGINE_INCLUDE_NAME}}
+{{#DBENGINE_INCLUDES}}{{DBENGINE_INCLUDE_NAME}}
 {{/DBENGINE_INCLUDES}}
 {{#EXTRA_HEADERS}}{{EXTRA_HEADERS_HEADER}}
 {{/EXTRA_HEADERS}}
