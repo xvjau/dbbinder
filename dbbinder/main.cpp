@@ -42,6 +42,7 @@ const char*	optVersionMajor = "0";
 const char*	optVersionMinor = "0";
 bool		optListDepends = false;
 ListString	optDepends;
+bool		optExtras = false;
 
 static const char*	defaultTemplateDirs[] =
 {
@@ -89,6 +90,7 @@ void printHelp()
 			"	--yaml		set the input format to YAML\n"
 #endif
 			"	--depends	do nothing, just list the dependencies for a target\n"
+			"	--extras	generate any extra files that a template might depend/use\n"
 			"	-d DIR		add a template directory\n"
 			"	-t FOO[,BAR]	set the template and optional sub-template (default: " << DEFAULT_TEMLPATE << ")\n"
 			"	--database TYPE[,CONN0[,CONN1]] Database to connect and, optionally, connection params\n"
@@ -179,6 +181,12 @@ int main(int argc, char *argv[])
 				case commandOptionCode::DEPENDS:
 				{
 					DBBinder::optListDepends = true;
+					break;
+				}
+
+				case commandOptionCode::EXTRAS:
+				{
+					DBBinder::optExtras = true;
 					break;
 				}
 

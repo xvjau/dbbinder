@@ -55,6 +55,7 @@ extern const char*	optVersionMajor;
 extern const char*	optVersionMinor;
 extern bool			optListDepends;
 extern ListString	optDepends;
+extern bool			optExtras;
 
 // Utility funcs and defines
 inline String stringToLower(const String& _string)

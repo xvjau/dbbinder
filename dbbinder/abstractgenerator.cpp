@@ -495,30 +495,31 @@ void AbstractGenerator::generate()
 	if ( system( str.c_str() ) == -1 )
 		std::cerr << "warning: unable to run astyle" << std::endl;
 
-	for( ListTplDestPair::const_iterator it = m_extraFiles.begin();
-			it != m_extraFiles.end(); ++it )
-	{
-		str.clear();
+	if ( DBBinder::optExtras )
+		for( ListTplDestPair::const_iterator it = m_extraFiles.begin();
+				it != m_extraFiles.end(); ++it )
+		{
+			str.clear();
 
-		m_dict->SetValue(tpl_FILENAME, it->dest);
+			m_dict->SetValue(tpl_FILENAME, it->dest);
 
-		ctemplate::Template *tmpl = ctemplate::Template::GetTemplate(it->tmpl, ctemplate::DO_NOT_STRIP);
+			ctemplate::Template *tmpl = ctemplate::Template::GetTemplate(it->tmpl, ctemplate::DO_NOT_STRIP);
 
-		std::ofstream out( it->dest.c_str(), std::ios_base::trunc );
-		tmpl->Expand(&str, m_dict);
+			std::ofstream out( it->dest.c_str(), std::ios_base::trunc );
+			tmpl->Expand(&str, m_dict);
 
-		cleanExcessiveLineBreaks(str, out);
-		//out << str;
+			cleanExcessiveLineBreaks(str, out);
+			//out << str;
 
-		str.clear();
+			str.clear();
 
-		// TODO Put this in an XML
-		str = "astyle --style=ansi -n > /dev/null 2>&1 ";
-		str += it->dest;
+			// TODO Put this in an XML
+			str = "astyle --style=ansi -n > /dev/null 2>&1 ";
+			str += it->dest;
 
-		if ( system( str.c_str() ) == -1 )
-			std::cerr << "warning: unable to run astyle" << std::endl;
-	}
+			if ( system( str.c_str() ) == -1 )
+				std::cerr << "warning: unable to run astyle" << std::endl;
+		}
 
 	str.clear();
 }
