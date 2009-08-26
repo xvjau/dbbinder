@@ -344,7 +344,7 @@ String AbstractGenerator::getType(SQLTypes _sqlType)
 			case stDate:
 			case stText:
 			{
-				result = "std::string";
+				result = "const char*";
 				break;
 			}
 		}

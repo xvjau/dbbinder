@@ -118,7 +118,7 @@ void parseSQL(const String& _fileName)
 		{
 			file.clear();
 			file.seekg(0, std::ios_base::end);
-			size_t size = file.tellg();
+			String::size_type size = file.tellg();
 			file.seekg(0);
 
 			line = 0;
