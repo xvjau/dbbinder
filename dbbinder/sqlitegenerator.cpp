@@ -245,19 +245,24 @@ void SQLiteGenerator::addSelect( SelectElements _elements )
 		name = sqlite3_column_name( stmt, i );
 		typeStr = sqlite3_column_decltype( stmt, i );
 
-		switch ( *typeStr )
+		if ( typeStr )
 		{
-			case 'i': // Integer
-				type = stInt;
-				break;
-			case 'f': // Float
-				type = stFloat;
-				break;
-			case 'b': // blob
-			case 't': // text
-			default:
-				type = stText;
-		};
+			switch ( *typeStr )
+			{
+				case 'i': // Integer
+					type = stInt;
+					break;
+				case 'f': // Float
+					type = stFloat;
+					break;
+				case 'b': // blob
+				case 't': // text
+				default:
+					type = stText;
+			};
+		}
+		else
+			type = stText;
 
 		_elements.output.push_back( SQLElement( name, type, i ) );
 	}
