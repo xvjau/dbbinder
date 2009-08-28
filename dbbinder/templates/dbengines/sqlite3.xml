@@ -60,7 +60,8 @@
 				}
 			</fetch>
 			<reset>
-				SQLCHECK( sqlite3_reset(m_selectStmt));
+				SQLCHECK( sqlite3_reset(m_selectStmt) );
+				SQLCHECK( sqlite3_clear_bindings(m_selectStmt) );
 			</reset>
 		</select>
 		<update>
@@ -83,7 +84,8 @@
 				};
 			</execute>
 			<reset>
-				SQLCHECK( sqlite3_reset(m_updateStmt));
+				SQLCHECK( sqlite3_reset(m_updateStmt) );
+				SQLCHECK( sqlite3_clear_bindings(m_updateStmt) );
 			</reset>
 		</update>
 		<insert>
@@ -106,7 +108,8 @@
 				};
 			</execute>
 			<reset>
-				SQLCHECK( sqlite3_reset(m_insertStmt));
+				SQLCHECK( sqlite3_reset(m_insertStmt) );
+				SQLCHECK( sqlite3_clear_bindings(m_insertStmt) );
 			</reset>
 		</insert>
 	</lang>
