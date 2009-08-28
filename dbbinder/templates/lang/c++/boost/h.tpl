@@ -67,9 +67,7 @@ class {{CLASSNAME}}
 {{#SELECT}}
 	public:
 		{{#SELECT_HAS_PARAMS}}
-		{{CLASSNAME}}(
-						{{#SEL_IN_FIELDS}}{{SEL_IN_FIELD_TYPE}} _{{SEL_IN_FIELD_NAME}},
-						{{/SEL_IN_FIELDS}}
+		{{CLASSNAME}}({{#SEL_IN_FIELDS}}{{SEL_IN_FIELD_TYPE}} _{{SEL_IN_FIELD_NAME}},{{/SEL_IN_FIELDS}}
 						{{DBENGINE_CONNECTION_TYPE}} _conn);
 		{{/SELECT_HAS_PARAMS}}
 
@@ -86,14 +84,10 @@ class {{CLASSNAME}}
 
 		{{#SEL_IN_FIELDS_BUFFERS}}{{BUFFER_DECLARE}}
 		{{/SEL_IN_FIELDS_BUFFERS}}
-
 		{{#SEL_OUT_FIELDS_BUFFERS}}{{BUFFER_DECLARE}}
 		{{/SEL_OUT_FIELDS_BUFFERS}}
 	public:
-		void open(
-			{{#SEL_IN_FIELDS}}{{SEL_IN_FIELD_TYPE}} _{{SEL_IN_FIELD_NAME}}{{SEL_IN_FIELD_COMMA}}
-			{{/SEL_IN_FIELDS}}
-				 );
+		void open( {{#SEL_IN_FIELDS}}{{SEL_IN_FIELD_TYPE}} _{{SEL_IN_FIELD_NAME}}{{SEL_IN_FIELD_COMMA}}{{/SEL_IN_FIELDS}} );
 
 		class _row_type
 		{
@@ -101,19 +95,15 @@ class {{CLASSNAME}}
 
 			private:
 				_row_type():
-				{{#SEL_OUT_FIELDS}}	m_{{SEL_OUT_FIELD_NAME}}({{SEL_OUT_FIELD_INIT}}){{SEL_OUT_FIELD_COMMA}}
-				{{/SEL_OUT_FIELDS}}
+				{{#SEL_OUT_FIELDS}}m_{{SEL_OUT_FIELD_NAME}}({{SEL_OUT_FIELD_INIT}}){{SEL_OUT_FIELD_COMMA}}{{/SEL_OUT_FIELDS}}
 				{}
 
 				_row_type(const {{CLASSNAME}} *_parent)
 				{
-					{{#SEL_OUT_FIELDS}}{{SEL_OUT_FIELD_GETVALUE}}
-					{{/SEL_OUT_FIELDS}}
+					{{#SEL_OUT_FIELDS}}{{SEL_OUT_FIELD_GETVALUE}}{{/SEL_OUT_FIELDS}}
 				}
 
-				{{#SEL_OUT_FIELDS}}{{SEL_OUT_FIELD_TYPE}} m_{{SEL_OUT_FIELD_NAME}};
-				{{/SEL_OUT_FIELDS}}
-
+				{{#SEL_OUT_FIELDS}}{{SEL_OUT_FIELD_TYPE}} m_{{SEL_OUT_FIELD_NAME}};{{/SEL_OUT_FIELDS}}
 			public:
 				{{#SEL_OUT_FIELDS}}{{SEL_OUT_FIELD_TYPE}} get{{SEL_OUT_FIELD_NAME}}() const
 				{
@@ -189,9 +179,7 @@ class {{CLASSNAME}}
 		static const int s_updateSQL_len;
 		{{DBENGINE_STATEMENT_TYPE}}	m_updateStmt;
 	public:
-		bool update(
-					{{#UPD_IN_FIELDS}}{{UPD_IN_FIELD_TYPE}} _{{UPD_IN_FIELD_NAME}}{{UPD_IN_FIELD_COMMA}}
-					{{/UPD_IN_FIELDS}});
+		bool update({{#UPD_IN_FIELDS}}{{UPD_IN_FIELD_TYPE}} _{{UPD_IN_FIELD_NAME}}{{UPD_IN_FIELD_COMMA}}{{/UPD_IN_FIELDS}});
 {{/UPDATE}}
 {{#INSERT}}
 	private:
@@ -199,9 +187,7 @@ class {{CLASSNAME}}
 		static const int s_insertSQL_len;
 		{{DBENGINE_STATEMENT_TYPE}}	m_insertStmt;
 	public:
-		bool insert(
-					{{#INS_IN_FIELDS}}{{INS_IN_FIELD_TYPE}} _{{INS_IN_FIELD_NAME}}{{INS_IN_FIELD_COMMA}}
-					{{/INS_IN_FIELDS}});
+		bool insert({{#INS_IN_FIELDS}}{{INS_IN_FIELD_TYPE}} _{{INS_IN_FIELD_NAME}}{{INS_IN_FIELD_COMMA}}{{/INS_IN_FIELDS}});
 {{/INSERT}}
 };
 {{/CLASS}}

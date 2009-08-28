@@ -60,20 +60,26 @@ extern bool			optExtras;
 // Utility funcs and defines
 inline String stringToLower(const String& _string)
 {
-	String result;
+	String::size_type sz = _string.length();
 
-	for(uint i = 0; i < _string.length(); ++i)
-		result += tolower(_string[i]);
+	String result;
+	result.resize( sz );
+
+	for(String::size_type i = 0; i < sz; ++i)
+		result[i] += tolower(_string[i]);
 
 	return result;
 }
 
 inline String stringToUpper(const String& _string)
 {
-	String result;
+	String::size_type sz = _string.length();
 
-	for(uint i = 0; i < _string.length(); ++i)
-		result += toupper(_string[i]);
+	String result;
+	result.resize( sz );
+
+	for(String::size_type i = 0; i < sz; ++i)
+		result[i] += toupper(_string[i]);
 
 	return result;
 }
