@@ -76,7 +76,11 @@
 				}
 			</prepare>
 			<execute>
-				SQLCHECK( sqlite3_step( m_updateStmt ) );
+				if( sqlite3_step( m_updateStmt ) != SQLITE_DONE )
+				{
+					std::cerr &lt;&lt; basename(__FILE__) &lt;&lt; ':' &lt;&lt; __LINE__ &lt;&lt; " Update SQL error: " &lt;&lt; sqlite3_errmsg(m_conn) &lt;&lt; std::endl;
+					assert(false);
+				};
 			</execute>
 			<reset>
 				SQLCHECK( sqlite3_reset(m_updateStmt));
@@ -95,7 +99,11 @@
 				}
 			</prepare>
 			<execute>
-				SQLCHECK( sqlite3_step( m_insertStmt ) );
+				if( sqlite3_step( m_insertStmt ) != SQLITE_DONE )
+				{
+					std::cerr &lt;&lt; basename(__FILE__) &lt;&lt; ':' &lt;&lt; __LINE__ &lt;&lt; " Insert SQL error: " &lt;&lt; sqlite3_errmsg(m_conn) &lt;&lt; std::endl;
+					assert(false);
+				};
 			</execute>
 			<reset>
 				SQLCHECK( sqlite3_reset(m_insertStmt));

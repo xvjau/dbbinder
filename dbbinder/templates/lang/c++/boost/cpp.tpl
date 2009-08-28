@@ -164,11 +164,6 @@ bool {{CLASSNAME}}::update(
 			{{/UPD_IN_FIELDS}})
 
 {
-	if ( m_updateIsActive )
-	{
-		{{DBENGINE_RESET_UPDATE}}
-	}
-
 	{{#UPD_IN_FIELDS_BUFFERS}}{{BUFFER_ALLOC}}
 	{{/UPD_IN_FIELDS_BUFFERS}}
 
@@ -179,8 +174,7 @@ bool {{CLASSNAME}}::update(
 	{{/UPD_IN_FIELDS}}
 
 	{{DBENGINE_EXECUTE_UPDATE}}
-
-	m_updateIsActive = true;
+	{{DBENGINE_RESET_UPDATE}}
 }
 {{/UPDATE}}
 {{#INSERT}}
@@ -195,6 +189,7 @@ bool {{CLASSNAME}}::insert(
 	{{/INS_IN_FIELDS}}
 
 	{{DBENGINE_EXECUTE_INSERT}}
+	{{DBENGINE_RESET_INSERT}}
 }
 {{/INSERT}}
 {{/CLASS}}
