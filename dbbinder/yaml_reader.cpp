@@ -30,9 +30,17 @@ namespace DBBinder
 static String fileName;
 static FILE *yamlFile = 0;
 
-inline void getYAMLEvent(yaml_parser_t &_parser, yaml_event_t& _event)
+void sendYAMLError(yaml_parser_t &_parser, const char * const _err = NULL)
 {
-	if (!yaml_parser_parse(&_parser, &_event))
+	if ( _err )
+	{
+		/* Destroy the Parser object. */
+		yaml_parser_delete(&_parser);
+
+		fclose(yamlFile);
+		FATAL(fileName << ": error: " << _err);
+	}
+	else
 	{
 		const char *problem = _parser.problem;
 		const char *context = _parser.context;
@@ -42,28 +50,34 @@ inline void getYAMLEvent(yaml_parser_t &_parser, yaml_event_t& _event)
 		yaml_parser_delete(&_parser);
 
 		fclose(yamlFile);
-		FATAL("YAML: " << fileName << ": " << problem << " " << context << " at line " << mark.line << " at col " << mark.column);
+		FATAL(fileName << ":" << mark.line + 1 << ":" << mark.column << ": error: " << problem << " " << context);
 	}
 }
 
-static void parseYAMLDatabase(yaml_parser_t &parser)
+inline void getYAMLEvent(yaml_parser_t &_parser, yaml_event_t& _event)
+{
+	if (!yaml_parser_parse(&_parser, &_event))
+		sendYAMLError(_parser);
+}
+
+static void parseYAMLDatabase(yaml_parser_t &_parser)
 {
 	yaml_event_t event;
-	getYAMLEvent(parser, event);
+	getYAMLEvent(_parser, event);
 
 	if ( event.type != YAML_MAPPING_START_EVENT )
-		FATAL("YAML: Expected YAML_MAPPING_START_EVENT");
+		sendYAMLError(_parser, "Expected YAML_MAPPING_START_EVENT");
 
-	getYAMLEvent(parser, event);
+	getYAMLEvent(_parser, event);
 	if ( event.type != YAML_SCALAR_EVENT )
-		FATAL("YAML: Expected YAML_SCALAR_EVENT");
+		sendYAMLError(_parser, "Expected YAML_SCALAR_EVENT");
 
 	if ( strcasecmp(reinterpret_cast<const char*>(event.data.scalar.value), "type") != 0)
-		FATAL("YAML: Expected database->type");
+		sendYAMLError(_parser, "Expected database->type");
 
-	getYAMLEvent(parser, event);
+	getYAMLEvent(_parser, event);
 	if ( event.type != YAML_SCALAR_EVENT )
-		FATAL("YAML: Expected YAML_SCALAR_EVENT");
+		sendYAMLError(_parser, "Expected YAML_SCALAR_EVENT");
 
 	AbstractGenerator *generator = AbstractGenerator::getGenerator( reinterpret_cast<const char*>(event.data.scalar.value) );
 
@@ -73,7 +87,7 @@ static void parseYAMLDatabase(yaml_parser_t &parser)
 
 	while ( !done )
 	{
-		getYAMLEvent(parser, event);
+		getYAMLEvent(_parser, event);
 
 		switch( event.type )
 		{
@@ -97,31 +111,34 @@ static void parseYAMLDatabase(yaml_parser_t &parser)
 			}
 
 			default:
-				WARNING("YAML: " << fileName << ": Unknown YAML event: " << event.type << " in database");
+			{
+				WARNING(fileName << ": warning: Unknown YAML event: " << event.type << " in params");
+			}
 		}
 	}
 }
 
-static void getYAMLParams(yaml_parser_t &parser, AbstractElements* _elements)
+static void getYAMLParams(yaml_parser_t &_parser, AbstractElements* _elements)
 {
 	yaml_event_t event;
 
-	getYAMLEvent(parser, event);
+	getYAMLEvent(_parser, event);
 	if ( event.type != YAML_MAPPING_START_EVENT )
-		FATAL("YAML: Expected YAML_MAPPING_START_EVENT");
+		sendYAMLError(_parser, "Expected YAML_MAPPING_START_EVENT");
 	yaml_event_delete(&event);
 
-	getYAMLEvent(parser, event);
+	getYAMLEvent(_parser, event);
 	if ( event.type != YAML_SCALAR_EVENT )
-		FATAL("YAML: Expected YAML_SCALAR_EVENT");
+		sendYAMLError(_parser, "Expected YAML_SCALAR_EVENT");
 
 	if ( strcasecmp(reinterpret_cast<const char*>(event.data.scalar.value), "name") != 0)
-		FATAL("YAML: Expected select->name");
+		sendYAMLError(_parser, "Expected select->name");
+
 	yaml_event_delete(&event);
 
-	getYAMLEvent(parser, event);
+	getYAMLEvent(_parser, event);
 	if ( event.type != YAML_SCALAR_EVENT )
-		FATAL("YAML: Expected YAML_SCALAR_EVENT");
+		sendYAMLError(_parser, "Expected YAML_SCALAR_EVENT");
 
 	_elements->name = reinterpret_cast<const char*>(event.data.scalar.value);
 	yaml_event_delete(&event);
@@ -136,7 +153,7 @@ static void getYAMLParams(yaml_parser_t &parser, AbstractElements* _elements)
 
 	while ( !done )
 	{
-		getYAMLEvent(parser, event);
+		getYAMLEvent(_parser, event);
 
 		switch( event.type )
 		{
@@ -177,7 +194,7 @@ static void getYAMLParams(yaml_parser_t &parser, AbstractElements* _elements)
 						}
 						else
 						{
-							FATAL(DBBinder::fileName << ": include file not found: " << value);
+							sendYAMLError(_parser, (String("include file not found: ") + value).c_str());
 						}
 					}
 					else if ( attr == "param" )
@@ -191,7 +208,7 @@ static void getYAMLParams(yaml_parser_t &parser, AbstractElements* _elements)
 						bool paramDone = false;
 						while( !paramDone )
 						{
-							getYAMLEvent(parser, event);
+							getYAMLEvent(_parser, event);
 
 							if ( event.type == YAML_SCALAR_EVENT )
 							{
@@ -224,7 +241,7 @@ static void getYAMLParams(yaml_parser_t &parser, AbstractElements* _elements)
 						type = typeNameToSQLType(strType);
 						if ( type == stUnknown )
 						{
-							WARNING("unknown param type for: " << name);
+							WARNING(fileName << ": warning: Unknown YAML event: " << event.type << " in params");
 							type = stText;
 						}
 
@@ -237,41 +254,41 @@ static void getYAMLParams(yaml_parser_t &parser, AbstractElements* _elements)
 			}
 
 			default:
-				WARNING("YAML: " << fileName << ": Unknown YAML event: " << event.type << " in params");
+				WARNING(fileName << ": warning: Unknown YAML event: " << event.type << " in params");
 		}
 
 		yaml_event_delete(&event);
 	}
 }
 
-static void parseYAMLSelect(yaml_parser_t &parser)
+static void parseYAMLSelect(yaml_parser_t &_parser)
 {
 	SelectElements elements;
-	getYAMLParams( parser, &elements );
+	getYAMLParams( _parser, &elements );
 	AbstractGenerator::getGenerator()->addSelect( elements );
 }
 
-static void parseYAMLInsert(yaml_parser_t &parser)
+static void parseYAMLInsert(yaml_parser_t &_parser)
 {
 	InsertElements elements;
-	getYAMLParams( parser, &elements );
+	getYAMLParams( _parser, &elements );
 	AbstractGenerator::getGenerator()->addInsert( elements );
 }
 
-static void parseYAMLUpdate(yaml_parser_t &parser)
+static void parseYAMLUpdate(yaml_parser_t &_parser)
 {
 	UpdateElements elements;
-	getYAMLParams( parser, &elements );
+	getYAMLParams( _parser, &elements );
 	AbstractGenerator::getGenerator()->addUpdate( elements );
 }
 
-static void parseYAMLExtra(yaml_parser_t &parser)
+static void parseYAMLExtra(yaml_parser_t &_parser)
 {
 	yaml_event_t event;
 
-	getYAMLEvent(parser, event);
+	getYAMLEvent(_parser, event);
 	if ( event.type != YAML_MAPPING_START_EVENT )
-		FATAL("YAML: Expected YAML_MAPPING_START_EVENT");
+		sendYAMLError(_parser, "Expected YAML_MAPPING_START_EVENT");
 	yaml_event_delete(&event);
 
 	String sequence;
@@ -280,7 +297,7 @@ static void parseYAMLExtra(yaml_parser_t &parser)
 	bool done = false;
 	while( !done )
 	{
-		getYAMLEvent(parser, event);
+		getYAMLEvent(_parser, event);
 
 		switch( event.type )
 		{
@@ -294,9 +311,9 @@ static void parseYAMLExtra(yaml_parser_t &parser)
 
 				if ( value == "types" )
 				{
-					getYAMLEvent(parser, event);
+					getYAMLEvent(_parser, event);
 					if ( event.type != YAML_MAPPING_START_EVENT )
-						FATAL("YAML: Expected YAML_MAPPING_START_EVENT");
+						sendYAMLError(_parser, "Expected YAML_MAPPING_START_EVENT");
 					yaml_event_delete(&event);
 
 					String attr;
@@ -304,7 +321,7 @@ static void parseYAMLExtra(yaml_parser_t &parser)
 					bool typesDone = false;
 					while( !typesDone )
 					{
-						getYAMLEvent(parser, event);
+						getYAMLEvent(_parser, event);
 
 						if( event.type == YAML_SCALAR_EVENT )
 						{
@@ -318,7 +335,7 @@ static void parseYAMLExtra(yaml_parser_t &parser)
 
 								if ( type == stUnknown )
 								{
-									WARNING("unknown type for: " << attr);
+									WARNING(fileName << ": warning: unknown type for: " << attr);
 								}
 								else
 									generator->setType( type, value );
@@ -337,7 +354,7 @@ static void parseYAMLExtra(yaml_parser_t &parser)
 				else if (( value == "namespaces" ) || ( value == "headers" ))
 					sequence = value;
 				else
-					WARNING("YAML: Unknown extra: " << value);
+					WARNING(fileName << ": warning: Unknown extra: " << value);
 				break;
 			}
 			case YAML_SEQUENCE_START_EVENT:
@@ -345,7 +362,7 @@ static void parseYAMLExtra(yaml_parser_t &parser)
 				bool sequenceDone = false;
 				while( !sequenceDone )
 				{
-					getYAMLEvent(parser, event);
+					getYAMLEvent(_parser, event);
 
 					if( event.type == YAML_SCALAR_EVENT )
 					{
@@ -356,7 +373,7 @@ static void parseYAMLExtra(yaml_parser_t &parser)
 						else if ( sequence == "headers")
 							generator->addHeader( value );
 						else
-							WARNING("YAML: Unknown sequence: " << sequence);
+							WARNING(fileName << ": warning: Unknown sequence: " << sequence);
 					}
 					else if( event.type == YAML_SEQUENCE_END_EVENT )
 					{
@@ -369,20 +386,20 @@ static void parseYAMLExtra(yaml_parser_t &parser)
 				break;
 			}
 			default:
-				WARNING("YAML: " << fileName << ": Unknown YAML event: " << event.type << " in extras");
+				WARNING(fileName << ": warning: Unknown YAML event: " << event.type << " in extras");
 		}
 
 		yaml_event_delete(&event);
 	}
 }
 
-static void parseYAMLHeaders(yaml_parser_t &parser)
+static void parseYAMLHeaders(yaml_parser_t &_parser)
 {
 	yaml_event_t event;
 
-	getYAMLEvent(parser, event);
+	getYAMLEvent(_parser, event);
 	if ( event.type != YAML_SEQUENCE_START_EVENT )
-		FATAL("YAML: Expected YAML_MAPPING_START_EVENT");
+		sendYAMLError(_parser, "Expected YAML_MAPPING_START_EVENT");
 	yaml_event_delete(&event);
 
 	String sequence;
@@ -391,7 +408,7 @@ static void parseYAMLHeaders(yaml_parser_t &parser)
 	bool done = false;
 	while( !done )
 	{
-		getYAMLEvent(parser, event);
+		getYAMLEvent(_parser, event);
 
 		switch( event.type )
 		{
@@ -406,7 +423,7 @@ static void parseYAMLHeaders(yaml_parser_t &parser)
 				break;
 			}
 			default:
-				WARNING("YAML: " << fileName << ": Unknown YAML event: " << event.type << " in header");
+				WARNING(fileName << ": warning: Unknown YAML event: " << event.type << " in header");
 		}
 
 		yaml_event_delete(&event);
@@ -485,7 +502,7 @@ void parseYAML(const String& _fileName)
 							parseYAMLUpdate(parser);
 						break;
 					default:
-						WARNING(fileName << ": Unknown value: " << value);
+						WARNING(fileName << ": warning: Unknown value: " << value);
 				}
 
 				break;
