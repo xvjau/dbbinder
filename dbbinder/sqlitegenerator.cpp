@@ -108,13 +108,21 @@ String SQLiteGenerator::getBind( SQLStatementTypes _type, const ListElements::it
 		case stDate:
 		case stText:
 		{
-			/* In the case of Text, the function is slightly different:
-				1 - It needs to duplicate the strig - strdup
-				2 - It needs the length of the string - strlen
-				3 - It needs a function pointer to deallocate the string in (1) - free
-			*/
 			str << "text";
-			str << "(m_" << typeName << "Stmt, " << _index + 1 << ", strdup(_" << _item->name << ") , strlen(_" << _item->name << "), free));";
+			str << "(m_" << typeName << "Stmt, " << _index + 1 << ", _" << _item->name << ", strlen(_" << _item->name << "), ";
+
+			/*
+				In selects, it is unknown how long SQLite might wish to hold the string.
+				In other cases, we know that the statement will be reset with the caller function so no need to
+				keep the string.
+			*/
+			if ( _type == sstSelect )
+				str << "SQLITE_TRANSIENT";
+			else
+				str << "SQLITE_STATIC";
+
+			str << " ));";
+
 			return str.str();
 		}
 
