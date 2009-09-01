@@ -93,7 +93,9 @@ const int {{CLASSNAME}}::s_selectParamCount = {{SELECT_PARAM_COUNT}};
 							 {{/SEL_IN_FIELDS}}
 							 {{DBENGINE_CONNECTION_TYPE}} _conn
 							):
-		m_iterator(0), m_conn( _conn ), m_selectIsActive( false )
+		m_conn( _conn ),
+		m_selectIsActive( false ),
+		m_iterator( 0 )
 {
 	ASSERT_MSG(m_conn, "Connection must not be null!");
 
@@ -159,7 +161,7 @@ bool {{CLASSNAME}}::fetchRow()
 }
 {{/SELECT}}
 {{#UPDATE}}
-bool {{CLASSNAME}}::update(
+void {{CLASSNAME}}::update(
 			{{#UPD_IN_FIELDS}}{{UPD_IN_FIELD_TYPE}} _{{UPD_IN_FIELD_NAME}}{{UPD_IN_FIELD_COMMA}}
 			{{/UPD_IN_FIELDS}})
 
@@ -178,7 +180,7 @@ bool {{CLASSNAME}}::update(
 }
 {{/UPDATE}}
 {{#INSERT}}
-bool {{CLASSNAME}}::insert(
+void {{CLASSNAME}}::insert(
 			{{#INS_IN_FIELDS}}{{INS_IN_FIELD_TYPE}} _{{INS_IN_FIELD_NAME}}{{INS_IN_FIELD_COMMA}}
 			{{/INS_IN_FIELDS}})
 {

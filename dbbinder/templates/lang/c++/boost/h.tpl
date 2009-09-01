@@ -14,7 +14,7 @@
 
 #ifdef DEBUG
 #define ASSERT(cond) { assert(cond); }
-#define ASSERT_MSG(cond, msg) { if (!(cond)) { std::cerr << basename(__FILE__) << ":" << __LINE__ << " WARNING: " << msg << std::endl; assert(cond); }}
+#define ASSERT_MSG(cond, msg) { if (!(cond)) { std::cerr << basename((char*)__FILE__) << ":" << __LINE__ << " WARNING: " << msg << std::endl; assert(cond); }}
 #define ASSERT_MSG_FILE_LINE(cond, msg, file, line) { if (!(cond)) { std::cerr << file << "." << line << " WARNING: " << msg << std::endl; assert(cond); }}
 #else
 #define ASSERT(cond)
@@ -179,7 +179,7 @@ class {{CLASSNAME}}
 		static const int s_updateSQL_len;
 		{{DBENGINE_STATEMENT_TYPE}}	m_updateStmt;
 	public:
-		bool update({{#UPD_IN_FIELDS}}{{UPD_IN_FIELD_TYPE}} _{{UPD_IN_FIELD_NAME}}{{UPD_IN_FIELD_COMMA}}{{/UPD_IN_FIELDS}});
+		void update({{#UPD_IN_FIELDS}}{{UPD_IN_FIELD_TYPE}} _{{UPD_IN_FIELD_NAME}}{{UPD_IN_FIELD_COMMA}}{{/UPD_IN_FIELDS}});
 {{/UPDATE}}
 {{#INSERT}}
 	private:
@@ -187,7 +187,7 @@ class {{CLASSNAME}}
 		static const int s_insertSQL_len;
 		{{DBENGINE_STATEMENT_TYPE}}	m_insertStmt;
 	public:
-		bool insert({{#INS_IN_FIELDS}}{{INS_IN_FIELD_TYPE}} _{{INS_IN_FIELD_NAME}}{{INS_IN_FIELD_COMMA}}{{/INS_IN_FIELDS}});
+		void insert({{#INS_IN_FIELDS}}{{INS_IN_FIELD_TYPE}} _{{INS_IN_FIELD_NAME}}{{INS_IN_FIELD_COMMA}}{{/INS_IN_FIELDS}});
 {{/INSERT}}
 };
 {{/CLASS}}
