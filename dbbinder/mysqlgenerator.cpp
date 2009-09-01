@@ -50,7 +50,7 @@ void mysqlCheckStmtErr( MYSQL_STMT *_stmt, int _status )
 		}
 
 		FATAL( "MySQL: " << mysql_stmt_error(_stmt) );
-		exit(-1);
+		abort();
 	}
 }
 

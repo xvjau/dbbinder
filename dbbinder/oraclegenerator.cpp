@@ -158,7 +158,7 @@ bool OracleGenerator::checkConnection()
 		if ( errcode != 0 )
 		{
 			std::cerr << "OCIEnvCreate failed with errcode = " << errcode << std::endl;
-			exit ( 1 );
+			abort();
 		}
 
 		/* Initialize handles */

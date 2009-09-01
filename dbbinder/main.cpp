@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
 	{
 		WARNING("Missing options");
 		printHelp();
-		exit(-1);
+		abort();
 	}
 
 	const commandOption *option;

@@ -163,7 +163,7 @@ inline String getFilenameRelativeTo(const String& _relFileName, const String& _f
 }
 
 #ifdef NDEBUG
-#define FATAL(MSG) { std::cerr << MSG << std::endl; exit( 1 ); }
+#define FATAL(MSG) { std::cerr << MSG << std::endl; abort(); }
 #define ASSERT(COND, MSG)
 #else
 #define FATAL(MSG) { std::cerr << MSG << std::endl; assert(false); }
