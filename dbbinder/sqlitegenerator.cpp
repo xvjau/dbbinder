@@ -202,30 +202,41 @@ sqlite3_stmt *SQLiteGenerator::execSQL( AbstractElements &_elements )
 
 		String err = sqlite3_errmsg( m_db );
 
-		if ( err.find( "near" ) != std::string::npos )
+		//This try is to avoid unnecessary exception when looking for the error message.
+		try
 		{
-			err.erase( 0, err.find( '"' ) + 2 );
-			err.erase( err.rfind( '"' ) - 1, std::string::npos );
-		}
-		else
-		{
-			err.erase( 0, err.find( ':' ) + 2 );
-		}
-
-		String::size_type pos = _elements.sql.find( err );
-
-		const char *s = _elements.sql.c_str();
-		const char *e = s + pos;
-
-		while ( s < e )
-		{
-			if ( *s++ == '\n' )
+			if ( err.find( "near" ) != std::string::npos )
 			{
-				col = 1;
-				line++;
+				String::size_type pos = err.rfind( '"' );
+				if ( pos != std::string::npos )
+				{
+					err.erase( 0, err.find( '"' ) + 2 );
+					err.erase( pos - 1, std::string::npos );
+				}
 			}
 			else
-				col++;
+			{
+				err.erase( 0, err.find( ':' ) + 2 );
+			}
+
+			String::size_type pos = _elements.sql.find( err );
+
+			const char *s = _elements.sql.c_str();
+			const char *e = s + pos;
+
+			while ( s < e )
+			{
+				if ( *s++ == '\n' )
+				{
+					col = 1;
+					line++;
+				}
+				else
+					col++;
+			}
+		}
+		catch(std::logic_error &err)
+		{
 		}
 
 		FATAL( _elements.sql_location.file << ':' << line << ':' << col << ": error " << sqlite3_errmsg( m_db ) );
