@@ -80,6 +80,7 @@ const char * const tpl_SEL_IN_FIELDS_BUFFERS = "SEL_IN_FIELDS_BUFFERS";
 
 const char * const tpl_BUFFER_DECLARE = "BUFFER_DECLARE";
 const char * const tpl_BUFFER_ALLOC = "BUFFER_ALLOC";
+const char * const tpl_BUFFER_FREE = "BUFFER_FREE";
 const char * const tpl_BUFFER_INITIALIZE = "BUFFER_INITIALIZE";
 
 const char * const tpl_SEL_OUT_FIELDS = "SEL_OUT_FIELDS";

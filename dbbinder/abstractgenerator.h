@@ -279,6 +279,7 @@ extern const char * const tpl_SEL_IN_FIELDS_BUFFERS;
 
 extern const char * const tpl_BUFFER_DECLARE;
 extern const char * const tpl_BUFFER_ALLOC;
+extern const char * const tpl_BUFFER_FREE;
 extern const char * const tpl_BUFFER_INITIALIZE;
 
 extern const char * const tpl_SEL_OUT_FIELDS;
