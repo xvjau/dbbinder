@@ -6,7 +6,7 @@
 		<global_functions>
 			<function>
 				static __thread ISC_STATUS err[32];
-				
+
 				static void printError()
 				{
 					const ISC_STATUS *p = err;
@@ -40,7 +40,7 @@
 					{
 						*_dpb++ = _param;
 						*_dpb++ = _strLength;
-						
+
 						for ( const char *q = _str; *q; )
 							*_dpb++ = *q++;
 					}
@@ -66,15 +66,15 @@
 			{
 				char dpb [1024];
 				char *p = dpb;
-				
+
 				add_dbd_param(p, isc_dpb_version1);
 				add_dbd_string(p, isc_dpb_user_name, s_dbparam_user);
 				add_dbd_string(p, isc_dpb_password, s_dbparam_password);
 				add_dbd_string(p, isc_dpb_sql_role_name, s_dbparam_role);
 				add_dbd_string(p, isc_dpb_lc_ctype, s_dbparam_charset);
-			
+
 				int dpbLength = p - dpb;
-				
+
 				isc_attach_database( err, strlen(s_dbparam_db), const_cast&lt;char*&gt;(s_dbparam_db), &amp;m_conn, dpbLength, dpb );
 				checkFBError();
 			}
@@ -96,6 +96,15 @@
 				checkFBError();
 			</prepare>
 			<fetch>
+				ISC_STATUS ret = isc_dsql_fetch(err, &amp;m_selectStmt, SQLDA_VERSION1, m_selOutBuffer);
+
+				switch ( ret )
+				{
+					case 0: return true;
+					case 100L: return false;
+					default:
+						checkFBError();
+				}
 			</fetch>
 			<reset>
 			</reset>

@@ -94,7 +94,7 @@ SQLTypes fbtypeToSQLType(const int _fbtype)
 		}
 }
 
-void getFirebirdTypes( SQLTypes _type, String &_lang, String _fb )
+void getFirebirdTypes( SQLTypes _type, String &_lang, String &_fb )
 {
 	switch ( _type )
 	{
@@ -134,7 +134,7 @@ void getFirebirdTypes( SQLTypes _type, String &_lang, String _fb )
 			break;
 		case stText:
 			_lang = "char";
-			_fb = "SQL_TEXT";
+			_fb = "SQL_VARYING";
 			break;
 	}
 }
@@ -154,6 +154,12 @@ FirebirdGenerator::~FirebirdGenerator()
 		ISC_STATUS err[32];
 		isc_detach_database( err, &m_conn );
 	}
+}
+
+static void fbversionCallback(void* _param, const char* _ver)
+{
+	if ( (*static_cast<int*>(_param))++ == 1 )
+		std::cout << "Using Firebird version: " << _ver << std::endl;
 }
 
 bool FirebirdGenerator::checkConnection()
@@ -184,6 +190,9 @@ bool FirebirdGenerator::checkConnection()
 		isc_attach_database( err, db.length(), const_cast<char*>(db.c_str()), &m_conn, dpbLength, dpb );
 		checkFBError( err );
 
+		int param = 0;
+		isc_version(&m_conn, fbversionCallback, &param);
+
 		m_connected = m_conn;
 	}
 
@@ -192,7 +201,42 @@ bool FirebirdGenerator::checkConnection()
 
 String FirebirdGenerator::getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
 {
-	return "";
+	// TODO Abstract this
+	String var("m_selOutBuffer->sqlvar[");
+
+	{
+		char buff[7] = {0,0,0,0,0,0,0};
+		snprintf(buff, 6, "%d", _index);
+		var += buff;
+	}
+
+	var += "]";
+
+	String type, size;
+
+	getFirebirdTypes(_item->type, size, type);
+
+	std::stringstream str;
+
+	str << "{\n";
+	str << var << ".sqltype = " << type << " + 1;\n";
+
+	if ( _item->type != stText )
+	{
+		str << var << ".sqldata = reinterpret_cast<ISC_SCHAR*>(malloc(sizeof(" << size << ")));\n";
+		str << "*(reinterpret_cast<" << size << "*>( _" << var << ".sqldata )) = _" << _item->name << ";\n";
+	}
+	else
+	{
+		str << var << ".sqldata = reinterpret_cast<ISC_SCHAR*>(malloc(strlen(_" << var << ") + 1 + sizeof(short)));\n";
+		str << "*(reinterpret_cast<short*>( _" << var << ".sqldata )) = strlen(_" << var << ");\n";
+		str << "strcpy(" << var << ".sqldata + sizeof(short), _" << _item->name << ");\n";
+	}
+
+	str << var << ".sqlind = reinterpret_cast<ISC_SCHAR*>(malloc(sizeof(ISC_SHORT)));\n";
+	str << "};";
+
+	return str.str();
 }
 
 String FirebirdGenerator::getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
@@ -202,7 +246,18 @@ String FirebirdGenerator::getReadValue(SQLStatementTypes _type, const ListElemen
 
 String FirebirdGenerator::getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
 {
-	FATAL("Not implemented!");
+	// TODO Abstract this
+	String result("*(m_selOutBuffer->sqlvar[");
+
+	{
+		char buff[7] = {0,0,0,0,0,0,0};
+		snprintf(buff, 6, "%d", _index);
+		result += buff;
+	}
+
+	result += "].sqlind) == -1";
+
+	return result;
 }
 
 void FirebirdGenerator::addSelect(SelectElements _elements)
@@ -240,7 +295,7 @@ void FirebirdGenerator::addSelect(SelectElements _elements)
 		buffOutput = (XSQLDA *)realloc( buffOutput, XSQLDA_LENGTH( buffOutput->sqld ) );
 		buffOutput->sqln = buffOutput->sqld;
 		memset(buffOutput, 0, XSQLDA_LENGTH( buffOutput->sqld ));
-		isc_dsql_describe_bind( err, &stmt, SQLDA_VERSION1, buffOutput );
+		isc_dsql_describe( err, &stmt, SQLDA_VERSION1, buffOutput );
 	}
 
 	XSQLVAR *p = buffOutput->sqlvar;
@@ -275,11 +330,16 @@ void FirebirdGenerator::addSelInBuffers(const SelectElements * _select)
 	subDict->SetValue(tpl_BUFFER_DECLARE, "XSQLDA *m_selInBuffer;" );
 	subDict->SetValue(tpl_BUFFER_INITIALIZE, "m_selInBuffer = 0;" );
 	subDict->SetValue(tpl_BUFFER_ALLOC,
-					  "if (!m_selOutBuffer)\n{\n"
+					  "if (!m_selInBuffer)\n{\n"
 					  "m_selInBuffer = (XSQLDA *)malloc( XSQLDA_LENGTH( s_selectParamCount ) );\n"
 					  "memset(m_selInBuffer, 0, XSQLDA_LENGTH( s_selectParamCount ));\n"
 					  "m_selInBuffer->version = SQLDA_VERSION1;\n"
 					  "m_selInBuffer->sqln = s_selectParamCount;\n}"
+					 );
+	subDict->SetValue(tpl_BUFFER_FREE,
+					  "if (m_selInBuffer)\n{\n"
+					  "free(m_selInBuffer);\n"
+					  "m_selInBuffer = NULL;\n}"
 					 );
 }
 
@@ -295,6 +355,11 @@ void FirebirdGenerator::addSelOutBuffers(const SelectElements * _select)
 					  "memset(m_selOutBuffer, 0, XSQLDA_LENGTH( s_selectFieldCount ));\n"
 					  "m_selOutBuffer->version = SQLDA_VERSION1;\n"
 					  "m_selOutBuffer->sqln = s_selectFieldCount;\n}"
+					 );
+	subDict->SetValue(tpl_BUFFER_FREE,
+					  "if (m_selOutBuffer)\n{\n"
+					  "free(m_selOutBuffer);\n"
+					  "m_selOutBuffer = NULL;\n}"
 					 );
 }
 
