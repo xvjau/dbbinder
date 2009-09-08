@@ -15,9 +15,9 @@
 
 					while ( fb_interpret( str, 512, &amp;p ) )
 					{
-						errMessage += str + '\n';
+						std::cerr &lt;&lt; str &lt;&lt; std::endl;
 					}
-					ASSERT_MSG( false, errMessage );
+					abort();
 				};
 
 				inline void checkFBError()
@@ -60,6 +60,9 @@
 				<type value="isc_tr_handle"/>
 				<null value="0"/>
 				<name value="m_tr" />
+				<init value="isc_start_transaction( err, &amp;m_tr, 1, &amp;m_conn, 0, 0 ); checkFBError();" />
+				<commit value="isc_commit_transaction( err, &amp;m_tr ); checkFBError();" />
+				<rollback value=" isc_rollback_transaction( err, &amp;m_tr ); checkFBError();" />
 			</transaction>
 		</types>
 		<connect>
@@ -95,13 +98,21 @@
 				isc_dsql_prepare( err, &amp;m_tr, &amp;m_selectStmt, s_selectSQL_len, const_cast&lt;char*&gt;(s_selectSQL), 3, m_selOutBuffer );
 				checkFBError();
 			</prepare>
+			<execute>
+				isc_dsql_execute(err, &amp;m_tr, &amp;m_selectStmt, s_selectParamCount, m_selInBuffer);
+				checkFBError();
+			</execute>
 			<fetch>
 				ISC_STATUS ret = isc_dsql_fetch(err, &amp;m_selectStmt, SQLDA_VERSION1, m_selOutBuffer);
 
 				switch ( ret )
 				{
-					case 0: return true;
-					case 100L: return false;
+					case 0:
+						m_currentRow.reset( new _row_type( this ));
+						return true;
+					case 100L:
+						m_currentRow.reset();
+						return false;
 					default:
 						checkFBError();
 				}
