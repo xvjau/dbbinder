@@ -95,6 +95,13 @@ const char * const tpl_SEL_OUT_FIELDS_BUFFERS = "SEL_OUT_FIELDS_BUFFERS";
 const char * const tpl_DBENGINE_STATEMENT_TYPE = "DBENGINE_STATEMENT_TYPE";
 const char * const tpl_DBENGINE_STATEMENT_NULL = "DBENGINE_STATEMENT_NULL";
 
+const char * const tpl_DBENGINE_TRANSACTION = "DBENGINE_TRANSACTION";
+const char * const tpl_DBENGINE_TRANSACTION_TYPE = "DBENGINE_TRANSACTION_TYPE";
+const char * const tpl_DBENGINE_TRANSACTION_NULL = "DBENGINE_TRANSACTION_NULL";
+const char * const tpl_DBENGINE_TRANSACTION_INIT = "DBENGINE_TRANSACTION_INIT";
+const char * const tpl_DBENGINE_TRANSACTION_ROLLBACK = "DBENGINE_TRANSACTION_ROLLBACK";
+const char * const tpl_DBENGINE_TRANSACTION_COMMIT = "DBENGINE_TRANSACTION_COMMIT";
+
 const char * const tpl_UPDATE = "UPDATE";
 const char * const tpl_UPDATE_SQL = "UPDATE_SQL";
 const char * const tpl_UPDATE_SQL_UNESCAPED = "UPDATE_SQL_UNESCAPED";
@@ -693,6 +700,15 @@ bool AbstractGenerator::loadXMLDatabase(const String& _path)
 							{
 								GET_TEXT_OR_ATTR_SET_TMPL( str, subnode->FirstChildElement("type"), "value", m_dict, tpl_DBENGINE_STATEMENT_TYPE);
 								GET_TEXT_OR_ATTR_SET_TMPL( str, subnode->FirstChildElement("null"), "value", m_dict, tpl_DBENGINE_STATEMENT_NULL);
+							}
+							else if ( subnode->Value() == "transaction" )
+							{
+								m_dict->ShowSection( tpl_DBENGINE_TRANSACTION );
+								GET_TEXT_OR_ATTR_SET_TMPL( str, subnode->FirstChildElement("type"), "value", m_dict, tpl_DBENGINE_TRANSACTION_TYPE);
+								GET_TEXT_OR_ATTR_SET_TMPL( str, subnode->FirstChildElement("null"), "value", m_dict, tpl_DBENGINE_TRANSACTION_NULL);
+								GET_TEXT_OR_ATTR_SET_TMPL( str, subnode->FirstChildElement("init"), "value", m_dict, tpl_DBENGINE_TRANSACTION_INIT);
+								GET_TEXT_OR_ATTR_SET_TMPL( str, subnode->FirstChildElement("rollback"), "value", m_dict, tpl_DBENGINE_TRANSACTION_ROLLBACK);
+								GET_TEXT_OR_ATTR_SET_TMPL( str, subnode->FirstChildElement("commit"), "value", m_dict, tpl_DBENGINE_TRANSACTION_COMMIT);
 							}
 							else
 							{
