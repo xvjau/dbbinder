@@ -196,58 +196,61 @@ void parseSQL(const String& _fileName)
 		while ( file.good() )
 		{
 			file.getline(buffer, 4096);
-			line++;
 
-			switch( buffer[4] )
+			if ( file.good() )
 			{
-				case 'n':
-					if ( strncmp(buffer, "--! name", 8 ) == 0 && isblank(buffer[8]) )
-					{
-						ListString list = stringTok( &buffer[9] );
-
-						if ( list.size() == 0 )
-							FATAL(fileName << ':' << line << ": missing name argument");
-
-						if ( list.size() > 1 )
-							WARNING(fileName << ':' << line << ": ignoreing extra params");
-
-						elements->name = list.front();
-					}
-					break;
-				case 'p':
-					if ( strncmp(buffer, "--! param", 9 ) == 0 && isblank(buffer[9]) )
-					{
-						ListString list = stringTok( &buffer[9] );
-
-						if ( list.size() == 0 )
-							FATAL(fileName << ':' << line << ": missing param arguments");
-
-						if ( list.size() == 1 )
-							FATAL(fileName << ':' << line << ": missing param type");
-
-						name.clear();
-						defaultValue.clear();
-						index = -1;
-						type = stUnknown;
-
-						int i = 0;
-						for(ListString::const_iterator it = list.begin(); it != list.end(); it++, i++)
+				line++;
+				switch( buffer[4] )
+				{
+					case 'n':
+						if ( strncmp(buffer, "--! name", 8 ) == 0 && isblank(buffer[8]) )
 						{
-							switch( i )
-							{
-								case 0: name = *it; break;
-								case 1: type = typeNameToSQLType(*it); break;
-								case 2: defaultValue = *it; break;
-								case 3: index = atoi( it->c_str() ); break;
-							}
+							ListString list = stringTok( &buffer[9] );
+
+							if ( list.size() == 0 )
+								FATAL(fileName << ':' << line << ": missing name argument");
+
+							if ( list.size() > 1 )
+								WARNING(fileName << ':' << line << ": ignoreing extra params");
+
+							elements->name = list.front();
 						}
+						break;
+					case 'p':
+						if ( strncmp(buffer, "--! param", 9 ) == 0 && isblank(buffer[9]) )
+						{
+							ListString list = stringTok( &buffer[9] );
 
-						if ( type == stUnknown )
-							FATAL(fileName << ':' << line << ": illegal param type");
+							if ( list.size() == 0 )
+								FATAL(fileName << ':' << line << ": missing param arguments");
 
-						elements->input.push_back( SQLElement( name, type, index, defaultValue ));
-					}
-					break;
+							if ( list.size() == 1 )
+								FATAL(fileName << ':' << line << ": missing param type");
+
+							name.clear();
+							defaultValue.clear();
+							index = -1;
+							type = stUnknown;
+
+							int i = 0;
+							for(ListString::const_iterator it = list.begin(); it != list.end(); it++, i++)
+							{
+								switch( i )
+								{
+									case 0: name = *it; break;
+									case 1: type = typeNameToSQLType(*it); break;
+									case 2: defaultValue = *it; break;
+									case 3: index = atoi( it->c_str() ); break;
+								}
+							}
+
+							if ( type == stUnknown )
+								FATAL(fileName << ':' << line << ": illegal param type");
+
+							elements->input.push_back( SQLElement( name, type, index, defaultValue ));
+						}
+						break;
+				}
 			}
 		}
 
