@@ -51,6 +51,7 @@ enum SQLStatementTypes
 	sstSelect,
 	sstInsert,
 	sstUpdate,
+	sstDelete,
 };
 
 struct SQLElement
@@ -103,6 +104,11 @@ struct InsertElements: public AbstractElements
 	InsertElements(): AbstractElements() { type = sstInsert; }
 };
 
+struct DeleteElements: public AbstractElements
+{
+	DeleteElements(): AbstractElements() { type = sstDelete; }
+};
+
 class AbstractGenerator
 {
 	protected:
@@ -147,6 +153,7 @@ class AbstractGenerator
 			SelectElements	select;
 			UpdateElements	update;
 			InsertElements	insert;
+			DeleteElements	del;
 		};
 		typedef boost::shared_ptr<_classParams> _classParamsPtr;
 		typedef std::map<String, _classParamsPtr> classParams;
@@ -240,6 +247,7 @@ class AbstractGenerator
 		virtual void addSelect(SelectElements _elements);
 		virtual void addUpdate(UpdateElements _elements);
 		virtual void addInsert(InsertElements _elements);
+		virtual void addDelete(DeleteElements _elements);
 };
 typedef AbstractGenerator* AbstractGeneratorPtr;
 
@@ -319,6 +327,19 @@ extern const char * const tpl_INS_IN_FIELD_COMMA;
 extern const char * const tpl_INS_IN_FIELD_INIT;
 extern const char * const tpl_INS_IN_FIELD_BIND;
 extern const char * const tpl_INS_IN_FIELDS_BUFFERS;
+
+extern const char * const tpl_DELETE;
+extern const char * const tpl_DELETE_SQL;
+extern const char * const tpl_DELETE_SQL_LEN;
+extern const char * const tpl_DELETE_FIELD_COUNT;
+extern const char * const tpl_DELETE_PARAM_COUNT;
+extern const char * const tpl_DEL_IN_FIELDS;
+extern const char * const tpl_DEL_IN_FIELD_TYPE;
+extern const char * const tpl_DEL_IN_FIELD_NAME;
+extern const char * const tpl_DEL_IN_FIELD_COMMA;
+extern const char * const tpl_DEL_IN_FIELD_INIT;
+extern const char * const tpl_DEL_IN_FIELD_BIND;
+extern const char * const tpl_DEL_IN_FIELDS_BUFFERS;
 
 extern const char * const tpl_DBENGINE_CONNECT_PARAMS;
 extern const char * const tpl_DBENGINE_CONNECT_PARAM_TYPE;

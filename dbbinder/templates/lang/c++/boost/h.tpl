@@ -119,7 +119,7 @@ class {{CLASSNAME}}
 		{
 			friend class {{CLASSNAME}};
 
-			private:
+			public:
 				iterator({{CLASSNAME}}* _parent):
 					m_parent( _parent )
 				{}
@@ -191,6 +191,14 @@ class {{CLASSNAME}}
 	public:
 		void insert({{#INS_IN_FIELDS}}{{INS_IN_FIELD_TYPE}} _{{INS_IN_FIELD_NAME}}{{INS_IN_FIELD_COMMA}}{{/INS_IN_FIELDS}});
 {{/INSERT}}
+{{#DELETE}}
+	private:
+		static const char* const s_deleteSQL;
+		static const int s_deleteSQL_len;
+		{{DBENGINE_STATEMENT_TYPE}}	m_deleteStmt;
+	public:
+		void delete({{#DEL_IN_FIELDS}}{{DEL_IN_FIELD_TYPE}} _{{DEL_IN_FIELD_NAME}}{{DEL_IN_FIELD_COMMA}}{{/DEL_IN_FIELDS}});
+{{/DELETE}}
 };
 {{/CLASS}}
 

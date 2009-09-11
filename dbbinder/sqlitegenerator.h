@@ -47,6 +47,7 @@ class SQLiteGenerator : public AbstractGenerator
 		virtual void addSelect(SelectElements _elements);
 		virtual void addUpdate(UpdateElements _elements);
 		virtual void addInsert(InsertElements _elements);
+		virtual void addDelete(DeleteElements _elements);
 };
 
 }

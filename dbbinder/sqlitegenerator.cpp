@@ -312,5 +312,12 @@ void SQLiteGenerator::addInsert( InsertElements _elements )
 	AbstractGenerator::addInsert( _elements );
 }
 
+void SQLiteGenerator::addDelete( DeleteElements _elements )
+{
+	execSQL( _elements );
+	AbstractGenerator::addDelete( _elements );
+}
+
+
 }
 // kate: indent-mode cstyle; replace-tabs off; tab-width 4;

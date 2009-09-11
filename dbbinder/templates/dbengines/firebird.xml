@@ -2,10 +2,14 @@
 	<lang type="c++">
 		<includes>
 			<file name="ibase.h" />
+			<file name="protobuf.h" />
 		</includes>
 		<global_functions>
 			<function>
-				static __thread ISC_STATUS err[32];
+				/* #ifndef __DBBINDER_CUSTOM_FBERRORS
+
+
+				extern __thread ISC_STATUS err[32];
 
 				static void printError()
 				{
@@ -25,6 +29,7 @@
 					if ( err[0] == 1 &amp;&amp; err[1] )
 						printError();
 				};
+				#endif */
 			</function>
 			<function>
 				template&lt;typename P, typename T&gt; void add_dbd_param(P *&amp;_dpb, T _param)

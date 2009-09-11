@@ -130,6 +130,20 @@ const char * const tpl_INS_IN_FIELD_INIT = "INS_IN_FIELD_INIT";
 const char * const tpl_INS_IN_FIELD_BIND = "INS_IN_FIELD_BIND";
 const char * const tpl_INS_IN_FIELDS_BUFFERS = "INS_IN_FIELDS_BUFFERS";
 
+const char * const tpl_DELETE = "DELETE";
+const char * const tpl_DELETE_SQL = "DELETE_SQL";
+const char * const tpl_DELETE_SQL_UNESCAPED = "DELETE_SQL_UNESCAPED";
+const char * const tpl_DELETE_SQL_LEN = "DELETE_SQL_LEN";
+const char * const tpl_DELETE_FIELD_COUNT = "DELETE_FIELD_COUNT";
+const char * const tpl_DELETE_PARAM_COUNT = "DELETE_PARAM_COUNT";
+const char * const tpl_DEL_IN_FIELDS = "DEL_IN_FIELDS";
+const char * const tpl_DEL_IN_FIELD_TYPE = "DEL_IN_FIELD_TYPE";
+const char * const tpl_DEL_IN_FIELD_NAME = "DEL_IN_FIELD_NAME";
+const char * const tpl_DEL_IN_FIELD_COMMA = "DEL_IN_FIELD_COMMA";
+const char * const tpl_DEL_IN_FIELD_INIT = "DEL_IN_FIELD_INIT";
+const char * const tpl_DEL_IN_FIELD_BIND = "DEL_IN_FIELD_BIND";
+const char * const tpl_DEL_IN_FIELDS_BUFFERS = "DEL_IN_FIELDS_BUFFERS";
+
 const char * const tpl_DBENGINE_CONNECT_PARAMS = "DBENGINE_CONNECT_PARAMS";
 const char * const tpl_DBENGINE_CONNECT_PARAM_TYPE = "DBENGINE_CONNECT_PARAM_TYPE";
 const char * const tpl_DBENGINE_CONNECT_PARAM_PARAM = "DBENGINE_CONNECT_PARAM_PARAM";
@@ -434,6 +448,19 @@ void AbstractGenerator::addInsert(InsertElements _elements)
 		params.reset( new _classParams );
 
 	params->insert = _elements;
+	m_classParams[ name ] = params;
+}
+
+void AbstractGenerator::addDelete(DeleteElements _elements)
+{
+	String name = stringToLower( _elements.name );
+
+	_classParamsPtr params = m_classParams[ name ];
+
+	if ( !params )
+		params.reset( new _classParams );
+
+	params->del = _elements;
 	m_classParams[ name ] = params;
 }
 
@@ -1075,6 +1102,34 @@ void AbstractGenerator::loadDictionary()
 			}
 			if ( subDict )
 				subDict->SetValue( tpl_INS_IN_FIELD_COMMA, "" );
+		}
+
+		// ----- DELETE -----
+		if ( !(it->second->del.sql.empty() ))
+		{
+			classDict->SetValue(tpl_CLASSNAME, it->second->del.name);
+			classDict->ShowSection(tpl_DELETE);
+
+			str = String("\"") + cescape(it->second->del.sql) + String("\"");
+			classDict->SetValue( tpl_DELETE_SQL, str );
+			classDict->SetIntValue( tpl_DELETE_SQL_LEN, it->second->del.sql.length() );
+			classDict->SetIntValue( tpl_DELETE_PARAM_COUNT, it->second->del.input.size() );
+			classDict->SetValue( tpl_DELETE_SQL_UNESCAPED, it->second->del.sql );
+
+			int index = 0;
+			subDict = 0;
+			ListElements::iterator elit;
+			for(elit = it->second->del.input.begin(); elit != it->second->del.input.end(); ++elit, ++index)
+			{
+				subDict = classDict->AddSectionDictionary(tpl_DEL_IN_FIELDS);
+				subDict->SetValue( tpl_DEL_IN_FIELD_TYPE, getType( elit->type ));
+				subDict->SetValue( tpl_DEL_IN_FIELD_NAME, elit->name );
+				subDict->SetValue( tpl_DEL_IN_FIELD_COMMA, "," );
+				subDict->SetValue( tpl_DEL_IN_FIELD_INIT, getInit( elit->type ));
+				subDict->SetValue( tpl_DEL_IN_FIELD_BIND, getBind( sstInsert, elit, index ));
+			}
+			if ( subDict )
+				subDict->SetValue( tpl_DEL_IN_FIELD_COMMA, "" );
 		}
 	}
 }

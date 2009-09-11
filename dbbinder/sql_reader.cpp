@@ -147,10 +147,15 @@ void parseSQL(const String& _fileName)
 									elements = new UpdateElements;
 									statementType = sstUpdate;
 								}
-								else
+								else if ( strcasecmp( c, "insert" ) == 0 )
 								{
 									elements = new InsertElements;
 									statementType = sstInsert;
+								}
+								else
+								{
+									elements = new DeleteElements;
+									statementType = sstDelete;
 								}
 							}
 
@@ -256,6 +261,9 @@ void parseSQL(const String& _fileName)
 				break;
 			case sstUpdate:
 				generator->addUpdate( *static_cast<UpdateElements*>( elements ));
+				break;
+			case sstDelete:
+				generator->addDelete( *static_cast<DeleteElements*>( elements ));
 				break;
 			default:
 				FATAL("Unknwon statement type.");
