@@ -85,7 +85,11 @@ void parseSQL(const String& _fileName)
 
 				if ( strcasecmp(ext, "yaml") == 0 )
 				{
+					#ifdef WITH_YAML
 					parseYAML(path);
+					#else
+					FATAL(fileName << ':' << line << ": yaml support was not included");
+					#endif
 					break;
 				}
 				else if ( strcasecmp(ext, "xml") == 0 )
