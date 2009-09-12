@@ -36,6 +36,28 @@ set_source_files_properties(main.cpp PROPERTIES OBJECT_DEPENDS options.h)
 find_package( Boost )
 if(Boost_FOUND)
 	include_directories(${Boost_INCLUDE_DIRS})
+else()
+	message(FATAL_ERROR "Boost not found!")
+endif()
+
+##########################  google-ctemplate ##########################
+
+
+find_path( CTEMPLATE_INC 'ctemplate/template.h' )
+if(CEMPLATE_INC-NOTFOUND)
+	message(FATAL_ERROR "google-ctemplate (includes) not found!")
+else()
+	include_directories(${CTEMPLATE_INC}/..)
+endif()
+
+find_library( CTEMPLATE_LIB ctemplate_nothreads )
+
+if(CTEMPLATE_LIB-NOTFOUND)
+	find_library( CTEMPLATE_LIB ctemplate )
+endif()
+
+if(CTEMPLATE_LIB-NOTFOUND)
+	message(FATAL_ERROR "google-ctemplate (lib) not found!")
 endif()
 
 ##########################  MySQL ##########################
@@ -195,7 +217,7 @@ add_executable(dbbinder
 	sqlitegenerator.cpp
 	${extra_files})
 
-target_link_libraries(dbbinder ticpp ctemplate_nothreads sqlite3 ${extra_libs})
+target_link_libraries(dbbinder ticpp ${CTEMPLATE_LIB} sqlite3 ${extra_libs})
 
 if(NOT CMAKE_INSTALL_PREFIX)
 	set(CMAKE_INSTALL_PREFIX "/usr/local/")
