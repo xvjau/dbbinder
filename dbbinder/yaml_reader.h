@@ -20,6 +20,8 @@
 #ifndef __DBBINDER_YAML_READER_H
 #define __DBBINDER_YAML_READER_H
 
+#include "main.h"
+
 namespace DBBinder
 {
 
