@@ -2,12 +2,10 @@
 	<lang type="c++">
 		<includes>
 			<file name="ibase.h" />
-			<file name="protobuf.h" />
 		</includes>
 		<global_functions>
 			<function>
 				/* #ifndef __DBBINDER_CUSTOM_FBERRORS
-
 
 				extern __thread ISC_STATUS err[32];
 
