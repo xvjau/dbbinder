@@ -28,6 +28,7 @@ struct commandOptionCode
 		YAML,
 		DEPENDS,
 		EXTRAS,
+		INCLUDE_FILE,
 		TEMPLATE,
 		TEMPLATE_DIR,
 		OUTPUT_FILE,
@@ -54,6 +55,7 @@ struct commandOption
 --yaml,	commandOptionCode::YAML
 --depends,	commandOptionCode::DEPENDS
 --extras,	commandOptionCode::EXTRAS
+-I,		commandOptionCode::INCLUDE_FILE
 -t,		commandOptionCode::TEMPLATE
 -d,		commandOptionCode::TEMPLATE_DIR
 -o,		commandOptionCode::OUTPUT_FILE

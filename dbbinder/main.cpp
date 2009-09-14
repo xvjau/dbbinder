@@ -43,6 +43,7 @@ const char*	optVersionMinor = "0";
 bool		optListDepends = false;
 ListString	optDepends;
 bool		optExtras = false;
+ListString	optIncludeFiles;
 
 static const char*	defaultTemplateDirs[] =
 {
@@ -91,6 +92,7 @@ void printHelp()
 #endif
 			"	--depends	do nothing, just list the dependencies for a target\n"
 			"	--extras	generate any extra files that a template might depend/use\n"
+			"	-I include	add an include file\n"
 			"	-d DIR		add a template directory\n"
 			"	-t FOO[,BAR]	set the template and optional sub-template (default: " << DEFAULT_TEMLPATE << ")\n"
 			"	--database TYPE[,CONN0[,CONN1]] Database to connect and, optionally, connection params\n"
@@ -190,6 +192,17 @@ int main(int argc, char *argv[])
 					break;
 				}
 
+				case commandOptionCode::INCLUDE_FILE:
+				{
+					if ( ++i < argc )
+					{
+						DBBinder::optIncludeFiles.push_back( argv[i] );
+					}
+					else
+						FATAL("missing include file name");
+					break;
+				}
+
 				case commandOptionCode::TEMPLATE:
 				{
 					DBBinder::optTemplate = argv[i];
@@ -276,7 +289,6 @@ int main(int argc, char *argv[])
 		}
 	}
 
-
 	//Add the program's own path
 	{
 		char buffer[4096];
@@ -358,7 +370,14 @@ int main(int argc, char *argv[])
 			FATAL("Unknown file type.");
 	}
 
-	DBBinder::AbstractGenerator::getGenerator()->generate();
+	DBBinder::AbstractGenerator* generator = DBBinder::AbstractGenerator::getGenerator();
+
+	// Add the extra include files passed by command-line
+	for(DBBinder::ListString::iterator it = DBBinder::optIncludeFiles.begin();
+		it != DBBinder::optIncludeFiles.end(); ++it)
+		generator->addHeader(std::string("#include ") + *it);
+
+	generator->generate();
 
 	if ( DBBinder::optListDepends )
 	{
