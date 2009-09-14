@@ -235,6 +235,7 @@ String FirebirdGenerator::getBind(SQLStatementTypes _type, const ListElements::i
 	}
 
 	str << var << ".sqlind = reinterpret_cast<ISC_SHORT*>(malloc(sizeof(ISC_SHORT)));\n";
+	str << "*(reinterpret_cast<ISC_SHORT*>(" << var << ".sqlind )) = 0;\n";
 	str << "};";
 
 	return str.str();
