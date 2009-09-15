@@ -87,11 +87,14 @@ struct AbstractElements
 	SQLStatementTypes	type;
 };
 
-struct SelectElements: public AbstractElements
+struct AbstractIOElements: public AbstractElements
 {
-	SelectElements(): AbstractElements() { type = sstSelect; }
-
 	ListElements	output;
+};
+
+struct SelectElements: public AbstractIOElements
+{
+	SelectElements(): AbstractIOElements() { type = sstSelect; }
 };
 
 struct UpdateElements: public AbstractElements
@@ -199,8 +202,8 @@ class AbstractGenerator
 		// TODO: There must be a better way to implement this.
 		virtual bool needIOBuffers() const;
 
-		virtual void addSelInBuffers(const SelectElements* _select);
-		virtual void addSelOutBuffers(const SelectElements* _select);
+		virtual void addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements);
+		virtual void addOutBuffers(SQLStatementTypes _type, const AbstractIOElements* _elements);
 
 		virtual String getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) = 0;
 		virtual String getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) = 0;

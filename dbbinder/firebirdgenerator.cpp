@@ -357,7 +357,7 @@ bool FirebirdGenerator::needIOBuffers() const
 	return true;
 }
 
-void FirebirdGenerator::addSelInBuffers(const SelectElements * _select)
+void FirebirdGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements)
 {
 	/*
 		Nothing to see here.. please move on to:
@@ -366,7 +366,7 @@ void FirebirdGenerator::addSelInBuffers(const SelectElements * _select)
 	*/
 }
 
-void FirebirdGenerator::addSelOutBuffers(const SelectElements * _select)
+void FirebirdGenerator::addOutBuffers(SQLStatementTypes _type, const AbstractIOElements* _elements)
 {
 	ctemplate::TemplateDictionary *subDict;
 	subDict = m_dict->AddSectionDictionary(tpl_SEL_OUT_FIELDS_BUFFERS);
@@ -389,7 +389,7 @@ void FirebirdGenerator::addSelOutBuffers(const SelectElements * _select)
 
 	char idx[9];
 	idx[8] = 0;
-	for(ListElements::const_iterator it = _select->output.begin(); it != _select->output.end(); ++it)
+	for(ListElements::const_iterator it = _elements->output.begin(); it != _elements->output.end(); ++it)
 	{
 		snprintf(idx, 8, "%d", it->index);
 		getFirebirdTypes( it->type, lang, fb );

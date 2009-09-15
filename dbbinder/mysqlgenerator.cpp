@@ -247,13 +247,13 @@ void getMySQLTypes(SQLTypes _type, String& _lang, String& _mysql)
 	}
 }
 
-void MySQLGenerator::addSelInBuffers(const SelectElements* _select)
+void MySQLGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements)
 {
 	String langType, myType;
 	int index = 0;
 	ctemplate::TemplateDictionary *subDict;
 
-	foreach(SQLElement field, _select->input)
+	foreach(SQLElement field, _elements->input)
 	{
 		std::stringstream decl, init;
 
@@ -261,7 +261,7 @@ void MySQLGenerator::addSelInBuffers(const SelectElements* _select)
 
 		if ( index == 0 )
 		{
-			decl << "MYSQL_BIND selInBuffer[" << _select->input.size() << "];\n\n";
+			decl << "MYSQL_BIND selInBuffer[" << _elements->input.size() << "];\n\n";
 			init << "memset(selInBuffer, 0, sizeof(selInBuffer));\n\n";
 		}
 
@@ -286,13 +286,13 @@ void MySQLGenerator::addSelInBuffers(const SelectElements* _select)
 	}
 }
 
-void MySQLGenerator::addSelOutBuffers(const SelectElements* _select)
+void MySQLGenerator::addOutBuffers(SQLStatementTypes _type, const AbstractIOElements* _elements)
 {
 	String langType, myType;
 	int index = 0;
 	ctemplate::TemplateDictionary *subDict;
 
-	foreach(SQLElement field, _select->output)
+	foreach(SQLElement field, _elements->output)
 	{
 		std::stringstream init, decl;
 
@@ -300,7 +300,7 @@ void MySQLGenerator::addSelOutBuffers(const SelectElements* _select)
 
 		if ( index == 0 )
 		{
-			decl << "MYSQL_BIND selOutBuffer[" << _select->output.size() << "];\n\n";
+			decl << "MYSQL_BIND selOutBuffer[" << _elements->output.size() << "];\n\n";
 			init << "memset(selOutBuffer, 0, sizeof(selOutBuffer));\n\n";
 		}
 

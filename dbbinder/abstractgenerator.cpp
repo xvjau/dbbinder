@@ -1043,8 +1043,8 @@ void AbstractGenerator::loadDictionary()
 
 			if ( needIOBuffers() )
 			{
-				addSelInBuffers( &it->second->select );
-				addSelOutBuffers( &it->second->select );
+				addInBuffers( sstSelect, &it->second->select );
+				addOutBuffers( sstSelect, &it->second->select );
 			}
 		}
 
@@ -1074,6 +1074,11 @@ void AbstractGenerator::loadDictionary()
 			}
 			if ( subDict )
 				subDict->SetValue( tpl_UPD_IN_FIELD_COMMA, "" );
+
+			if ( needIOBuffers() )
+			{
+				addInBuffers( sstUpdate, &it->second->update );
+			}
 		}
 
 		// ----- INSERT -----
@@ -1102,6 +1107,11 @@ void AbstractGenerator::loadDictionary()
 			}
 			if ( subDict )
 				subDict->SetValue( tpl_INS_IN_FIELD_COMMA, "" );
+
+			if ( needIOBuffers() )
+			{
+				addInBuffers( sstInsert, &it->second->insert );
+			}
 		}
 
 		// ----- DELETE -----
@@ -1130,6 +1140,11 @@ void AbstractGenerator::loadDictionary()
 			}
 			if ( subDict )
 				subDict->SetValue( tpl_DEL_IN_FIELD_COMMA, "" );
+
+			if ( needIOBuffers() )
+			{
+				addInBuffers( sstDelete, &it->second->del );
+			}
 		}
 	}
 }
@@ -1139,11 +1154,11 @@ bool AbstractGenerator::needIOBuffers() const
 	return false;
 }
 
-void AbstractGenerator::addSelInBuffers(const SelectElements* _select)
+void AbstractGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements)
 {
 }
 
-void AbstractGenerator::addSelOutBuffers(const SelectElements* _select)
+void AbstractGenerator::addOutBuffers(SQLStatementTypes _type, const AbstractIOElements* _elements)
 {
 }
 

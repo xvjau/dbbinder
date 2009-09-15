@@ -47,8 +47,8 @@ class FirebirdGenerator : public AbstractGenerator
 
 		virtual bool   needIOBuffers() const;
 
-		virtual void addSelInBuffers(const SelectElements* _select);
-		virtual void addSelOutBuffers(const SelectElements* _select);
+		virtual void addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements);
+		virtual void addOutBuffers(SQLStatementTypes _type, const AbstractIOElements* _elements);
 
 };
 
