@@ -103,12 +103,12 @@ void getFirebirdTypes( SQLTypes _type, String &_lang, String &_fb )
 			FATAL("BUG BUG BUG! " << __FILE__ << __LINE__);
 		case stInt:
 		case stUInt:
-			_lang = "int";
+			_lang = "ISC_LONG";
 			_fb = "SQL_LONG";
 			break;
 		case stInt64:
 		case stUInt64:
-			_lang = "long long int";
+			_lang = "ISC_INT64";
 			_fb = "SQL_INT64";
 			break;
 		case stFloat:
@@ -118,23 +118,23 @@ void getFirebirdTypes( SQLTypes _type, String &_lang, String &_fb )
 			break;
 		case stDouble:
 		case stUDouble:
-			_lang = "int";
+			_lang = "double";
 			_fb = "SQL_DOUBLE";
 			break;
 		case stTimeStamp:
-			_lang = "int";
+			_lang = "ISC_TIMESTAMP";
 			_fb = "SQL_LONG";
 			break;
 		case stTime:
-			_lang = "int";
+			_lang = "ISC_TIME";
 			_fb = "SQL_LONG";
 			break;
 		case stDate:
-			_lang = "char";
+			_lang = "ISC_DATE";
 			_fb = "SQL_LONG";
 			break;
 		case stText:
-			_lang = "char";
+			_lang = "ISC_SCHAR";
 			_fb = "SQL_VARYING";
 			break;
 	}
@@ -219,13 +219,16 @@ String FirebirdGenerator::getBind(SQLStatementTypes _type, const ListElements::i
 
 	std::stringstream str;
 
-	str << "{\n";
+	if ( _index == 0 )
+	{
+		str << "ISC_SHORT FB__ZERO__ = 0;\n\n";
+	}
+
 	str << var << ".sqltype = " << type << " + 1;\n";
 
 	if ( _item->type != stText )
 	{
-		str << var << ".sqldata = reinterpret_cast<ISC_SCHAR*>(malloc(sizeof(" << size << ")));\n";
-		str << "*(reinterpret_cast<" << size << "*>( " << var << ".sqldata )) = _" << _item->name << ";\n";
+		str << var << ".sqldata = reinterpret_cast<ISC_SCHAR*>(&(_" << _item->name << "));\n";
 	}
 	else
 	{
@@ -234,9 +237,7 @@ String FirebirdGenerator::getBind(SQLStatementTypes _type, const ListElements::i
 		str << "strcpy(" << var << ".sqldata + sizeof(short), _" << _item->name << ");\n";
 	}
 
-	str << var << ".sqlind = reinterpret_cast<ISC_SHORT*>(malloc(sizeof(ISC_SHORT)));\n";
-	str << "*(reinterpret_cast<ISC_SHORT*>(" << var << ".sqlind )) = 0;\n";
-	str << "};";
+	str << var << ".sqlind = &(FB__ZERO__);\n";
 
 	return str.str();
 }
