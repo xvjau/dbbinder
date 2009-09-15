@@ -132,6 +132,7 @@ void parseSQL(const String& _fileName)
 				file.getline(buffer, 4096);
 				line++;
 
+				#warning This should be sent to generator->db server to determine the 'corret' statement type.
 				if ( strncmp(buffer, "--", 2 ) != 0 )
 				{
 					char *c = buffer;
@@ -139,28 +140,29 @@ void parseSQL(const String& _fileName)
 					{
 						if ( !isblank( *c ) )
 						{
-							if ( strcasecmp( c, "select" ) == 0 )
+							if ( strncasecmp( c, "select", 6 ) == 0 && ( !c[6] || isspace( c[6] )))
 							{
 								elements = new SelectElements;
 								statementType = sstSelect;
 							}
+							else if ( strncasecmp( c, "update", 6 ) == 0 && ( !c[6] || isspace( c[6] )))
+							{
+								elements = new UpdateElements;
+								statementType = sstUpdate;
+							}
+							else if ( strncasecmp( c, "insert", 6 ) == 0 && ( !c[6] || isspace( c[6] )))
+							{
+								elements = new InsertElements;
+								statementType = sstInsert;
+							}
+							else if ( strncasecmp( c, "delete", 6 ) == 0 && ( !c[6] || isspace( c[6] )))
+							{
+								elements = new DeleteElements;
+								statementType = sstDelete;
+							}
 							else
 							{
-								if ( strcasecmp( c, "update" ) == 0 )
-								{
-									elements = new UpdateElements;
-									statementType = sstUpdate;
-								}
-								else if ( strcasecmp( c, "insert" ) == 0 )
-								{
-									elements = new InsertElements;
-									statementType = sstInsert;
-								}
-								else
-								{
-									elements = new DeleteElements;
-									statementType = sstDelete;
-								}
+								FATAL(fileName << ':' << line << ": unknown statement type: '" << c << "'");
 							}
 
 							file.seekg(file.gcount() * -1, std::ios_base::cur);
