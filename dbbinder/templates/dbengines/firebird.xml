@@ -5,9 +5,10 @@
 		</includes>
 		<global_functions>
 			<function>
-				/* #ifndef __DBBINDER_CUSTOM_FBERRORS
-
-				extern __thread ISC_STATUS err[32];
+				#ifndef __DBBINDER_CUSTOM_FBERRORS
+			</function>
+			<function>
+				__thread ISC_STATUS err[32];
 
 				static void printError()
 				{
@@ -27,7 +28,9 @@
 					if ( err[0] == 1 &amp;&amp; err[1] )
 						printError();
 				};
-				#endif */
+			</function>
+			<function>
+				#endif // __DBBINDER_CUSTOM_FBERRORS
 			</function>
 			<function>
 				template&lt;typename P, typename T&gt; void add_dbd_param(P *&amp;_dpb, T _param)
