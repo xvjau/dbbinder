@@ -197,7 +197,7 @@ class {{CLASSNAME}}
 		static const int s_deleteSQL_len;
 		{{DBENGINE_STATEMENT_TYPE}}	m_deleteStmt;
 	public:
-		void delete({{#DEL_IN_FIELDS}}{{DEL_IN_FIELD_TYPE}} _{{DEL_IN_FIELD_NAME}}{{DEL_IN_FIELD_COMMA}}{{/DEL_IN_FIELDS}});
+		void del({{#DEL_IN_FIELDS}}{{DEL_IN_FIELD_TYPE}} _{{DEL_IN_FIELD_NAME}}{{DEL_IN_FIELD_COMMA}}{{/DEL_IN_FIELDS}});
 {{/DELETE}}
 };
 {{/CLASS}}

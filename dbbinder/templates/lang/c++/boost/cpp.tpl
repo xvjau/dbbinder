@@ -241,7 +241,7 @@ void {{CLASSNAME}}::insert(
 }
 {{/INSERT}}
 {{#DELETE}}
-void {{CLASSNAME}}::delete(
+void {{CLASSNAME}}::del(
 			{{#DEL_IN_FIELDS}}{{DEL_IN_FIELD_TYPE}} _{{DEL_IN_FIELD_NAME}}{{DEL_IN_FIELD_COMMA}}
 			{{/DEL_IN_FIELDS}})
 {
