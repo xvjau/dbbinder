@@ -207,6 +207,8 @@ bool {{CLASSNAME}}::fetchRow()
 }
 {{/SELECT}}
 {{#UPDATE}}
+const int {{CLASSNAME}}::s_updateParamCount = {{UPDATE_PARAM_COUNT}};
+
 void {{CLASSNAME}}::update(
 			{{#UPD_IN_FIELDS}}{{UPD_IN_FIELD_TYPE}} _{{UPD_IN_FIELD_NAME}}{{UPD_IN_FIELD_COMMA}}
 			{{/UPD_IN_FIELDS}})
@@ -226,6 +228,8 @@ void {{CLASSNAME}}::update(
 }
 {{/UPDATE}}
 {{#INSERT}}
+const int {{CLASSNAME}}::s_insertParamCount = {{INSERT_PARAM_COUNT}};
+
 void {{CLASSNAME}}::insert(
 			{{#INS_IN_FIELDS}}{{INS_IN_FIELD_TYPE}} _{{INS_IN_FIELD_NAME}}{{INS_IN_FIELD_COMMA}}
 			{{/INS_IN_FIELDS}})
@@ -241,6 +245,8 @@ void {{CLASSNAME}}::insert(
 }
 {{/INSERT}}
 {{#DELETE}}
+const int {{CLASSNAME}}::s_deleteParamCount = {{DELETE_PARAM_COUNT}};
+
 void {{CLASSNAME}}::del(
 			{{#DEL_IN_FIELDS}}{{DEL_IN_FIELD_TYPE}} _{{DEL_IN_FIELD_NAME}}{{DEL_IN_FIELD_COMMA}}
 			{{/DEL_IN_FIELDS}})

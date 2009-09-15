@@ -179,6 +179,7 @@ class {{CLASSNAME}}
 	private:
 		static const char* const s_updateSQL;
 		static const int s_updateSQL_len;
+		static const int s_updateParamCount;
 		{{DBENGINE_STATEMENT_TYPE}}	m_updateStmt;
 	public:
 		void update({{#UPD_IN_FIELDS}}{{UPD_IN_FIELD_TYPE}} _{{UPD_IN_FIELD_NAME}}{{UPD_IN_FIELD_COMMA}}{{/UPD_IN_FIELDS}});
@@ -187,6 +188,7 @@ class {{CLASSNAME}}
 	private:
 		static const char* const s_insertSQL;
 		static const int s_insertSQL_len;
+		static const int s_insertParamCount;
 		{{DBENGINE_STATEMENT_TYPE}}	m_insertStmt;
 	public:
 		void insert({{#INS_IN_FIELDS}}{{INS_IN_FIELD_TYPE}} _{{INS_IN_FIELD_NAME}}{{INS_IN_FIELD_COMMA}}{{/INS_IN_FIELDS}});
@@ -195,6 +197,7 @@ class {{CLASSNAME}}
 	private:
 		static const char* const s_deleteSQL;
 		static const int s_deleteSQL_len;
+		static const int s_deleteParamCount;
 		{{DBENGINE_STATEMENT_TYPE}}	m_deleteStmt;
 	public:
 		void del({{#DEL_IN_FIELDS}}{{DEL_IN_FIELD_TYPE}} _{{DEL_IN_FIELD_NAME}}{{DEL_IN_FIELD_COMMA}}{{/DEL_IN_FIELDS}});

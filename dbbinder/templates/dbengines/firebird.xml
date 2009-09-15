@@ -105,7 +105,7 @@
 				checkFBError();
 			</prepare>
 			<execute>
-				isc_dsql_execute(err, &amp;m_tr, &amp;m_selectStmt, s_selectParamCount, m_selInBuffer);
+				isc_dsql_execute(err, &amp;m_tr, &amp;m_selectStmt, s_selectParamCount, inBuffer);
 				checkFBError();
 			</execute>
 			<fetch>
