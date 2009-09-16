@@ -37,6 +37,10 @@ const int {{CLASSNAME}}::s_updateSQL_len = {{UPDATE_SQL_LEN}};
 const char * const {{CLASSNAME}}::s_insertSQL = {{INSERT_SQL}};
 const int {{CLASSNAME}}::s_insertSQL_len = {{INSERT_SQL_LEN}};
 {{/INSERT}}
+{{#DELETE}}
+const char * const {{CLASSNAME}}::s_deleteSQL = {{DELETE_SQL}};
+const int {{CLASSNAME}}::s_deleteSQL_len = {{DELETE_SQL_LEN}};
+{{/DELETE}}
 
 {{CLASSNAME}}::{{CLASSNAME}}({{DBENGINE_CONNECTION_TYPE}} _conn):
 		m_conn( _conn )
@@ -80,6 +84,13 @@ const int {{CLASSNAME}}::s_insertSQL_len = {{INSERT_SQL_LEN}};
 	{{DBENGINE_CREATE_INSERT}}
 	{{DBENGINE_PREPARE_INSERT}}
 {{/INSERT}}
+{{#DELETE}}
+	{{#DEL_IN_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
+	{{/DEL_IN_FIELDS_BUFFERS}}
+
+	{{DBENGINE_CREATE_DELETE}}
+	{{DBENGINE_PREPARE_DELETE}}
+{{/DELETE}}
 }
 
 {{CLASSNAME}}::~{{CLASSNAME}}()

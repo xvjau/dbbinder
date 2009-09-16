@@ -137,6 +137,17 @@ String SQLiteGenerator::getBind( SQLStatementTypes _type, const ListElements::it
 String SQLiteGenerator::getReadValue( SQLStatementTypes _type, const ListElements::iterator & _item, int _index )
 {
 	// TODO Abstract this
+	String typeName;
+	switch( _type )
+	{
+		case sstSelect: typeName = "select"; break;
+		case sstInsert: typeName = "insert"; break;
+		case sstUpdate: typeName = "update"; break;
+		case sstDelete: typeName = "delete"; break;
+		default:
+			FATAL("Uknown type!");
+	}
+
 	std::stringstream str;
 
 	switch ( _item->type )
@@ -151,7 +162,7 @@ String SQLiteGenerator::getReadValue( SQLStatementTypes _type, const ListElement
 		case stInt64:
 		case stUInt64:
 		{
-			str << "m_" << _item->name << " = sqlite3_column_int(_parent->m_selectStmt, " << _index << ");";
+			str << "m_" << _item->name << " = sqlite3_column_int(_parent->m_" << typeName << "Stmt, " << _index << ");";
 			break;
 		}
 
@@ -160,7 +171,7 @@ String SQLiteGenerator::getReadValue( SQLStatementTypes _type, const ListElement
 		case stDouble:
 		case stUDouble:
 		{
-			str << "m_" << _item->name << " = sqlite3_column_double(_parent->m_selectStmt, " << _index << ");";
+			str << "m_" << _item->name << " = sqlite3_column_double(_parent->m_" << typeName << "Stmt, " << _index << ");";
 			break;
 		}
 
@@ -169,7 +180,7 @@ String SQLiteGenerator::getReadValue( SQLStatementTypes _type, const ListElement
 		case stDate:
 		case stText:
 		{
-			str << "m_" << _item->name << " = reinterpret_cast<const char*>( sqlite3_column_text(_parent->m_selectStmt, " << _index << ") );";
+			str << "m_" << _item->name << " = reinterpret_cast<const char*>( sqlite3_column_text(_parent->m_" << typeName << "Stmt, " << _index << ") );";
 			break;
 		}
 	}

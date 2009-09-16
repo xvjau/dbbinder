@@ -175,6 +175,12 @@ const char * const tpl_DBENGINE_DESTROY_INSERT = "DBENGINE_DESTROY_INSERT";
 const char * const tpl_DBENGINE_RESET_INSERT = "DBENGINE_RESET_INSERT";
 const char * const tpl_DBENGINE_EXECUTE_INSERT = "DBENGINE_EXECUTE_INSERT";
 
+const char * const tpl_DBENGINE_CREATE_DELETE = "DBENGINE_CREATE_DELETE";
+const char * const tpl_DBENGINE_PREPARE_DELETE = "DBENGINE_PREPARE_DELETE";
+const char * const tpl_DBENGINE_DESTROY_DELETE = "DBENGINE_DESTROY_DELETE";
+const char * const tpl_DBENGINE_RESET_DELETE = "DBENGINE_RESET_DELETE";
+const char * const tpl_DBENGINE_EXECUTE_DELETE = "DBENGINE_EXECUTE_DELETE";
+
 SQLTypes typeNameToSQLType(String _name)
 {
 	if ( _name.length() )
@@ -821,6 +827,25 @@ bool AbstractGenerator::loadXMLDatabase(const String& _path)
 						elem = node->FirstChildElement("reset", false);
 						if ( elem ) m_dict->SetValue(tpl_DBENGINE_RESET_INSERT, elem->GetText(false));
 					}
+
+					node = 0;
+					while( node = lang->IterateChildren( "delete", node ))
+					{
+						elem = node->FirstChildElement("create", false);
+						if ( elem ) m_dict->SetValue(tpl_DBENGINE_CREATE_DELETE, elem->GetText(false));
+
+						elem = node->FirstChildElement("destroy", false);
+						if ( elem ) m_dict->SetValue(tpl_DBENGINE_DESTROY_DELETE, elem->GetText(false));
+
+						elem = node->FirstChildElement("prepare", false);
+						if ( elem ) m_dict->SetValue(tpl_DBENGINE_PREPARE_DELETE, elem->GetText(false));
+
+						elem = node->FirstChildElement("execute", false);
+						if ( elem ) m_dict->SetValue(tpl_DBENGINE_EXECUTE_DELETE, elem->GetText(false));
+
+						elem = node->FirstChildElement("reset", false);
+						if ( elem ) m_dict->SetValue(tpl_DBENGINE_RESET_DELETE, elem->GetText(false));
+					}
 				}
 			}
 		}
@@ -1136,7 +1161,7 @@ void AbstractGenerator::loadDictionary()
 				subDict->SetValue( tpl_DEL_IN_FIELD_NAME, elit->name );
 				subDict->SetValue( tpl_DEL_IN_FIELD_COMMA, "," );
 				subDict->SetValue( tpl_DEL_IN_FIELD_INIT, getInit( elit->type ));
-				subDict->SetValue( tpl_DEL_IN_FIELD_BIND, getBind( sstInsert, elit, index ));
+				subDict->SetValue( tpl_DEL_IN_FIELD_BIND, getBind( sstDelete, elit, index ));
 			}
 			if ( subDict )
 				subDict->SetValue( tpl_DEL_IN_FIELD_COMMA, "" );
