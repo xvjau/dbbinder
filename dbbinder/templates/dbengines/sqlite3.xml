@@ -112,5 +112,29 @@
 				SQLCHECK( sqlite3_clear_bindings(m_insertStmt) );
 			</reset>
 		</insert>
+		<delete>
+			<create>
+			</create>
+			<destroy>
+				sqlite3_finalize( m_deleteStmt );
+			</destroy>
+			<prepare>
+				{
+					const char *tail;
+					SQLCHECK( sqlite3_prepare(m_conn, s_deleteSQL, s_deleteSQL_len, &amp;m_deleteStmt,  &amp;tail ));
+				}
+			</prepare>
+			<execute>
+				if( sqlite3_step( m_deleteStmt ) != SQLITE_DONE )
+				{
+					std::cerr &lt;&lt; basename((char*)__FILE__) &lt;&lt; ':' &lt;&lt; __LINE__ &lt;&lt; " Delete SQL error: " &lt;&lt; sqlite3_errmsg(m_conn) &lt;&lt; std::endl;
+					assert(false);
+				};
+			</execute>
+			<reset>
+				SQLCHECK( sqlite3_reset(m_deleteStmt) );
+				SQLCHECK( sqlite3_clear_bindings(m_deleteStmt) );
+			</reset>
+		</delete>
 	</lang>
 </xml>

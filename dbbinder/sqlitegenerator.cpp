@@ -74,6 +74,7 @@ String SQLiteGenerator::getBind( SQLStatementTypes _type, const ListElements::it
 		case sstSelect: typeName = "select"; break;
 		case sstInsert: typeName = "insert"; break;
 		case sstUpdate: typeName = "update"; break;
+		case sstDelete: typeName = "delete"; break;
 		default:
 			FATAL("Uknown type!");
 	}
