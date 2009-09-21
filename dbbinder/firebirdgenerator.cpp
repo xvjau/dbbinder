@@ -327,10 +327,14 @@ void FirebirdGenerator::addSelect(SelectElements _elements)
 	if ( buffOutput->sqld > buffOutput->sqln )
 	{
 		// Resize and re-describe
+		int num = buffOutput->sqld;
 		buffOutput = (XSQLDA *)realloc( buffOutput, XSQLDA_LENGTH( buffOutput->sqld ) );
-		buffOutput->sqln = buffOutput->sqld;
 		memset(buffOutput, 0, XSQLDA_LENGTH( buffOutput->sqld ));
+		buffOutput->version = SQLDA_VERSION1;
+		buffOutput->sqln = num;
+
 		isc_dsql_describe( err, &stmt, SQLDA_VERSION1, buffOutput );
+		checkFBError( err );
 	}
 
 	XSQLVAR *p = buffOutput->sqlvar;
