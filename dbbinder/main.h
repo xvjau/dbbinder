@@ -30,7 +30,7 @@
 #include <list>
 #include <map>
 
-#include <ctemplate/template.h>
+#include <template.h>
 
 namespace DBBinder
 {

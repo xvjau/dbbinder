@@ -43,11 +43,20 @@ endif()
 ##########################  google-ctemplate ##########################
 
 
-find_path( CTEMPLATE_INC 'ctemplate/template.h' )
-if(CEMPLATE_INC-NOTFOUND)
+find_file( CTEMPLATE_INC "ctemplate/template.h" )
+if( NOT CTEMPLATE_INC )
+	find_file( CTEMPLATE_INC "google/template.h" )
+	add_definitions(-Dtemplatens=google)
+else()
+	add_definitions(-Dtemplatens=ctemplate)
+endif()
+
+if( NOT CTEMPLATE_INC )
 	message(FATAL_ERROR "google-ctemplate (includes) not found!")
 else()
-	include_directories(${CTEMPLATE_INC}/..)
+	get_filename_component( CTEMPLATE_INC ${CTEMPLATE_INC} PATH )
+	message(STATUS "Found ctemplate in: ${CTEMPLATE_INC}")
+	include_directories(${CTEMPLATE_INC})
 endif()
 
 find_library( CTEMPLATE_LIB ctemplate_nothreads )
