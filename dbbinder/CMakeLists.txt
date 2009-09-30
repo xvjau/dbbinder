@@ -14,6 +14,10 @@ project(dbbinder)
 
 add_definitions(-fvisibility=hidden -Wall -Wno-parentheses)
 
+if(APPLE)
+	add_definitions(-m64)
+endif()
+
 add_subdirectory(./TinyXML)
 
 add_definitions(-DTIXML_USE_TICPP)
@@ -132,9 +136,9 @@ if(ENABLE_FIREBIRD)
 		list(APPEND extra_libs ${FIREBIRD_LIBS})
 
 	else(FIREBIRD_CONFIG)
-		find_file(FIREBIRD_INCLUDE ibase.h PATH /usr/include /usr/local/include)
+		find_file(FIREBIRD_INCLUDE ibase.h PATH /usr/include /usr/local/include /Library/Frameworks/Firebird.framework/)
 
-		find_library(FIREBIRD_LIB fbclient)
+		find_library(FIREBIRD_LIB fbclient PATHS /Library/Frameworks/Firebird.framework/Libraries)
 		set(FIREBIRD_LIB_NAME fbclient)
 
 		if (NOT FIREBIRD_LIB)
