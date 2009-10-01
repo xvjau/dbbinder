@@ -12,16 +12,6 @@
 #include <string.h>
 #include <libgen.h>
 
-#ifdef DEBUG
-#define ASSERT(cond) { assert(cond); }
-#define ASSERT_MSG(cond, msg) { if (!(cond)) { std::cerr << basename((char*)__FILE__) << ":" << __LINE__ << " WARNING: " << msg << std::endl; assert(cond); }}
-#define ASSERT_MSG_FILE_LINE(cond, msg, file, line) { if (!(cond)) { std::cerr << file << "." << line << " WARNING: " << msg << std::endl; assert(cond); }}
-#else
-#define ASSERT(cond)
-#define ASSERT_MSG(cond, msg) { if (!(cond)) { std::cerr << " WARNING: " << msg << std::endl; }}
-#define ASSERT_MSG_FILE_LINE(cond, msg, file, line) { if (!(cond)) { std::cerr << " WARNING: " << msg << std::endl; }}
-#endif
-
 {{#DBENGINE_INCLUDES}}{{DBENGINE_INCLUDE_NAME}}
 {{/DBENGINE_INCLUDES}}
 {{#EXTRA_HEADERS}}{{EXTRA_HEADERS_HEADER}}
@@ -33,6 +23,12 @@
 
 {{#EXTRA_HEADERS}}{{EXTRA_HEADERS_TYPE}}
 {{/EXTRA_HEADERS}}
+
+#ifndef ASSERT
+#define ASSERT(cond)
+#define ASSERT_MSG(cond, msg) { if (!(cond)) { std::cerr << " WARNING: " << msg << std::endl; }}
+#define ASSERT_MSG_FILE_LINE(cond, msg, file, line) { if (!(cond)) { std::cerr << " WARNING: " << msg << std::endl; }}
+#endif
 
 {{#CLASS}}
 
