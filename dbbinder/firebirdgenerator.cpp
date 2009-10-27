@@ -51,12 +51,12 @@ inline bool checkFBError( const ISC_STATUS *_status )
 		while ( fb_interpret( str, 512, &_status ) )
 		{
 			std::cerr << str << std::endl;
-			#ifdef DEBUG
-			assert(false);
-			#else
-			abort();
-			#endif
 		}
+#ifdef DEBUG
+		assert(false);
+#else
+		abort();
+#endif
 		return true;
 	}
 	return false;
