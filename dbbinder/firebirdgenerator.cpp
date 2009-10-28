@@ -271,10 +271,12 @@ String FirebirdGenerator::getReadValue(SQLStatementTypes _type, const ListElemen
 {
 	std::stringstream str;
 
+	str << "if ( _parent->m_selOutBuffer->sqlvar[" << _index << "].sqlind != 0 )\n\t";
+
 	if ( _item->type == stText )
 		str << "m_" << _item->name << " = _parent->m_selOutBuffer->sqlvar[" << _index << "].sqldata + sizeof(short);";
 	else
-		str << "m_" << _item->name << " = *(_parent->m_selOutBuffer->sqlvar[" << _index << "].sqldata);";
+		str << "m_" << _item->name << " = *(reinterpret_cast<ISC_LONG*>(_parent->m_selOutBuffer->sqlvar[" << _index << "].sqldata));";
 
 	return str.str();
 }
