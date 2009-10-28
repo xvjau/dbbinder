@@ -24,10 +24,12 @@
 {{#EXTRA_HEADERS}}{{EXTRA_HEADERS_TYPE}}
 {{/EXTRA_HEADERS}}
 
-#ifndef ASSERT
-#define ASSERT(cond)
-#define ASSERT_MSG(cond, msg) { if (!(cond)) { std::cerr << " WARNING: " << msg << std::endl; }}
-#define ASSERT_MSG_FILE_LINE(cond, msg, file, line) { if (!(cond)) { std::cerr << " WARNING: " << msg << std::endl; }}
+#ifndef ASSERT_MSG
+	#ifdef NDEBUG
+		#define ASSERT_MSG(cond, msg) { if (!(cond)) { std::cerr << " WARNING: " << msg << std::endl; assert(cond); }}
+	#else
+		#define ASSERT_MSG(cond, msg) { if (!(cond)) { std::cerr << __FILE__ << ':' << __LINE__ << " WARNING: " << msg << std::endl; assert(cond); }}
+	#endif
 #endif
 
 {{#CLASS}}

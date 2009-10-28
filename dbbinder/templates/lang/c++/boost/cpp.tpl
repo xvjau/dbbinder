@@ -52,6 +52,15 @@ const int {{CLASSNAME}}::s_deleteSQL_len = {{DELETE_SQL_LEN}};
 		,m_iterator(0)
 		,m_selectStmt({{DBENGINE_STATEMENT_NULL}})
 {{/SELECT}}
+{{#UPDATE}}
+		,m_updateStmt({{DBENGINE_STATEMENT_NULL}})
+{{/UPDATE}}
+{{#INSERT}}
+		,m_insertStmt({{DBENGINE_STATEMENT_NULL}})
+{{/INSERT}}
+{{#DELETE}}
+		,m_deleteStmt({{DBENGINE_STATEMENT_NULL}})
+{{/DELETE}}
 {
 	ASSERT_MSG(m_conn, "Connection must not be null!");
 
@@ -147,9 +156,9 @@ const int {{CLASSNAME}}::s_selectParamCount = {{SELECT_PARAM_COUNT}};
 {{#DBENGINE_TRANSACTION}}
 		m_tr( {{DBENGINE_TRANSACTION_NULL}} ),
 {{/DBENGINE_TRANSACTION}}
-		m_selectIsActive( false ),
 		m_iterator( 0 ),
-		m_selectStmt({{DBENGINE_STATEMENT_NULL}})
+		m_selectStmt({{DBENGINE_STATEMENT_NULL}}),
+		m_selectIsActive( false )
 {
 	ASSERT_MSG(m_conn, "Connection must not be null!");
 

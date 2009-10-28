@@ -122,9 +122,60 @@
 					default:
 						checkFBError();
 				}
+
+				return false;
 			</fetch>
 			<reset>
 			</reset>
 		</select>
+
+
+
+		<update>
+			<create>
+				isc_dsql_alloc_statement2( err, &amp;m_conn, &amp;m_updateStmt );
+				checkFBError();
+			</create>
+			<destroy>
+				isc_dsql_free_statement( err, &amp;m_updateStmt, DSQL_drop );
+				checkFBError();
+			</destroy>
+			<prepare>
+				isc_dsql_prepare( err, &amp;m_tr, &amp;m_updateStmt, s_updateSQL_len, const_cast&lt;char*&gt;(s_updateSQL), 3, NULL );
+				checkFBError();
+			</prepare>
+			<execute>
+				isc_dsql_execute(err, &amp;m_tr, &amp;m_updateStmt, s_updateParamCount, inBuffer);
+				checkFBError();
+			</execute>
+			<reset>
+			</reset>
+		</update>
+
+		<insert>
+			<create>
+				isc_dsql_alloc_statement2( err, &amp;m_conn, &amp;m_insertStmt );
+				checkFBError();
+			</create>
+			<destroy>
+				isc_dsql_free_statement( err, &amp;m_insertStmt, DSQL_drop );
+				checkFBError();
+			</destroy>
+			<prepare>
+				isc_dsql_prepare( err, &amp;m_tr, &amp;m_insertStmt, s_insertSQL_len, const_cast&lt;char*&gt;(s_insertSQL), 3, NULL );
+				checkFBError();
+			</prepare>
+			<execute>
+				isc_dsql_execute(err, &amp;m_tr, &amp;m_insertStmt, s_insertParamCount, inBuffer);
+				checkFBError();
+			</execute>
+			<reset>
+			</reset>
+		</insert>
+
+
+
+
+
 	</lang>
 </xml>
