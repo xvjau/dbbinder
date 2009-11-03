@@ -365,11 +365,39 @@ bool FirebirdGenerator::needIOBuffers() const
 
 void FirebirdGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements)
 {
-	/*
-		Nothing to see here.. please move on to:
-		FirebirdGenerator::getBind
-			-> if ( _index == 0 )
-	*/
+	if ( _elements->input.empty() )
+	{
+		templatens::TemplateDictionary *subDict;
+
+		String type;
+		switch ( _type )
+		{
+			case sstSelect:
+				subDict = m_dict->AddSectionDictionary(tpl_SEL_IN_FIELDS_BUFFERS);
+				break;
+			case sstInsert:
+				subDict = m_dict->AddSectionDictionary(tpl_INS_IN_FIELDS_BUFFERS);
+				break;
+			case sstUpdate:
+				subDict = m_dict->AddSectionDictionary(tpl_UPD_IN_FIELDS_BUFFERS);
+				break;
+			case sstDelete:
+				subDict = m_dict->AddSectionDictionary(tpl_DEL_IN_FIELDS_BUFFERS);
+				break;
+			default:
+				FATAL(__FILE__  << ':' << __LINE__ << ": Invalide statement type.");
+		};
+
+		subDict->SetValue(tpl_BUFFER_ALLOC, "XSQLDA* inBuffer = 0;" );
+	}
+	else
+	{
+		/*
+			Nothing to see here.. please move on to:
+			FirebirdGenerator::getBind
+				-> if ( _index == 0 )
+		*/
+	}
 }
 
 void FirebirdGenerator::addOutBuffers(SQLStatementTypes _type, const AbstractIOElements* _elements)
