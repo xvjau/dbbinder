@@ -284,7 +284,7 @@ String FirebirdGenerator::getReadValue(SQLStatementTypes _type, const ListElemen
 String FirebirdGenerator::getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
 {
 	// TODO Abstract this
-	String result("*(m_selOutBuffer->sqlvar[");
+	String result("( *(_parent->m_selOutBuffer->sqlvar[");
 
 	{
 		char buff[7] = {0,0,0,0,0,0,0};
@@ -292,7 +292,7 @@ String FirebirdGenerator::getIsNull(SQLStatementTypes _type, const ListElements:
 		result += buff;
 	}
 
-	result += "].sqlind) == -1";
+	result += "].sqlind) == -1 )";
 
 	return result;
 }
