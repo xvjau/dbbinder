@@ -100,14 +100,23 @@ class {{CLASSNAME}}
 
 				_row_type(const {{CLASSNAME}} *_parent)
 				{
-					{{#SEL_OUT_FIELDS}}{{SEL_OUT_FIELD_GETVALUE}}{{/SEL_OUT_FIELDS}}
+					{{#SEL_OUT_FIELDS}}{{SEL_OUT_FIELD_GETVALUE}}
+					m_isNull{{SEL_OUT_FIELD_NAME}} = {{SEL_OUT_FIELD_ISNULL}};
+					{{/SEL_OUT_FIELDS}}
 				}
 
-				{{#SEL_OUT_FIELDS}}{{SEL_OUT_FIELD_TYPE}} m_{{SEL_OUT_FIELD_NAME}};{{/SEL_OUT_FIELDS}}
+				{{#SEL_OUT_FIELDS}}{{SEL_OUT_FIELD_TYPE}} m_{{SEL_OUT_FIELD_NAME}};
+				bool m_isNull{{SEL_OUT_FIELD_NAME}};
+				{{/SEL_OUT_FIELDS}}
 			public:
 				{{#SEL_OUT_FIELDS}}{{SEL_OUT_FIELD_TYPE}} get{{SEL_OUT_FIELD_NAME}}() const
 				{
 					return m_{{SEL_OUT_FIELD_NAME}};
+				}
+
+				bool isNull{{SEL_OUT_FIELD_NAME}}() const
+				{
+					return m_isNull{{SEL_OUT_FIELD_NAME}};
 				}
 				{{/SEL_OUT_FIELDS}}
 		};
