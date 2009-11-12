@@ -1,11 +1,4 @@
-if(CMAKE_BUILD_TYPE MATCHES "Debug")
-	find_program(DBBINDER_EXECUTABLE NAMES dbbinder
-					PATHS /Users/gianni/Projects/workspace/dbbinder/ /home/gianni/Projetos/dbbinder
-					NO_DEFAULT_PATH
-					)
-else()
-	find_program(DBBINDER_EXECUTABLE NAMES dbbinder)
-endif()
+find_program(DBBINDER_EXECUTABLE NAMES dbbinder)
 
 if (NOT DBBINDER_EXECUTABLE)
 	message(FATAL_ERROR "dbbinder executable not found")
