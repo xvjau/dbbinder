@@ -35,6 +35,20 @@
 namespace DBBinder
 {
 
+/*
+	Since Google decided to change the namespace between releases,
+	these typedefs will put everything we need in the DBBinder namespace
+*/
+#ifdef CTEMPLATE_TEMPLATE_H_
+typedef ctemplate::TemplateDictionary TemplateDictionary;
+typedef ctemplate::Template Template;
+#define DO_NOT_STRIP ctemplate::DO_NOT_STRIP
+#else
+typedef google::TemplateDictionary TemplateDictionary;
+typedef google::Template Template;
+#define DO_NOT_STRIP google::DO_NOT_STRIP
+#endif
+
 typedef std::string String;
 typedef std::list<String> ListString;
 

@@ -546,7 +546,7 @@ void AbstractGenerator::generate()
 
 			m_dict->SetValue(tpl_FILENAME, it->dest);
 
-			templatens::Template *tmpl = templatens::Template::GetTemplate(it->tmpl, templatens::DO_NOT_STRIP);
+			Template *tmpl = Template::GetTemplate(it->tmpl, DO_NOT_STRIP);
 
 			std::ofstream out( it->dest.c_str(), std::ios_base::trunc );
 			tmpl->Expand(&str, m_dict);
@@ -569,7 +569,7 @@ void AbstractGenerator::generate()
 
 void AbstractGenerator::loadDatabase()
 {
-	templatens::TemplateDictionary *subDict = 0;
+	TemplateDictionary *subDict = 0;
 	_dbParams::iterator it;
 	for(it = m_dbParams.begin(); it != m_dbParams.end(); ++it)
 	{
@@ -626,7 +626,7 @@ bool AbstractGenerator::loadXMLDatabase(const String& _path)
 
 	ListString templates = stringTok(optTemplate, ',');
 	ListString::iterator templ;
-	templatens::TemplateDictionary *subDict;
+	TemplateDictionary *subDict;
 
 	bool result = false;
 	try
@@ -938,7 +938,7 @@ bool AbstractGenerator::loadXMLTemplate(const String & _path)
 					str = _path + '/' + str;															\
 				if ( stat(str.c_str(), &fs) == 0 )														\
 				{																						\
-					m_templ[ENUM] = templatens::Template::GetTemplate(str, templatens::DO_NOT_STRIP);		\
+					m_templ[ENUM] = Template::GetTemplate(str, DO_NOT_STRIP);							\
 				}																						\
 				else																					\
 				{																						\
@@ -991,7 +991,7 @@ bool AbstractGenerator::loadYAMLTemplate(const String & _path)
 void AbstractGenerator::loadDictionary()
 {
 	String str;
-	m_dict = new templatens::TemplateDictionary("dict");
+	m_dict = new TemplateDictionary("dict");
 
 	m_dict->SetValue( tpl_INTF_FILENAME, extractFileName( m_outIntFile ));
 	m_dict->SetValue( tpl_IMPL_FILENAME, extractFileName( m_outImplFile ));
@@ -1012,7 +1012,7 @@ void AbstractGenerator::loadDictionary()
 	foreach(str, m_headers)
 		m_dict->SetValueAndShowSection(tpl_EXTRA_HEADERS_HEADER, str, tpl_EXTRA_HEADERS);
 
-	templatens::TemplateDictionary *classDict, *subDict;
+	TemplateDictionary *classDict, *subDict;
 	classParams::iterator it;
 	for(it = m_classParams.begin(); it != m_classParams.end(); ++it)
 	{

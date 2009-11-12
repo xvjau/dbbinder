@@ -186,8 +186,8 @@ class AbstractGenerator
 		String	m_outIntFile;
 		String	m_outImplFile;
 
-		templatens::TemplateDictionary	*m_dict;
-		templatens::Template			*m_templ[ftMAX];
+		TemplateDictionary	*m_dict;
+		Template			*m_templ[ftMAX];
 
 		virtual void loadDictionary();
 

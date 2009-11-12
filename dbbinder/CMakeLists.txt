@@ -50,9 +50,6 @@ endif()
 find_file( CTEMPLATE_INC "ctemplate/template.h" )
 if( NOT CTEMPLATE_INC )
 	find_file( CTEMPLATE_INC "google/template.h" )
-	add_definitions(-Dtemplatens=google)
-else()
-	add_definitions(-Dtemplatens=ctemplate)
 endif()
 
 if( NOT CTEMPLATE_INC )
@@ -243,6 +240,6 @@ install(DIRECTORY templates
 			PATTERN ".svn" EXCLUDE
 			PATTERN "*~" EXCLUDE
 			PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ)
-			
+
 install(FILES extra/CMake/FindDBBinder.cmake DESTINATION ${CMAKE_ROOT}/Modules
           PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ)

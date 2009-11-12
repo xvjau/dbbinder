@@ -378,7 +378,7 @@ void FirebirdGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElem
 {
 	if ( _elements->input.empty() )
 	{
-		templatens::TemplateDictionary *subDict;
+		TemplateDictionary *subDict;
 
 		String type;
 		switch ( _type )
@@ -413,7 +413,7 @@ void FirebirdGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElem
 
 void FirebirdGenerator::addOutBuffers(SQLStatementTypes _type, const AbstractIOElements* _elements)
 {
-	templatens::TemplateDictionary *subDict;
+	TemplateDictionary *subDict;
 	subDict = m_dict->AddSectionDictionary(tpl_SEL_OUT_FIELDS_BUFFERS);
 	subDict->SetValue(tpl_BUFFER_DECLARE, "XSQLDA *m_selOutBuffer;" );
 	subDict->SetValue(tpl_BUFFER_INITIALIZE,
