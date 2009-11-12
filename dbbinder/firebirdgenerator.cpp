@@ -342,7 +342,18 @@ void FirebirdGenerator::addSelect(SelectElements _elements)
 	XSQLVAR *p = buffOutput->sqlvar;
 	for( int i = 0; i < buffOutput->sqld; ++i, p++ )
 	{
-		_elements.output.push_back( SQLElement( p->aliasname, fbtypeToSQLType( p->sqltype ), i, p->sqllen ));
+		String comment;
+		if ( p->relname_length )
+		{
+			comment.assign( p->relname, p->relname_length );
+			comment.append( "." );
+		}
+
+		if ( p->sqlname_length )
+		{
+			comment.append( p->sqlname, p->sqlname_length );
+		}
+		_elements.output.push_back( SQLElement( p->aliasname, fbtypeToSQLType( p->sqltype ), i, p->sqllen, comment ));
 	}
 
 	//Free, deallocate and rollback everything

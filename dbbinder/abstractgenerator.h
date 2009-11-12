@@ -56,11 +56,11 @@ enum SQLStatementTypes
 
 struct SQLElement
 {
-	SQLElement( const String& _name, SQLTypes _type, int _index = -1, int _length = 0 ):
-			name( _name ), type( _type ), index( _index ), length( _length )
+	SQLElement( const String& _name, SQLTypes _type, int _index = -1, int _length = 0, const String& _comment = "" ):
+			name( _name ), type( _type ), index( _index ), length( _length ), comment(_comment)
 	{}
-	SQLElement( const String& _name, SQLTypes _type, int _index, const String& _default ):
-			name( _name ), type( _type ), index( _index ), length(0), defaultValue( _default )
+	SQLElement( const String& _name, SQLTypes _type, int _index, const String& _default, const String& _comment = "" ):
+			name( _name ), type( _type ), index( _index ), length(0), defaultValue( _default ), comment(_comment)
 	{}
 
 	String		name;
@@ -68,6 +68,7 @@ struct SQLElement
 	int			index;
 	int			length;
 	String		defaultValue;
+	String		comment;
 };
 typedef std::list<SQLElement> ListElements;
 
@@ -301,6 +302,7 @@ extern const char * const tpl_SEL_OUT_FIELD_INIT;
 extern const char * const tpl_SEL_OUT_FIELD_GETVALUE;
 extern const char * const tpl_SEL_OUT_FIELD_ISNULL;
 extern const char * const tpl_SEL_OUT_FIELDS_BUFFERS;
+extern const char * const tpl_SEL_OUT_FIELD_COMMENT;
 
 extern const char * const tpl_DBENGINE_STATEMENT_TYPE;
 extern const char * const tpl_DBENGINE_STATEMENT_NULL;

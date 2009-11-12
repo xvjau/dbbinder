@@ -91,6 +91,7 @@ const char * const tpl_SEL_OUT_FIELD_INIT = "SEL_OUT_FIELD_INIT";
 const char * const tpl_SEL_OUT_FIELD_GETVALUE = "SEL_OUT_FIELD_GETVALUE";
 const char * const tpl_SEL_OUT_FIELD_ISNULL = "SEL_OUT_FIELD_ISNULL";
 const char * const tpl_SEL_OUT_FIELDS_BUFFERS = "SEL_OUT_FIELDS_BUFFERS";
+const char * const tpl_SEL_OUT_FIELD_COMMENT = "SEL_OUT_FIELD_COMMENT";
 
 const char * const tpl_DBENGINE_STATEMENT_TYPE = "DBENGINE_STATEMENT_TYPE";
 const char * const tpl_DBENGINE_STATEMENT_NULL = "DBENGINE_STATEMENT_NULL";
@@ -1062,6 +1063,7 @@ void AbstractGenerator::loadDictionary()
 				subDict->SetValue( tpl_SEL_OUT_FIELD_INIT, getInit( elit->type ));
 				subDict->SetValue( tpl_SEL_OUT_FIELD_GETVALUE, getReadValue( sstSelect, elit, index ));
 				subDict->SetValue( tpl_SEL_OUT_FIELD_ISNULL, getIsNull( sstSelect, elit, index ));
+				subDict->SetValue( tpl_SEL_OUT_FIELD_COMMENT, elit->comment );
 			}
 			if ( subDict )
 				subDict->SetValue( tpl_SEL_OUT_FIELD_COMMA, "" );

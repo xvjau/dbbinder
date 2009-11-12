@@ -109,7 +109,12 @@ class {{CLASSNAME}}
 				bool m_isNull{{SEL_OUT_FIELD_NAME}};
 				{{/SEL_OUT_FIELDS}}
 			public:
-				{{#SEL_OUT_FIELDS}}{{SEL_OUT_FIELD_TYPE}} get{{SEL_OUT_FIELD_NAME}}() const
+				{{#SEL_OUT_FIELDS}}
+				/**
+				 * {{SEL_OUT_FIELD_COMMENT}}
+				 * @return {{SEL_OUT_FIELD_TYPE}}
+				 */
+				{{SEL_OUT_FIELD_TYPE}} get{{SEL_OUT_FIELD_NAME}}() const
 				{
 					return m_{{SEL_OUT_FIELD_NAME}};
 				}
