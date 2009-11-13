@@ -168,7 +168,7 @@ void parseSQL(const String& _fileName)
 							file.seekg(file.gcount() * -1, std::ios_base::cur);
 							size -= file.tellg();
 
-							char* str = new char[size+1];
+							char* str = static_cast<char*>(alloca(size+1));
 							file.read( str, size );
 							str[size] = '\0';
 
@@ -176,8 +176,6 @@ void parseSQL(const String& _fileName)
 							elements->sql_location.file = _fileName;
 							elements->sql_location.line = line;
 							elements->sql_location.col = c - &buffer[0];
-
-							delete str;
 
 							goto END_READ_SQL;
 						}

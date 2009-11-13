@@ -372,6 +372,10 @@ String AbstractGenerator::getType(SQLTypes _sqlType)
 			case stTimeStamp:
 			case stTime:
 			case stDate:
+			{
+				result = "int";
+				break;
+			}
 			case stText:
 			{
 				result = "const char*";
@@ -402,13 +406,13 @@ String AbstractGenerator::getInit(SQLTypes _sqlType)
 		case stUFloat:
 		case stDouble:
 		case stUDouble:
+		case stTimeStamp:
+		case stTime:
+		case stDate:
 		{
 			result = "0";
 			break;
 		}
-		case stTimeStamp:
-		case stTime:
-		case stDate:
 		case stText:
 		{
 			result = "NULL";

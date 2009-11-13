@@ -235,7 +235,7 @@ String FirebirdGenerator::getBind(SQLStatementTypes _type, const ListElements::i
 				type = "delete";
 				break;
 			default:
-				FATAL(__FILE__  << ':' << __LINE__ << ": Invalide statement type.");
+				FATAL(__FILE__  << ':' << __LINE__ << ": Invalid statement type.");
 		};
 
 		str << "XSQLDA inBuffer[ XSQLDA_LENGTH( s_" << type << "ParamCount ) ];\n";
