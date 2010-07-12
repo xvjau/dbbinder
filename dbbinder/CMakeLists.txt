@@ -24,11 +24,16 @@ add_definitions(-DTIXML_USE_TICPP)
 
 ########################## Gnu Perfect Hash ##########################
 
+find_program(GPERF gperf)
+if(NOT GPERF)
+	message(FATAL_ERROR "gnu perfect hast (gperf) not found!")
+endif()
+
 get_filename_component(SRC_PATH ./options.gperf ABSOLUTE)
 get_filename_component(DST_PATH ./options.h ABSOLUTE)
 
 add_custom_command(OUTPUT options.h
-					COMMAND gperf
+					COMMAND ${GPERF}
 					ARGS -CGD -N isValid -K option -L C++ -t ${SRC_PATH} > ${DST_PATH}
 					DEPENDS options.gperf
 					COMMENT build options.h)
