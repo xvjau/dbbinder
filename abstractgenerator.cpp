@@ -509,10 +509,11 @@ void AbstractGenerator::generate()
 	std::string str;
 	{
 		std::ofstream out( m_outIntFile.c_str(), std::ios_base::trunc );
-		m_templ[ftIntf]->Expand(&str, m_dict);
+		if ( !ctemplate::ExpandTemplate(m_templ[ftIntf], DO_NOT_STRIP, m_dict, &str) )
+			FATAL("Error processing: " << m_templ[ftIntf]);
 
 		cleanExcessiveLineBreaks(str, out);
-		//out << str;
+		out << str;
 		str.clear();
 	}
 
@@ -527,10 +528,11 @@ void AbstractGenerator::generate()
 
 	{
 		std::ofstream out( m_outImplFile.c_str(), std::ios_base::trunc );
-		m_templ[ftImpl]->Expand(&str, m_dict);
+		if ( !ctemplate::ExpandTemplate(m_templ[ftImpl], DO_NOT_STRIP, m_dict, &str) )
+			FATAL("Error processing: " << m_templ[ftImpl]);
 
 		cleanExcessiveLineBreaks(str, out);
-		//out << str;
+		out << str;
 
 		str.clear();
 	}
@@ -896,12 +898,12 @@ void AbstractGenerator::loadTemplates()
 
 			if ( stat((str + "template.xml").c_str(), &fs) == 0 ) // Check if file exists
 			{
-				if ( loadXMLTemplate( str ) && m_templ[ftIntf] && m_templ[ftImpl] )
+				if ( loadXMLTemplate( str ) && m_templ[ftIntf].size() && m_templ[ftImpl].size() )
 					goto LOADED;
 			}
 			else if ( stat((str + "template.yaml").c_str(), &fs) == 0 ) // Check if file exists
 			{
-				if ( loadYAMLTemplate( str ) && m_templ[ftIntf] && m_templ[ftImpl] )
+				if ( loadYAMLTemplate( str ) && m_templ[ftIntf].size() && m_templ[ftImpl].size() )
 					goto LOADED;
 			}
 		}
@@ -909,14 +911,13 @@ void AbstractGenerator::loadTemplates()
 	}
 
 LOADED:
-	if (!( m_templ[ftIntf] && m_templ[ftImpl] ))
+	if (!( fileExists(m_templ[ftIntf]) && fileExists(m_templ[ftImpl]) ))
 		FATAL("template: template files not found.");
 }
 
 void AbstractGenerator::readParam(void* xml, const char *xmlElem, _fileTypes fileType, std::string& outFile, std::string& str, const std::string & _path)
 {
 	XMLElementPtr elem;
-	struct stat fs;
 
 	elem = static_cast<XMLElementPtr>(xml)->FirstChildElement(xmlElem);
 	if ( elem )
@@ -928,9 +929,9 @@ void AbstractGenerator::readParam(void* xml, const char *xmlElem, _fileTypes fil
 		{
 			if ( str[0] != '/' )
 				str = _path + '/' + str;
-			if ( stat(str.c_str(), &fs) == 0 )
+			if ( fileExists(str) )
 			{
-				m_templ[fileType] = Template::GetTemplate(str, DO_NOT_STRIP);
+				m_templ[fileType] = str;
 			}
 			else
 			{

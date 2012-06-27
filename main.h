@@ -174,6 +174,12 @@ inline std::string getFilenameRelativeTo(const std::string& _relFileName, const 
 	return result;
 }
 
+inline bool fileExists(const std::string& fileName)
+{
+	struct stat fs;
+	return stat(fileName.c_str(), &fs) == 0;
+}
+
 }
 
 #ifdef NDEBUG

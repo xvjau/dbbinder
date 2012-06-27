@@ -188,7 +188,7 @@ class AbstractGenerator
 		std::string	m_outImplFile;
 
 		TemplateDictionary	*m_dict;
-		Template			*m_templ[ftMAX];
+		std::string			m_templ[ftMAX];
 
 		virtual void loadDictionary();
 
