@@ -7,7 +7,12 @@
 #ifndef __INCLUDE_{{HEADER_NAME}}
 #define __INCLUDE_{{HEADER_NAME}}
 
+#if __cplusplus < 201103L
 #include <boost/shared_ptr.hpp>
+#else
+#include <memory>
+#endif
+
 #include <iostream>
 #include <string.h>
 #include <libgen.h>
@@ -129,7 +134,11 @@ class {{CLASSNAME}}
 				}
 				{{/SEL_OUT_FIELDS}}
 		};
+#if __cplusplus < 201103L
 		typedef boost::shared_ptr<_row_type> row;
+#else
+		typedef std::shared_ptr<_row_type> row;
+#endif
 
 		class iterator
 		{
