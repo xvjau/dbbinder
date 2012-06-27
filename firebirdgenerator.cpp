@@ -30,7 +30,7 @@ template<typename P, typename T> void add_dbd_param(P *&_dpb, T _param)
 	*_dpb++ = _param;
 }
 
-template<typename P, typename T> void add_dbd_string(P *&_dpb, T _param, const String& _str)
+template<typename P, typename T> void add_dbd_string(P *&_dpb, T _param, const std::string& _str)
 {
 	if ( _str.length() < 256 )
 	{
@@ -95,7 +95,7 @@ SQLTypes fbtypeToSQLType(const int _fbtype)
 		}
 }
 
-void getFirebirdTypes( SQLTypes _type, String &_lang, String &_fb )
+void getFirebirdTypes( SQLTypes _type, std::string &_lang, std::string &_fb )
 {
 	switch ( _type )
 	{
@@ -172,7 +172,7 @@ bool FirebirdGenerator::checkConnection()
 		char *p = dpb;
 
 		#define READ_PARAM(NAME) \
-		String NAME = m_dbParams[# NAME].value;
+			std::string NAME = m_dbParams[# NAME].value;
 
 		READ_PARAM(db);
 		READ_PARAM(user);
@@ -200,10 +200,10 @@ bool FirebirdGenerator::checkConnection()
 	return m_connected;
 }
 
-String FirebirdGenerator::getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
+std::string FirebirdGenerator::getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
 {
 	// TODO Abstract this
-	String var("inBuffer->sqlvar[");
+	std::string var("inBuffer->sqlvar[");
 
 	{
 		char buff[7] = {0,0,0,0,0,0,0};
@@ -219,7 +219,7 @@ String FirebirdGenerator::getBind(SQLStatementTypes _type, const ListElements::i
 	{
 		str << "ISC_SHORT __ZERO = 0;\n\n";
 
-		String type;
+		std::string type;
 		switch ( _type )
 		{
 			case sstSelect:
@@ -245,7 +245,7 @@ String FirebirdGenerator::getBind(SQLStatementTypes _type, const ListElements::i
 		str << "isc_dsql_describe_bind( err, &m_" << type << "Stmt, s_" << type << "ParamCount, inBuffer );\n\n";
 	}
 
-	String type, size;
+	std::string type, size;
 
 	getFirebirdTypes(_item->type, size, type);
 
@@ -267,7 +267,7 @@ String FirebirdGenerator::getBind(SQLStatementTypes _type, const ListElements::i
 	return str.str();
 }
 
-String FirebirdGenerator::getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
+std::string FirebirdGenerator::getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
 {
 	std::stringstream str;
 
@@ -281,10 +281,10 @@ String FirebirdGenerator::getReadValue(SQLStatementTypes _type, const ListElemen
 	return str.str();
 }
 
-String FirebirdGenerator::getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
+std::string FirebirdGenerator::getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
 {
 	// TODO Abstract this
-	String result("( *(_parent->m_selOutBuffer->sqlvar[");
+	std::string result("( *(_parent->m_selOutBuffer->sqlvar[");
 
 	{
 		char buff[7] = {0,0,0,0,0,0,0};
@@ -342,7 +342,7 @@ void FirebirdGenerator::addSelect(SelectElements _elements)
 	XSQLVAR *p = buffOutput->sqlvar;
 	for( int i = 0; i < buffOutput->sqld; ++i, p++ )
 	{
-		String comment;
+		std::string comment;
 		if ( p->relname_length )
 		{
 			comment.assign( p->relname, p->relname_length );
@@ -380,7 +380,7 @@ void FirebirdGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElem
 	{
 		TemplateDictionary *subDict;
 
-		String type;
+		std::string type;
 		switch ( _type )
 		{
 			case sstSelect:
@@ -430,7 +430,7 @@ void FirebirdGenerator::addOutBuffers(SQLStatementTypes _type, const AbstractIOE
 
 	bufFree << "if (m_selOutBuffer)\n{\n";
 
-	String fb, lang;
+	std::string fb, lang;
 
 	char idx[9];
 	idx[8] = 0;

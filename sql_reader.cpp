@@ -28,9 +28,9 @@
 namespace DBBinder
 {
 
-static String fileName;
+static std::string fileName;
 
-void parseSQL(const String& _fileName)
+void parseSQL(const std::string& _fileName)
 {
 	fileName = _fileName;
 
@@ -81,7 +81,7 @@ void parseSQL(const String& _fileName)
 				while( ext > start && *(ext - 1) != '.')
 					ext--;
 
-				String path( getFilenameRelativeTo(fileName, start) );
+				std::string path( getFilenameRelativeTo(fileName, start) );
 
 				if ( strcasecmp(ext, "yaml") == 0 )
 				{
@@ -122,7 +122,7 @@ void parseSQL(const String& _fileName)
 		{
 			file.clear();
 			file.seekg(0, std::ios_base::end);
-			String::size_type size = file.tellg();
+			std::string::size_type size = file.tellg();
 			file.seekg(0);
 
 			line = 0;
@@ -193,7 +193,7 @@ void parseSQL(const String& _fileName)
 		line = 0;
 
 		SQLTypes type;
-		String name, defaultValue, strType;
+		std::string name, defaultValue, strType;
 		int index;
 
 		// Load all other params now that we got a generator

@@ -182,7 +182,7 @@ const char * const tpl_DBENGINE_DESTROY_DELETE = "DBENGINE_DESTROY_DELETE";
 const char * const tpl_DBENGINE_RESET_DELETE = "DBENGINE_RESET_DELETE";
 const char * const tpl_DBENGINE_EXECUTE_DELETE = "DBENGINE_EXECUTE_DELETE";
 
-SQLTypes typeNameToSQLType(String _name)
+SQLTypes typeNameToSQLType(std::string _name)
 {
 	if ( _name.length() )
 	{
@@ -246,14 +246,14 @@ SQLTypes typeNameToSQLType(String _name)
 }
 
 AbstractGenerator* AbstractGenerator::s_generator = 0;
-AbstractGenerator* AbstractGenerator::getGenerator(const String & _type)
+AbstractGenerator* AbstractGenerator::getGenerator(const std::string & _type)
 {
 	if ( s_generator )
 		return s_generator;
 
 	if ( _type.length() > 1 )
 	{
-		String type = stringToLower( _type );
+		std::string type = stringToLower( _type );
 		switch ( type[0] )
 		{
 #ifdef WITH_FIREBIRD
@@ -316,9 +316,9 @@ bool AbstractGenerator::checkConnection()
 	return m_connected;
 }
 
-String AbstractGenerator::getType(SQLTypes _sqlType)
+std::string AbstractGenerator::getType(SQLTypes _sqlType)
 {
-	String result = m_types[_sqlType];
+	std::string result = m_types[_sqlType];
 
 	if ( result.empty() )
 	{
@@ -387,9 +387,9 @@ String AbstractGenerator::getType(SQLTypes _sqlType)
 	return result;
 }
 
-String AbstractGenerator::getInit(SQLTypes _sqlType)
+std::string AbstractGenerator::getInit(SQLTypes _sqlType)
 {
-	String result;
+	std::string result;
 
 	// TODO Abstract this
 	switch ( _sqlType )
@@ -425,7 +425,7 @@ String AbstractGenerator::getInit(SQLTypes _sqlType)
 
 void AbstractGenerator::addSelect(SelectElements _elements)
 {
-	String name = stringToLower( _elements.name );
+	std::string name = stringToLower( _elements.name );
 
 	_classParamsPtr params = m_classParams[ name ];
 
@@ -438,7 +438,7 @@ void AbstractGenerator::addSelect(SelectElements _elements)
 
 void AbstractGenerator::addUpdate(UpdateElements _elements)
 {
-	String name = stringToLower( _elements.name );
+	std::string name = stringToLower( _elements.name );
 
 	_classParamsPtr params = m_classParams[ name ];
 
@@ -451,7 +451,7 @@ void AbstractGenerator::addUpdate(UpdateElements _elements)
 
 void AbstractGenerator::addInsert(InsertElements _elements)
 {
-	String name = stringToLower( _elements.name );
+	std::string name = stringToLower( _elements.name );
 
 	_classParamsPtr params = m_classParams[ name ];
 
@@ -464,7 +464,7 @@ void AbstractGenerator::addInsert(InsertElements _elements)
 
 void AbstractGenerator::addDelete(DeleteElements _elements)
 {
-	String name = stringToLower( _elements.name );
+	std::string name = stringToLower( _elements.name );
 
 	_classParamsPtr params = m_classParams[ name ];
 
@@ -475,7 +475,7 @@ void AbstractGenerator::addDelete(DeleteElements _elements)
 	m_classParams[ name ] = params;
 }
 
-static void cleanExcessiveLineBreaks(String &_str, std::ostream &_stream)
+static void cleanExcessiveLineBreaks(std::string &_str, std::ostream &_stream)
 {
 	int ln = 0;
 	foreach(char c, _str)
@@ -506,7 +506,7 @@ void AbstractGenerator::generate()
 	if ( DBBinder::optListDepends )
 		return;
 
-	String str;
+	std::string str;
 	{
 		std::ofstream out( m_outIntFile.c_str(), std::ios_base::trunc );
 		m_templ[ftIntf]->Expand(&str, m_dict);
@@ -588,7 +588,7 @@ void AbstractGenerator::loadDatabase()
 		}
 		else
 		{
-			subDict->SetValue(tpl_DBENGINE_CONNECT_PARAM_VALUE, String("\"") + cescape(it->second.value) + String("\""));
+			subDict->SetValue(tpl_DBENGINE_CONNECT_PARAM_VALUE, std::string("\"") + cescape(it->second.value) + std::string("\""));
 			subDict->SetValue(tpl_DBENGINE_CONNECT_PARAM_TYPE, "const char * const");
 		}
 		subDict->SetValue( tpl_DBENGINE_CONNECT_PARAM_COMMA, "," );
@@ -596,7 +596,7 @@ void AbstractGenerator::loadDatabase()
 	if ( subDict )
 		subDict->SetValue( tpl_DBENGINE_CONNECT_PARAM_COMMA, "" );
 
-	String str;
+	std::string str;
 	ListString::iterator dirs;
 	for(dirs = optTemplateDirs.begin(); dirs != optTemplateDirs.end(); ++dirs)
 	{
@@ -622,7 +622,7 @@ LOADED:
 	{}
 }
 
-bool AbstractGenerator::loadXMLDatabase(const String& _path)
+bool AbstractGenerator::loadXMLDatabase(const std::string& _path)
 {
 #define GET_TEXT_OR_ATTR_SET_TMPL( str, elem, attr, tmpl, var ) \
 	GET_TEXT_OR_ATTR( str, elem, attr ); \
@@ -635,7 +635,7 @@ bool AbstractGenerator::loadXMLDatabase(const String& _path)
 	bool result = false;
 	try
 	{
-		String s = _path + m_dbengine + ".xml";
+		std::string s = _path + m_dbengine + ".xml";
 		XMLDocument xmlFile( s );
 		xmlFile.LoadFile();
 
@@ -655,7 +655,7 @@ bool AbstractGenerator::loadXMLDatabase(const String& _path)
 				{
 					XMLElementPtr elem;
 					XMLNodePtr node, subnode;
-					String str;
+					std::string str;
 
 					node = 0;
 					while( node = lang->IterateChildren( "includes", node ))
@@ -672,7 +672,7 @@ bool AbstractGenerator::loadXMLDatabase(const String& _path)
 							if ( !str.empty() )
 							{
 								result = true;
-								str = String("#include <") + str + ">";
+								str = std::string("#include <") + str + ">";
 								subDict->SetValue(tpl_DBENGINE_INCLUDE_NAME, str);
 							}
 						}
@@ -862,7 +862,7 @@ bool AbstractGenerator::loadXMLDatabase(const String& _path)
 	return result;
 }
 
-bool AbstractGenerator::loadYAMLDatabase(const String& _path)
+bool AbstractGenerator::loadYAMLDatabase(const std::string& _path)
 {
 	FATAL("YAML parser not implemented yet. sorry.");
 	DBBinder::optDepends.push_back( _path );
@@ -870,7 +870,7 @@ bool AbstractGenerator::loadYAMLDatabase(const String& _path)
 
 void AbstractGenerator::loadTemplates()
 {
-	String str;
+	std::string str;
 
 	ListString templates = stringTok(optTemplate, ',');
 	ListString::iterator templ, dirs;
@@ -913,7 +913,7 @@ LOADED:
 		FATAL("template: template files not found.");
 }
 
-bool AbstractGenerator::loadXMLTemplate(const String & _path)
+bool AbstractGenerator::loadXMLTemplate(const std::string & _path)
 {
 	try
 	{
@@ -926,7 +926,7 @@ bool AbstractGenerator::loadXMLTemplate(const String & _path)
 
 		XMLElementPtr xml = xmlFile.FirstChildElement("xml");
 
-		String str;
+		std::string str;
 		XMLElementPtr elem;
 
 #define READ_PARAM(XML, ENUM, STR) \
@@ -986,7 +986,7 @@ bool AbstractGenerator::loadXMLTemplate(const String & _path)
 	return false;
 }
 
-bool AbstractGenerator::loadYAMLTemplate(const String & _path)
+bool AbstractGenerator::loadYAMLTemplate(const std::string & _path)
 {
 	FATAL("YAML parser not implemented yet. sorry.");
 	DBBinder::optDepends.push_back( _path );
@@ -994,15 +994,15 @@ bool AbstractGenerator::loadYAMLTemplate(const String & _path)
 
 void AbstractGenerator::loadDictionary()
 {
-	String str;
+	std::string str;
 	m_dict = new TemplateDictionary("dict");
 
 	m_dict->SetValue( tpl_INTF_FILENAME, extractFileName( m_outIntFile ));
 	m_dict->SetValue( tpl_IMPL_FILENAME, extractFileName( m_outImplFile ));
 
 	str = extractFileName( stringToUpper( m_outIntFile ));
-	String::size_type pos = str.find( '.' );
-	while ( pos != String::npos )
+	std::string::size_type pos = str.find( '.' );
+	while ( pos != std::string::npos )
 	{
 		str.replace( pos, 1, "_" );
 		pos = str.find( '.' );
@@ -1028,7 +1028,7 @@ void AbstractGenerator::loadDictionary()
 			classDict->SetValue(tpl_CLASSNAME, it->second->select.name);
 			classDict->ShowSection(tpl_SELECT);
 
-			str = String("\"") + cescape(it->second->select.sql) + String("\"");
+			str = std::string("\"") + cescape(it->second->select.sql) + std::string("\"");
 			classDict->SetValue( tpl_SELECT_SQL, str );
 			classDict->SetIntValue( tpl_SELECT_SQL_LEN, it->second->select.sql.length() );
 			classDict->SetIntValue( tpl_SELECT_PARAM_COUNT, it->second->select.input.size() );
@@ -1085,7 +1085,7 @@ void AbstractGenerator::loadDictionary()
 			classDict->SetValue(tpl_CLASSNAME, it->second->update.name);
 			classDict->ShowSection(tpl_UPDATE);
 
-			str = String("\"") + cescape(it->second->update.sql) + String("\"");
+			str = std::string("\"") + cescape(it->second->update.sql) + std::string("\"");
 			classDict->SetValue( tpl_UPDATE_SQL, str );
 			classDict->SetIntValue( tpl_UPDATE_SQL_LEN, it->second->update.sql.length() );
 			classDict->SetIntValue( tpl_UPDATE_PARAM_COUNT, it->second->update.input.size() );
@@ -1118,7 +1118,7 @@ void AbstractGenerator::loadDictionary()
 			classDict->SetValue(tpl_CLASSNAME, it->second->insert.name);
 			classDict->ShowSection(tpl_INSERT);
 
-			str = String("\"") + cescape(it->second->insert.sql) + String("\"");
+			str = std::string("\"") + cescape(it->second->insert.sql) + std::string("\"");
 			classDict->SetValue( tpl_INSERT_SQL, str );
 			classDict->SetIntValue( tpl_INSERT_SQL_LEN, it->second->insert.sql.length() );
 			classDict->SetIntValue( tpl_INSERT_PARAM_COUNT, it->second->insert.input.size() );
@@ -1151,7 +1151,7 @@ void AbstractGenerator::loadDictionary()
 			classDict->SetValue(tpl_CLASSNAME, it->second->del.name);
 			classDict->ShowSection(tpl_DELETE);
 
-			str = String("\"") + cescape(it->second->del.sql) + String("\"");
+			str = std::string("\"") + cescape(it->second->del.sql) + std::string("\"");
 			classDict->SetValue( tpl_DELETE_SQL, str );
 			classDict->SetIntValue( tpl_DELETE_SQL_LEN, it->second->del.sql.length() );
 			classDict->SetIntValue( tpl_DELETE_PARAM_COUNT, it->second->del.input.size() );

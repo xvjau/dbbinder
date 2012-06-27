@@ -49,8 +49,7 @@ typedef google::Template Template;
 #define DO_NOT_STRIP google::DO_NOT_STRIP
 #endif
 
-typedef std::string String;
-typedef std::list<String> ListString;
+typedef std::list<std::string> ListString;
 
 enum FileType
 {
@@ -61,8 +60,8 @@ enum FileType
 };
 
 // Options set by command line
-extern String		appName;
-extern String		optOutput;
+extern std::string	appName;
+extern std::string	optOutput;
 extern const char*	optTemplate;
 extern ListString	optTemplateDirs;
 extern const char*	optVersionMajor;
@@ -73,43 +72,43 @@ extern bool			optExtras;
 extern ListString	optIncludeFiles;
 
 // Utility funcs and defines
-inline String stringToLower(const String& _string)
+inline std::string stringToLower(const std::string& _string)
 {
-	String::size_type sz = _string.length();
+	std::string::size_type sz = _string.length();
 
-	String result;
+	std::string result;
 	result.resize( sz );
 
-	for(String::size_type i = 0; i < sz; ++i)
+	for(std::string::size_type i = 0; i < sz; ++i)
 		result[i] += tolower(_string[i]);
 
 	return result;
 }
 
-inline String stringToUpper(const String& _string)
+inline std::string stringToUpper(const std::string& _string)
 {
-	String::size_type sz = _string.length();
+	std::string::size_type sz = _string.length();
 
-	String result;
+	std::string result;
 	result.resize( sz );
 
-	for(String::size_type i = 0; i < sz; ++i)
+	for(std::string::size_type i = 0; i < sz; ++i)
 		result[i] += toupper(_string[i]);
 
 	return result;
 }
 
-inline String extractFileName(const String& _string)
+inline std::string extractFileName(const std::string& _string)
 {
-	String::size_type pos = _string.rfind( '/' );
-	if ( pos != String::npos )
+	std::string::size_type pos = _string.rfind( '/' );
+	if ( pos != std::string::npos )
 		return _string.substr( pos + 1 );
 	else
 		return _string;
 }
-String cescape(const String& _string);
+std::string cescape(const std::string& _string);
 
-inline ListString stringTok(const String &_string, const char _sep)
+inline ListString stringTok(const std::string &_string, const char _sep)
 {
 	ListString result;
 
@@ -120,20 +119,20 @@ inline ListString stringTok(const String &_string, const char _sep)
 	{
 		if ( *p == _sep )
 		{
-			result.push_back( String( s, p - s ));
+			result.push_back( std::string( s, p - s ));
 			++p;
 			s = p;
 		}
 	}
 
 	if ( *s )
-		result.push_back( String( s, p - s ));
+		result.push_back( std::string( s, p - s ));
 
 	return result;
 }
 
 
-inline ListString stringTok(const String &_string)
+inline ListString stringTok(const std::string &_string)
 {
 	ListString result;
 
@@ -148,7 +147,7 @@ inline ListString stringTok(const String &_string)
 			while( *s && !isspace( *s ))
 				++s;
 
-			result.push_back( String( p, s - p ));
+			result.push_back( std::string( p, s - p ));
 
 			p = s;
 		}
@@ -159,11 +158,11 @@ inline ListString stringTok(const String &_string)
 	return result;
 }
 
-inline String getFilenameRelativeTo(const String& _relFileName, const String& _fileName)
+inline std::string getFilenameRelativeTo(const std::string& _relFileName, const std::string& _fileName)
 {
-	String result;
+	std::string result;
 
-	String::size_type pos = _relFileName.rfind('/');
+	std::string::size_type pos = _relFileName.rfind('/');
 	if ( pos && pos != std::string::npos )
 	{
 		result = _relFileName.substr(0, pos);

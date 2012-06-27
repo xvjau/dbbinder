@@ -41,9 +41,9 @@ class FirebirdGenerator : public AbstractGenerator
 
 	protected:
 		virtual bool checkConnection();
-		virtual String getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
-		virtual String getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
-		virtual String getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+		virtual std::string getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+		virtual std::string getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+		virtual std::string getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
 
 		virtual bool   needIOBuffers() const;
 

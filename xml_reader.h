@@ -23,7 +23,7 @@
 namespace DBBinder
 {
 
-void parseXML(const String& _fileName);
+void parseXML(const std::string& _fileName);
 
 }
 

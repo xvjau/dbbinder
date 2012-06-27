@@ -26,7 +26,7 @@
 namespace DBBinder
 {
 
-static String fileName;
+static std::string fileName;
 
 static void getXMLParams(XMLElementPtr _elem, AbstractElements* _elements)
 {
@@ -39,7 +39,7 @@ static void getXMLParams(XMLElementPtr _elem, AbstractElements* _elements)
 			sql = _elem->FirstChildElement("include");
 			if ( sql )
 			{
-				String path( getFilenameRelativeTo(fileName, sql->GetText()) );
+				std::string path( getFilenameRelativeTo(fileName, sql->GetText()) );
 
 				std::ifstream include(path.c_str());
 				if ( include.good() )
@@ -62,7 +62,7 @@ static void getXMLParams(XMLElementPtr _elem, AbstractElements* _elements)
 	}
 
 	SQLTypes type;
-	String name, defaultValue, strType;
+	std::string name, defaultValue, strType;
 	int index;
 
 	XMLElementPtr param;
@@ -87,7 +87,7 @@ static void getXMLParams(XMLElementPtr _elem, AbstractElements* _elements)
 	}
 }
 
-void parseXML(const String& _fileName)
+void parseXML(const std::string& _fileName)
 {
 	fileName = _fileName;
 
@@ -112,7 +112,7 @@ void parseXML(const String& _fileName)
 		{
 			elem = node->ToElement();
 
-			String str;
+			std::string str;
 			elem->GetAttribute( "type", &str, false );
 
 			if ( stringToLower(str) == "int" )
@@ -170,7 +170,7 @@ void parseXML(const String& _fileName)
 				{
 					elem = valnode->ToElement();
 
-					String str;
+					std::string str;
 					elem->GetText( &str, false );
 					if ( str.empty() )
 						elem->GetAttribute( "type", &str, false );
@@ -197,7 +197,7 @@ void parseXML(const String& _fileName)
 				{
 					elem = valnode->ToElement();
 
-					String str;
+					std::string str;
 					elem->GetText( &str, false );
 					if ( str.empty() )
 						elem->GetAttribute( "name", &str, false );
@@ -215,7 +215,7 @@ void parseXML(const String& _fileName)
 				{
 					elem = valnode->ToElement();
 
-					String str;
+					std::string str;
 					elem->GetText( &str, false );
 					if ( str.empty() )
 						elem->GetAttribute( "value", &str, false );

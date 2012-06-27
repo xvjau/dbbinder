@@ -34,16 +34,16 @@
 namespace DBBinder
 {
 
-String		appName;
-String		optOutput;
-const char*	optTemplate = 0;
-ListString	optTemplateDirs;
-const char*	optVersionMajor = "0";
-const char*	optVersionMinor = "0";
-bool		optListDepends = false;
-ListString	optDepends;
-bool		optExtras = false;
-ListString	optIncludeFiles;
+std::string		appName;
+std::string		optOutput;
+const char*		optTemplate = 0;
+ListString		optTemplateDirs;
+const char*		optVersionMajor = "0";
+const char*		optVersionMinor = "0";
+bool			optListDepends = false;
+ListString		optDepends;
+bool			optExtras = false;
+ListString		optIncludeFiles;
 
 static const char*	defaultTemplateDirs[] =
 {
@@ -53,9 +53,9 @@ static const char*	defaultTemplateDirs[] =
 	0
 };
 
-String cescape(const String & _string)
+std::string cescape(const std::string & _string)
 {
-	String result;
+	std::string result;
 	foreach(char c, _string)
 	{
 		switch( c )
@@ -278,8 +278,8 @@ int main(int argc, char *argv[])
 	{
 		using namespace DBBinder;
 		optOutput = fileName;
-		String::size_type pos = optOutput.rfind('.');
-		if ( pos == String::npos )
+		std::string::size_type pos = optOutput.rfind('.');
+		if ( pos == std::string::npos )
 		{
 			optOutput += "_out";
 		}

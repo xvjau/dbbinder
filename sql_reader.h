@@ -23,7 +23,7 @@
 namespace DBBinder
 {
 
-void parseSQL(const String& _fileName);
+void parseSQL(const std::string& _fileName);
 
 }
 

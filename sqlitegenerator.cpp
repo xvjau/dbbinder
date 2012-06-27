@@ -43,7 +43,7 @@ bool SQLiteGenerator::checkConnection()
 {
 	if ( !m_connected )
 	{
-		String dbName = m_dbParams["file"].value;
+		std::string dbName = m_dbParams["file"].value;
 
 		if ( dbName.empty() )
 			FATAL( "SQLite3: 'file' db parameter is empty." );
@@ -62,13 +62,13 @@ bool SQLiteGenerator::checkConnection()
 	return m_connected;
 }
 
-String SQLiteGenerator::getBind( SQLStatementTypes _type, const ListElements::iterator & _item, int _index )
+std::string SQLiteGenerator::getBind( SQLStatementTypes _type, const ListElements::iterator & _item, int _index )
 {
 	// TODO Abstract this
 	std::stringstream str;
 	str << "SQLCHECK( sqlite3_bind_";
 
-	String typeName;
+	std::string typeName;
 	switch( _type )
 	{
 		case sstSelect: typeName = "select"; break;
@@ -134,10 +134,10 @@ String SQLiteGenerator::getBind( SQLStatementTypes _type, const ListElements::it
 	return str.str();
 }
 
-String SQLiteGenerator::getReadValue( SQLStatementTypes _type, const ListElements::iterator & _item, int _index )
+std::string SQLiteGenerator::getReadValue( SQLStatementTypes _type, const ListElements::iterator & _item, int _index )
 {
 	// TODO Abstract this
-	String typeName;
+	std::string typeName;
 	switch( _type )
 	{
 		case sstSelect: typeName = "select"; break;
@@ -188,7 +188,7 @@ String SQLiteGenerator::getReadValue( SQLStatementTypes _type, const ListElement
 	return str.str();
 }
 
-String SQLiteGenerator::getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
+std::string SQLiteGenerator::getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
 {
 	// TODO Abstract this
 	std::stringstream str;
@@ -212,14 +212,14 @@ sqlite3_stmt *SQLiteGenerator::execSQL( AbstractElements &_elements )
 		int line = _elements.sql_location.line;
 		int col = std::max( _elements.sql_location.col, 1 );
 
-		String err = sqlite3_errmsg( m_db );
+		std::string err = sqlite3_errmsg( m_db );
 
 		//This try is to avoid unnecessary exception when looking for the error message.
 		try
 		{
 			if ( err.find( "near" ) != std::string::npos )
 			{
-				String::size_type pos = err.rfind( '"' );
+				std::string::size_type pos = err.rfind( '"' );
 				if ( pos != std::string::npos )
 				{
 					err.erase( 0, err.find( '"' ) + 2 );
@@ -231,7 +231,7 @@ sqlite3_stmt *SQLiteGenerator::execSQL( AbstractElements &_elements )
 				err.erase( 0, err.find( ':' ) + 2 );
 			}
 
-			String::size_type pos = _elements.sql.find( err );
+			std::string::size_type pos = _elements.sql.find( err );
 
 			const char *s = _elements.sql.c_str();
 			const char *e = s + pos;
@@ -278,7 +278,7 @@ void SQLiteGenerator::addSelect( SelectElements _elements )
 
 	const char* typeStr;
 	SQLTypes type;
-	String name;
+	std::string name;
 
 	for ( int i = 0; i < count; ++i )
 	{

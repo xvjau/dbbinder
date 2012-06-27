@@ -25,7 +25,7 @@
 namespace DBBinder
 {
 
-void parseYAML(const String& _fileName);
+void parseYAML(const std::string& _fileName);
 
 }
 

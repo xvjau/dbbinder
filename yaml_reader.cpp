@@ -27,7 +27,7 @@
 namespace DBBinder
 {
 
-static String fileName;
+static std::string fileName;
 static FILE *yamlFile = 0;
 
 void sendYAMLError(yaml_parser_t &_parser, const char * const _err = NULL)
@@ -83,7 +83,7 @@ static void parseYAMLDatabase(yaml_parser_t &_parser)
 
 	bool done = false;
 
-	String attr;
+	std::string attr;
 
 	while ( !done )
 	{
@@ -98,7 +98,7 @@ static void parseYAMLDatabase(yaml_parser_t &_parser)
 				break;
 			case YAML_SCALAR_EVENT:
 			{
-				String value(reinterpret_cast<const char*>(event.data.scalar.value));
+				std::string value(reinterpret_cast<const char*>(event.data.scalar.value));
 
 				if ( attr.empty() )
 					attr = value;
@@ -145,10 +145,10 @@ static void getYAMLParams(yaml_parser_t &_parser, AbstractElements* _elements)
 
 	bool done = false;
 
-	String attr;
+	std::string attr;
 
 	SQLTypes type;
-	String name, defaultValue, strType;
+	std::string name, defaultValue, strType;
 	int index;
 
 	while ( !done )
@@ -164,7 +164,7 @@ static void getYAMLParams(yaml_parser_t &_parser, AbstractElements* _elements)
 				break;
 			case YAML_SCALAR_EVENT:
 			{
-				String value(reinterpret_cast<const char*>(event.data.scalar.value));
+				std::string value(reinterpret_cast<const char*>(event.data.scalar.value));
 
 				if ( attr.empty() )
 					attr = value;
@@ -174,7 +174,7 @@ static void getYAMLParams(yaml_parser_t &_parser, AbstractElements* _elements)
 						_elements->sql = value;
 					else if ( attr == "include" )
 					{
-						String path( getFilenameRelativeTo(fileName, value) );
+						std::string path( getFilenameRelativeTo(fileName, value) );
 
 						std::ifstream sql(path.c_str());
 						if ( sql.good() )
@@ -194,7 +194,7 @@ static void getYAMLParams(yaml_parser_t &_parser, AbstractElements* _elements)
 						}
 						else
 						{
-							sendYAMLError(_parser, (String("include file not found: ") + value).c_str());
+							sendYAMLError(_parser, (std::string("include file not found: ") + value).c_str());
 						}
 					}
 					else if ( attr == "param" )
@@ -212,7 +212,7 @@ static void getYAMLParams(yaml_parser_t &_parser, AbstractElements* _elements)
 
 							if ( event.type == YAML_SCALAR_EVENT )
 							{
-								value = String(reinterpret_cast<const char*>(event.data.scalar.value));
+								value = std::string(reinterpret_cast<const char*>(event.data.scalar.value));
 
 								if ( attr.empty() )
 									attr = value;
@@ -291,7 +291,7 @@ static void parseYAMLExtra(yaml_parser_t &_parser)
 		sendYAMLError(_parser, "Expected YAML_MAPPING_START_EVENT");
 	yaml_event_delete(&event);
 
-	String sequence;
+	std::string sequence;
 	AbstractGenerator *generator = AbstractGenerator::getGenerator();
 
 	bool done = false;
@@ -307,7 +307,7 @@ static void parseYAMLExtra(yaml_parser_t &_parser)
 
 			case YAML_SCALAR_EVENT:
 			{
-				String value(reinterpret_cast<const char*>(event.data.scalar.value));
+				std::string value(reinterpret_cast<const char*>(event.data.scalar.value));
 
 				if ( value == "types" )
 				{
@@ -316,7 +316,7 @@ static void parseYAMLExtra(yaml_parser_t &_parser)
 						sendYAMLError(_parser, "Expected YAML_MAPPING_START_EVENT");
 					yaml_event_delete(&event);
 
-					String attr;
+					std::string attr;
 
 					bool typesDone = false;
 					while( !typesDone )
@@ -325,7 +325,7 @@ static void parseYAMLExtra(yaml_parser_t &_parser)
 
 						if( event.type == YAML_SCALAR_EVENT )
 						{
-							value = String(reinterpret_cast<const char*>(event.data.scalar.value));
+							value = std::string(reinterpret_cast<const char*>(event.data.scalar.value));
 
 							if ( attr.empty() )
 								attr = value;
@@ -366,7 +366,7 @@ static void parseYAMLExtra(yaml_parser_t &_parser)
 
 					if( event.type == YAML_SCALAR_EVENT )
 					{
-						String value(reinterpret_cast<const char*>(event.data.scalar.value));
+						std::string value(reinterpret_cast<const char*>(event.data.scalar.value));
 
 						if ( sequence == "namespaces")
 							generator->addNamespace( value );
@@ -402,7 +402,7 @@ static void parseYAMLHeaders(yaml_parser_t &_parser)
 		sendYAMLError(_parser, "Expected YAML_MAPPING_START_EVENT");
 	yaml_event_delete(&event);
 
-	String sequence;
+	std::string sequence;
 	AbstractGenerator *generator = AbstractGenerator::getGenerator();
 
 	bool done = false;
@@ -418,7 +418,7 @@ static void parseYAMLHeaders(yaml_parser_t &_parser)
 
 			case YAML_SCALAR_EVENT:
 			{
-				String value(reinterpret_cast<const char*>(event.data.scalar.value));
+				std::string value(reinterpret_cast<const char*>(event.data.scalar.value));
 				generator->addHeader( value );
 				break;
 			}
@@ -430,7 +430,7 @@ static void parseYAMLHeaders(yaml_parser_t &_parser)
 	}
 }
 
-void parseYAML(const String& _fileName)
+void parseYAML(const std::string& _fileName)
 {
 	fileName = _fileName;
 
@@ -451,7 +451,7 @@ void parseYAML(const String& _fileName)
 
 	yaml_parser_set_input_file(&parser, yamlFile);
 
-	String tagName;
+	std::string tagName;
 
 	/* Read the event sequence. */
 	bool done = false;
@@ -468,7 +468,7 @@ void parseYAML(const String& _fileName)
 
 			case YAML_SCALAR_EVENT: // A SCALAR event.
 			{
-				String value(reinterpret_cast<const char*>(event.data.scalar.value));
+				std::string value(reinterpret_cast<const char*>(event.data.scalar.value));
 
 				switch( value[0] )
 				{

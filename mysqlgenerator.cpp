@@ -73,7 +73,7 @@ bool MySQLGenerator::checkConnection()
     if ( !m_connected )
 	{
 #define READ_PARAM(NAME) \
-		String NAME = m_dbParams[# NAME].value; \
+		std::string NAME = m_dbParams[# NAME].value; \
 		if ( NAME.empty() ) \
 			FATAL( "MySQL: '" # NAME "' db parameter is empty." );
 
@@ -97,19 +97,19 @@ bool MySQLGenerator::checkConnection()
 	return m_connected;
 }
 
-String MySQLGenerator::getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
+std::string MySQLGenerator::getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
 {
 	UNUSED(_type);
-	return String("m_param") + _item->name + " = _" + _item->name + ";";
+	return std::string("m_param") + _item->name + " = _" + _item->name + ";";
 }
 
-String MySQLGenerator::getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
+std::string MySQLGenerator::getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
 {
 	UNUSED(_type);
-	return String("m_") + _item->name + " = _parent->m_buff" + _item->name + ";";
+	return std::string("m_") + _item->name + " = _parent->m_buff" + _item->name + ";";
 }
 
-String MySQLGenerator::getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
+std::string MySQLGenerator::getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
 {
 	FATAL("Not implemented!");
 }
@@ -200,7 +200,7 @@ bool MySQLGenerator::needIOBuffers() const
 	return true;
 }
 
-void getMySQLTypes(SQLTypes _type, String& _lang, String& _mysql)
+void getMySQLTypes(SQLTypes _type, std::string& _lang, std::string& _mysql)
 {
 	switch( _type )
 	{
@@ -249,7 +249,7 @@ void getMySQLTypes(SQLTypes _type, String& _lang, String& _mysql)
 
 void MySQLGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements)
 {
-	String langType, myType;
+	std::string langType, myType;
 	int index = 0;
 	ctemplate::TemplateDictionary *subDict;
 
@@ -288,7 +288,7 @@ void MySQLGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElement
 
 void MySQLGenerator::addOutBuffers(SQLStatementTypes _type, const AbstractIOElements* _elements)
 {
-	String langType, myType;
+	std::string langType, myType;
 	int index = 0;
 	ctemplate::TemplateDictionary *subDict;
 
