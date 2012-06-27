@@ -3,3 +3,6 @@ CMakeFiles
 Makefile
 cmake_install.cmake
 install_manifest.txt
+.kdev4/
+build/
+dbbinder.kdev4
