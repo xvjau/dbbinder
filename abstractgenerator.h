@@ -113,6 +113,7 @@ struct DeleteElements: public AbstractElements
 	DeleteElements(): AbstractElements() { type = sstDelete; }
 };
 
+// Main class
 class AbstractGenerator
 {
 	protected:
@@ -214,6 +215,10 @@ class AbstractGenerator
 
 		//TODO: This might be better implemented;
 		static AbstractGenerator* s_generator;
+
+	private:
+		void readParam(void* xml, const char *xmlElem, _fileTypes fileType, std::string& outFile, std::string& str, const std::string & _path);
+
 	public:
 		static AbstractGenerator* getGenerator() { return s_generator; }
 		static AbstractGenerator* getGenerator(const std::string& _type);

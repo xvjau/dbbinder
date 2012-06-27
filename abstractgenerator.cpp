@@ -913,12 +913,43 @@ LOADED:
 		FATAL("template: template files not found.");
 }
 
+void AbstractGenerator::readParam(void* xml, const char *xmlElem, _fileTypes fileType, std::string& outFile, std::string& str, const std::string & _path)
+{
+	XMLElementPtr elem;
+	struct stat fs;
+
+	elem = static_cast<XMLElementPtr>(xml)->FirstChildElement(xmlElem);
+	if ( elem )
+	{
+		elem->GetAttribute("file", &str, false);
+		if ( str.empty() )
+			elem->GetText( &str, false );
+		if ( str.length() )
+		{
+			if ( str[0] != '/' )
+				str = _path + '/' + str;
+			if ( stat(str.c_str(), &fs) == 0 )
+			{
+				m_templ[fileType] = Template::GetTemplate(str, DO_NOT_STRIP);
+			}
+			else
+			{
+				WARNING("file :" << str << " does not exist!");
+			}
+		}
+		str.clear();
+		elem->GetAttribute("extension", &str, false);
+		if ( str.empty() )
+			elem->GetText( &str, false );
+		if ( str.length() )
+			outFile = optOutput + str;
+	}
+}
+
 bool AbstractGenerator::loadXMLTemplate(const std::string & _path)
 {
 	try
 	{
-		struct stat fs;
-
 		XMLDocument xmlFile( _path + "template.xml" );
 		xmlFile.LoadFile();
 
@@ -927,40 +958,10 @@ bool AbstractGenerator::loadXMLTemplate(const std::string & _path)
 		XMLElementPtr xml = xmlFile.FirstChildElement("xml");
 
 		std::string str;
+		readParam(xml, "interface", ftIntf, m_outIntFile, str, _path);
+		readParam(xml, "implementation", ftImpl, m_outImplFile, str, _path);
+
 		XMLElementPtr elem;
-
-#define READ_PARAM(XML, ENUM, STR) \
-		elem = xml->FirstChildElement(XML);																\
-		if ( elem )																						\
-		{																								\
-			elem->GetAttribute("file", &str, false);													\
-			if ( str.empty() )																			\
-				elem->GetText( &str, false );															\
-			if ( str.length() )																			\
-			{																							\
-				if ( str[0] != '/' )																	\
-					str = _path + '/' + str;															\
-				if ( stat(str.c_str(), &fs) == 0 )														\
-				{																						\
-					m_templ[ENUM] = Template::GetTemplate(str, DO_NOT_STRIP);							\
-				}																						\
-				else																					\
-				{																						\
-					WARNING("file :" << str << " does not exist!");										\
-				}																						\
-			}																							\
-			str.clear();																				\
-			elem->GetAttribute("extension", &str, false);												\
-			if ( str.empty() )																			\
-				elem->GetText( &str, false );															\
-			if ( str.length() )																			\
-				STR = optOutput + str;																	\
-		}
-
-		READ_PARAM("interface", ftIntf, m_outIntFile);
-		READ_PARAM("implementation", ftImpl, m_outImplFile);
-#undef READ_PARAM
-
 		elem = xml->FirstChildElement("extra");
 		if ( elem )
 		{
