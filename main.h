@@ -27,7 +27,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <list>
+#include <vector>
 #include <map>
 
 #include <template.h>
@@ -49,7 +49,7 @@ typedef google::Template Template;
 #define DO_NOT_STRIP google::DO_NOT_STRIP
 #endif
 
-typedef std::list<std::string> ListString;
+typedef std::vector<std::string> ListString;
 
 enum FileType
 {
@@ -62,7 +62,7 @@ enum FileType
 // Options set by command line
 extern std::string	appName;
 extern std::string	optOutput;
-extern const char*	optTemplate;
+extern std::string	optTemplate;
 extern ListString	optTemplateDirs;
 extern const char*	optVersionMajor;
 extern const char*	optVersionMinor;
@@ -179,6 +179,33 @@ inline bool fileExists(const std::string& fileName)
 	struct stat fs;
 	return stat(fileName.c_str(), &fs) == 0;
 }
+
+enum FileCheckType
+{
+	fctRegularFile = S_IFREG,
+	fctDirectory = S_IFDIR
+};
+
+enum FileCheck
+{
+	fcOK,
+	fcDoesNotExist,
+	fcIsNotExpectedType
+};
+
+inline FileCheck checkFileExistsAndType(const std::string& fileName, FileCheckType type)
+{
+	struct stat fs;
+	if ( stat(fileName.c_str(), &fs) )
+		return fcDoesNotExist;
+	else
+	{
+		if (( fs.st_mode & S_IFMT ) != type )
+			return fcIsNotExpectedType;
+	}
+	return fcOK;
+}
+
 
 }
 

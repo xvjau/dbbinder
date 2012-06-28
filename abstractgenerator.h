@@ -70,7 +70,7 @@ struct SQLElement
 	std::string	defaultValue;
 	std::string	comment;
 };
-typedef std::list<SQLElement> ListElements;
+typedef std::vector<SQLElement> ListElements;
 
 struct Location
 {
@@ -174,7 +174,7 @@ class AbstractGenerator
 			std::string tmpl;
 			std::string dest;
 		};
-		typedef std::list<TmplDestPair> ListTplDestPair;
+		typedef std::vector<TmplDestPair> ListTplDestPair;
 		ListTplDestPair m_extraFiles;
 
 		std::string		m_dbengine;

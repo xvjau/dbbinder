@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 
 if(COMMAND cmake_policy)
 	cmake_policy(SET CMP0003 NEW)
@@ -22,32 +22,10 @@ add_subdirectory(./TinyXML)
 
 add_definitions(-DTIXML_USE_TICPP)
 
-########################## Gnu Perfect Hash ##########################
-
-find_program(GPERF gperf)
-if(NOT GPERF)
-	message(FATAL_ERROR "gnu perfect hast (gperf) not found!")
-endif()
-
-get_filename_component(SRC_PATH ./options.gperf ABSOLUTE)
-get_filename_component(DST_PATH ./options.h ABSOLUTE)
-
-add_custom_command(OUTPUT options.h
-					COMMAND ${GPERF}
-					ARGS -CGD -N isValid -K option -L C++ -t ${SRC_PATH} > ${DST_PATH}
-					DEPENDS options.gperf
-					COMMENT build options.h)
-
-set_source_files_properties(main.cpp PROPERTIES OBJECT_DEPENDS options.h)
-
 ########################## Boost ##########################
 
-find_package( Boost )
-if(Boost_FOUND)
-	include_directories(${Boost_INCLUDE_DIRS})
-else()
-	message(FATAL_ERROR "Boost not found!")
-endif()
+find_package( Boost COMPONENTS program_options REQUIRED )
+include_directories(${Boost_INCLUDE_DIRS})
 
 ##########################  google-ctemplate ##########################
 
@@ -232,13 +210,9 @@ add_executable(dbbinder
 	sqlitegenerator.cpp
 	${extra_files})
 
-target_link_libraries(dbbinder ticpp ${CTEMPLATE_LIB} sqlite3 ${extra_libs})
+target_link_libraries(dbbinder ticpp ${CTEMPLATE_LIB} sqlite3 ${extra_libs} ${Boost_LIBRARIES})
 
-if(NOT CMAKE_INSTALL_PREFIX)
-	set(CMAKE_INSTALL_PREFIX "/usr/local/")
-endif()
-
-install(TARGETS dbbinder RUNTIME DESTINATION bin )
+install(TARGETS dbbinder RUNTIME DESTINATION bin)
 
 install(DIRECTORY templates
 			DESTINATION share/dbbinder/
@@ -246,5 +220,8 @@ install(DIRECTORY templates
 			PATTERN "*~" EXCLUDE
 			PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ)
 
-install(FILES extra/CMake/FindDBBinder.cmake DESTINATION ${CMAKE_ROOT}/Modules
-          PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ)
+install(FILES extra/CMake/FindDBBinder.cmake
+		DESTINATION share/dbbinder/
+		PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ)
+
+install(CODE "execute_process(COMMAND install --mode=-r--r--r-- ${CMAKE_CURRENT_LIST_DIR}/extra/CMake/FindDBBinder.cmake ${CMAKE_ROOT}/Modules)")
