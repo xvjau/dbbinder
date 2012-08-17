@@ -181,9 +181,14 @@ int main(int argc, char *argv[])
 
 		switch (checkFileExistsAndType(s, fctRegularFile))
 		{
-			case fcOK:					optOutput = s; break;
-			case fcDoesNotExist:		FATAL_EXIT( s << ": No such file");
-			case fcIsNotExpectedType:	FATAL_EXIT( s << ": must be a regular file");
+			case fcOK:
+				WARNING(s << " : will be overritten");
+			case fcDoesNotExist:
+				optOutput = s;
+				break;
+
+			case fcIsNotExpectedType:
+				FATAL_EXIT( s << ": must be a regular file");
 		}
 	}
 
