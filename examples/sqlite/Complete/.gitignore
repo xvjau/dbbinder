@@ -1,2 +1,4 @@
 *.kdev4
 test.db
+test_select.h
+test_select.cpp
