@@ -220,8 +220,8 @@ install(DIRECTORY templates
 			PATTERN "*~" EXCLUDE
 			PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ)
 
-install(FILES extra/CMake/FindDBBinder.cmake
+install(FILES extra/CMake/DBBinderConfig.cmake
 		DESTINATION share/dbbinder/
 		PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ)
 
-install(CODE "execute_process(COMMAND install --mode=-r--r--r-- ${CMAKE_CURRENT_LIST_DIR}/extra/CMake/FindDBBinder.cmake ${CMAKE_ROOT}/Modules)")
+install(CODE "execute_process(COMMAND install --mode=-r--r--r-- ${CMAKE_CURRENT_LIST_DIR}/extra/CMake/DBBinderConfig.cmake ${CMAKE_ROOT}/Modules)")
