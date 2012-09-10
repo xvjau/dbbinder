@@ -380,7 +380,6 @@ void FirebirdGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElem
 	{
 		TemplateDictionary *subDict;
 
-		std::string type;
 		switch ( _type )
 		{
 			case sstSelect:

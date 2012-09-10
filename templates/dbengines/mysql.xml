@@ -6,7 +6,9 @@
 		</includes>
 		<global_functions>
 			<function>
-				void mysqlCheckStmtErr( MYSQL_STMT *_stmt, int _status )
+				<![CDATA[
+				#ifndef MYSQLCHECKSTMTERR
+				static void mysqlCheckStmtErr( MYSQL_STMT *_stmt, int _status )
 				{
 					if ( _status )
 					{
@@ -31,11 +33,13 @@
 								ASSERT_MSG( false, "The buffer type is MYSQL_TYPE_DATE, MYSQL_TYPE_TIME, MYSQL_TYPE_DATETIME, or MYSQL_TYPE_TIMESTAMP, but the data type is not DATE, TIME, DATETIME, or TIMESTAMP." );
 								break;
 						}
-						
-						ASSERT_MSG( false, "MySQL: " &lt;&lt; mysql_stmt_error(_stmt) );
+
+						ASSERT_MSG( false, "MySQL: " << mysql_stmt_error(_stmt) );
 						exit(-1);
 					}
 				}
+				#endif // MYSQLCHECKSTMTERR
+				]]>
 			</function>
 		</global_functions>
 		<types>
@@ -49,9 +53,11 @@
 			</statement>
 		</types>
 		<connect>
+			<![CDATA[
 			m_conn = mysql_init(0);
 			m_conn = mysql_real_connect(m_conn, s_dbparam_host, s_dbparam_user, s_dbparam_password, s_dbparam_db, s_dbparam_port, 0, CLIENT_COMPRESS);
-			ASSERT_MSG( m_conn, "Unable to connect to:" &lt;&lt; s_dbparam_host );
+			ASSERT_MSG( m_conn, "Unable to connect to:" << s_dbparam_host );
+			]]>
 		</connect>
 		<disconnect>
 			mysql_close(m_conn);
@@ -67,8 +73,9 @@
 				mysqlCheckStmtErr( m_selectStmt, mysql_stmt_prepare(m_selectStmt, s_selectSQL, s_selectSQL_len) );
 			</prepare>
 			<fetch>
+				<![CDATA[
 				int ret = mysql_stmt_fetch(m_selectStmt);
-				
+
 				switch( ret )
 				{
 					case 0:
@@ -81,14 +88,72 @@
 						mysqlCheckStmtErr( m_selectStmt, ret );
 						break;
 				}
-				
+
 				return false;
+				]]>
 			</fetch>
 			<execute>
-				mysqlCheckStmtErr( m_selectStmt, mysql_stmt_bind_param(m_selectStmt, selInBuffer));
+				<![CDATA[
+				mysqlCheckStmtErr( m_selectStmt, mysql_stmt_bind_param(m_selectStmt, inBuffer));
 				mysqlCheckStmtErr( m_selectStmt, mysql_stmt_execute(m_selectStmt));
 				mysqlCheckStmtErr( m_selectStmt, mysql_stmt_bind_result(m_selectStmt, selOutBuffer));
+				]]>
 			</execute>
 		</select>
+
+		<insert>
+			<create>
+				m_insertStmt = mysql_stmt_init(m_conn);
+			</create>
+			<destroy>
+				mysql_stmt_close(m_insertStmt);
+			</destroy>
+			<prepare>
+				mysqlCheckStmtErr( m_insertStmt, mysql_stmt_prepare(m_insertStmt, s_insertSQL, s_insertSQL_len) );
+			</prepare>
+			<execute>
+				mysqlCheckStmtErr( m_insertStmt, mysql_stmt_bind_param(m_insertStmt, inBuffer));
+				mysqlCheckStmtErr( m_insertStmt, mysql_stmt_execute(m_insertStmt));
+			</execute>
+			<reset>
+			</reset>
+		</insert>
+
+		<update>
+			<create>
+				m_updateStmt = mysql_stmt_init(m_conn);
+			</create>
+			<destroy>
+				mysql_stmt_close(m_updateStmt);
+			</destroy>
+			<prepare>
+				mysqlCheckStmtErr( m_updateStmt, mysql_stmt_prepare(m_updateStmt, s_updateSQL, s_updateSQL_len) );
+			</prepare>
+			<execute>
+				mysqlCheckStmtErr( m_updateStmt, mysql_stmt_bind_param(m_updateStmt, inBuffer));
+				mysqlCheckStmtErr( m_updateStmt, mysql_stmt_execute(m_updateStmt));
+			</execute>
+			<reset>
+			</reset>
+		</update>
+
+		<delete>
+			<create>
+				m_deleteStmt = mysql_stmt_init(m_conn);
+			</create>
+			<destroy>
+				mysql_stmt_close(m_deleteStmt);
+			</destroy>
+			<prepare>
+				mysqlCheckStmtErr( m_deleteStmt, mysql_stmt_prepare(m_deleteStmt, s_deleteSQL, s_deleteSQL_len) );
+			</prepare>
+			<execute>
+				mysqlCheckStmtErr( m_deleteStmt, mysql_stmt_bind_param(m_deleteStmt, inBuffer));
+				mysqlCheckStmtErr( m_deleteStmt, mysql_stmt_execute(m_deleteStmt));
+			</execute>
+			<reset>
+			</reset>
+		</delete>
+
 	</lang>
 </xml>

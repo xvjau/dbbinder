@@ -99,8 +99,10 @@ bool MySQLGenerator::checkConnection()
 
 std::string MySQLGenerator::getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
 {
-	UNUSED(_type);
-	return std::string("m_param") + _item->name + " = _" + _item->name + ";";
+	if (_type == sstSelect)
+		return std::string("m_param") + _item->name + " = _" + _item->name + ";";
+	else
+		return "";
 }
 
 std::string MySQLGenerator::getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
@@ -259,27 +261,47 @@ void MySQLGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElement
 
 		getMySQLTypes( field.type, langType, myType );
 
+		switch ( _type )
+		{
+			case sstSelect:
+				subDict = m_dict->AddSectionDictionary(tpl_SEL_IN_FIELDS_BUFFERS);
+				break;
+			case sstInsert:
+				subDict = m_dict->AddSectionDictionary(tpl_INS_IN_FIELDS_BUFFERS);
+				break;
+			case sstUpdate:
+				subDict = m_dict->AddSectionDictionary(tpl_UPD_IN_FIELDS_BUFFERS);
+				break;
+			case sstDelete:
+				subDict = m_dict->AddSectionDictionary(tpl_DEL_IN_FIELDS_BUFFERS);
+				break;
+			default:
+				FATAL(__FILE__  << ':' << __LINE__ << ": Invalide statement type.");
+		};
+
 		if ( index == 0 )
 		{
-			decl << "MYSQL_BIND selInBuffer[" << _elements->input.size() << "];\n\n";
-			init << "memset(selInBuffer, 0, sizeof(selInBuffer));\n\n";
+			decl << "MYSQL_BIND inBuffer[" << _elements->input.size() << "];\n\n";
+			init << "memset(inBuffer, 0, sizeof(inBuffer));\n\n";
 		}
 
-		if ( field.type != stText )
+		if (_type == sstSelect)
 			decl << langType << " m_param" << field.name << ";\n";
-		else
-			decl << langType << " m_param" << field.name << "[" << field.length + 1 << "];\n";
 
 		decl << "long unsigned m_param" << field.name << "Length;\n";
 		decl << "my_bool m_param" << field.name << "IsNull;\n";
 
-		init << "selInBuffer[" << index << "].buffer_type = " << myType << ";\n"
-				<< "selInBuffer[" << index << "].buffer = reinterpret_cast<void *>(&m_param" << field.name << ");\n"
-				<< "selInBuffer[" << index << "].is_null = &m_param" << field.name << "IsNull;\n"
-				<< "selInBuffer[" << index << "].length = &m_param" << field.name << "Length;\n"
+		init << "inBuffer[" << index << "].buffer_type = " << myType << ";\n";
+
+		if ( field.type != stText )
+			init << "inBuffer[" << index << "].buffer = reinterpret_cast<void *>(&_" << field.name << ");\n";
+		else
+			init << "inBuffer[" << index << "].buffer = const_cast<void*>(reinterpret_cast<const void *>(_" << field.name << "));\n";
+
+		init << "inBuffer[" << index << "].is_null = &m_param" << field.name << "IsNull;\n"
+				<< "inBuffer[" << index << "].length = &m_param" << field.name << "Length;\n"
 				<< "\n";
 
-		subDict = m_dict->AddSectionDictionary(tpl_SEL_IN_FIELDS_BUFFERS);
 		subDict->SetValue(tpl_BUFFER_DECLARE, decl.str() );
 		subDict->SetValue(tpl_BUFFER_ALLOC, init.str() );
 
