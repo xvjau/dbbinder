@@ -513,7 +513,6 @@ void AbstractGenerator::generate()
 			FATAL("Error processing: " << m_templ[ftIntf]);
 
 		cleanExcessiveLineBreaks(str, out);
-		out << str;
 		str.clear();
 	}
 
@@ -532,8 +531,6 @@ void AbstractGenerator::generate()
 			FATAL("Error processing: " << m_templ[ftImpl]);
 
 		cleanExcessiveLineBreaks(str, out);
-		out << str;
-
 		str.clear();
 	}
 
@@ -558,8 +555,6 @@ void AbstractGenerator::generate()
 			tmpl->Expand(&str, m_dict);
 
 			cleanExcessiveLineBreaks(str, out);
-			//out << str;
-
 			str.clear();
 
 			// TODO Put this in an XML
