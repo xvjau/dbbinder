@@ -111,7 +111,7 @@ std::string MySQLGenerator::getReadValue(SQLStatementTypes _type, const ListElem
 
 std::string MySQLGenerator::getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
 {
-	FATAL("Not implemented!");
+	return "_parent->m_" + _item->name + "IsNull;";
 }
 
 void MySQLGenerator::addInsert(InsertElements _elements)
@@ -271,10 +271,11 @@ void MySQLGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElement
 			decl << langType << " m_param" << field.name << "[" << field.length + 1 << "];\n";
 
 		decl << "long unsigned m_param" << field.name << "Length;\n";
+		decl << "my_bool m_param" << field.name << "IsNull;\n";
 
 		init << "selInBuffer[" << index << "].buffer_type = " << myType << ";\n"
 				<< "selInBuffer[" << index << "].buffer = reinterpret_cast<void *>(&m_param" << field.name << ");\n"
-				<< "selInBuffer[" << index << "].is_null = 0;\n"
+				<< "selInBuffer[" << index << "].is_null = &m_param" << field.name << "IsNull;\n"
 				<< "selInBuffer[" << index << "].length = &m_param" << field.name << "Length;\n"
 				<< "\n";
 
