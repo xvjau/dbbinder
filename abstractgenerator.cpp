@@ -35,6 +35,8 @@
 #include "main.h"
 #include "TinyXML/nvXML.h"
 
+#include <ctype.h>
+
 namespace DBBinder
 {
 
@@ -484,7 +486,7 @@ static void cleanExcessiveLineBreaks(std::string &_str, std::ostream &_stream)
 			++ln;
 		else
 		{
-			if ( c != ' ' )
+			if ( !isspace(c) )
 				ln = 0;
 		}
 
