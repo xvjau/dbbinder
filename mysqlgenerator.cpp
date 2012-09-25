@@ -294,9 +294,19 @@ void MySQLGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElement
 		init << "inBuffer[" << index << "].buffer_type = " << myType << ";\n";
 
 		if ( field.type != stText )
+		{
+			init << "m_param" << field.name << "IsNull = 0;\n"
+				<< "m_param" << field.name << "Length = 0;\n\n";
+
 			init << "inBuffer[" << index << "].buffer = reinterpret_cast<void *>(&_" << field.name << ");\n";
+		}
 		else
+		{
+			init << "m_param" << field.name << "IsNull = (_" << field.name << ") ? 0 : 1;\n"
+				<< "m_param" << field.name << "Length = (_" << field.name << ") ? strlen(_" << field.name << ") : 0;\n\n";
+
 			init << "inBuffer[" << index << "].buffer = const_cast<void*>(reinterpret_cast<const void *>(_" << field.name << "));\n";
+		}
 
 		init << "inBuffer[" << index << "].is_null = &m_param" << field.name << "IsNull;\n"
 				<< "inBuffer[" << index << "].length = &m_param" << field.name << "Length;\n"
