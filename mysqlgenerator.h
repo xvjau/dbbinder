@@ -30,6 +30,9 @@ class MySQLGenerator : public AbstractGenerator
 {
 	friend class AbstractGenerator; //wtf??
 
+	private:
+		ctemplate::TemplateDictionary *getSubDict(SQLStatementTypes _type);
+
 	protected:
 		MySQLGenerator();
 		virtual ~MySQLGenerator();

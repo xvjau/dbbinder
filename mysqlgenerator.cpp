@@ -249,73 +249,76 @@ void getMySQLTypes(SQLTypes _type, std::string& _lang, std::string& _mysql)
 	}
 }
 
+ctemplate::TemplateDictionary* MySQLGenerator::getSubDict(SQLStatementTypes _type)
+{
+	switch ( _type )
+	{
+		case sstSelect: return m_dict->AddSectionDictionary(tpl_SEL_IN_FIELDS_BUFFERS);
+		case sstInsert: return m_dict->AddSectionDictionary(tpl_INS_IN_FIELDS_BUFFERS);
+		case sstUpdate: return m_dict->AddSectionDictionary(tpl_UPD_IN_FIELDS_BUFFERS);
+		case sstDelete: return m_dict->AddSectionDictionary(tpl_DEL_IN_FIELDS_BUFFERS);
+		default:
+			FATAL(__FILE__  << ':' << __LINE__ << ": Invalide statement type.");
+	};
+}
+
 void MySQLGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements)
 {
 	std::string langType, myType;
 	int index = 0;
-	ctemplate::TemplateDictionary *subDict;
 
-	foreach(SQLElement field, _elements->input)
+	if (_elements->input.empty() || _elements->input.size() == 0)
 	{
-		std::stringstream decl, init;
-
-		getMySQLTypes( field.type, langType, myType );
-
-		switch ( _type )
+		ctemplate::TemplateDictionary *subDict = getSubDict(_type);
+		subDict->SetValue(tpl_BUFFER_DECLARE, "MYSQL_BIND inBuffer[0];\n\n" );
+	}
+	else
+	{
+		foreach(SQLElement field, _elements->input)
 		{
-			case sstSelect:
-				subDict = m_dict->AddSectionDictionary(tpl_SEL_IN_FIELDS_BUFFERS);
-				break;
-			case sstInsert:
-				subDict = m_dict->AddSectionDictionary(tpl_INS_IN_FIELDS_BUFFERS);
-				break;
-			case sstUpdate:
-				subDict = m_dict->AddSectionDictionary(tpl_UPD_IN_FIELDS_BUFFERS);
-				break;
-			case sstDelete:
-				subDict = m_dict->AddSectionDictionary(tpl_DEL_IN_FIELDS_BUFFERS);
-				break;
-			default:
-				FATAL(__FILE__  << ':' << __LINE__ << ": Invalide statement type.");
-		};
+			std::stringstream decl, init;
 
-		if ( index == 0 )
-		{
-			decl << "MYSQL_BIND inBuffer[" << _elements->input.size() << "];\n\n";
-			init << "memset(inBuffer, 0, sizeof(inBuffer));\n\n";
+			getMySQLTypes( field.type, langType, myType );
+
+			if ( index == 0 )
+			{
+				decl << "MYSQL_BIND inBuffer[" << _elements->input.size() << "];\n\n";
+				init << "memset(inBuffer, 0, sizeof(inBuffer));\n\n";
+			}
+
+			if (_type == sstSelect)
+				decl << langType << " m_param" << field.name << ";\n";
+
+			decl << "long unsigned m_param" << field.name << "Length;\n";
+			decl << "my_bool m_param" << field.name << "IsNull;\n";
+
+			init << "inBuffer[" << index << "].buffer_type = " << myType << ";\n";
+
+			if ( field.type != stText )
+			{
+				init << "m_param" << field.name << "IsNull = 0;\n"
+					<< "m_param" << field.name << "Length = 0;\n\n";
+
+				init << "inBuffer[" << index << "].buffer = reinterpret_cast<void *>(&_" << field.name << ");\n";
+			}
+			else
+			{
+				init << "m_param" << field.name << "IsNull = (_" << field.name << ") ? 0 : 1;\n"
+					<< "m_param" << field.name << "Length = (_" << field.name << ") ? strlen(_" << field.name << ") : 0;\n\n";
+
+				init << "inBuffer[" << index << "].buffer = const_cast<void*>(reinterpret_cast<const void *>(_" << field.name << "));\n";
+			}
+
+			init << "inBuffer[" << index << "].is_null = &m_param" << field.name << "IsNull;\n"
+					<< "inBuffer[" << index << "].length = &m_param" << field.name << "Length;\n"
+					<< "\n";
+
+			ctemplate::TemplateDictionary *subDict = getSubDict(_type);
+			subDict->SetValue(tpl_BUFFER_DECLARE, decl.str() );
+			subDict->SetValue(tpl_BUFFER_ALLOC, init.str() );
+
+			++index;
 		}
-
-		if (_type == sstSelect)
-			decl << langType << " m_param" << field.name << ";\n";
-
-		decl << "long unsigned m_param" << field.name << "Length;\n";
-		decl << "my_bool m_param" << field.name << "IsNull;\n";
-
-		init << "inBuffer[" << index << "].buffer_type = " << myType << ";\n";
-
-		if ( field.type != stText )
-		{
-			init << "m_param" << field.name << "IsNull = 0;\n"
-				<< "m_param" << field.name << "Length = 0;\n\n";
-
-			init << "inBuffer[" << index << "].buffer = reinterpret_cast<void *>(&_" << field.name << ");\n";
-		}
-		else
-		{
-			init << "m_param" << field.name << "IsNull = (_" << field.name << ") ? 0 : 1;\n"
-				<< "m_param" << field.name << "Length = (_" << field.name << ") ? strlen(_" << field.name << ") : 0;\n\n";
-
-			init << "inBuffer[" << index << "].buffer = const_cast<void*>(reinterpret_cast<const void *>(_" << field.name << "));\n";
-		}
-
-		init << "inBuffer[" << index << "].is_null = &m_param" << field.name << "IsNull;\n"
-				<< "inBuffer[" << index << "].length = &m_param" << field.name << "Length;\n"
-				<< "\n";
-
-		subDict->SetValue(tpl_BUFFER_DECLARE, decl.str() );
-		subDict->SetValue(tpl_BUFFER_ALLOC, init.str() );
-
-		++index;
 	}
 }
 
