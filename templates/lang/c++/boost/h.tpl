@@ -105,6 +105,7 @@ class {{CLASSNAME}}
 		{{/SEL_OUT_FIELDS_BUFFERS}}
 	public:
 		void open( {{#SEL_IN_FIELDS}}{{SEL_IN_FIELD_TYPE}} _{{SEL_IN_FIELD_NAME}}{{SEL_IN_FIELD_COMMA}}{{/SEL_IN_FIELDS}} );
+		void close();
 
 		class _row_type
 		{

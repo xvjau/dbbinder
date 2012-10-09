@@ -67,7 +67,7 @@
 				m_selectStmt = mysql_stmt_init(m_conn);
 			</create>
 			<destroy>
-				if (m_selectStmt) { mysql_stmt_close(m_selectStmt); }
+				if (m_selectStmt) { mysql_stmt_close(m_selectStmt); m_selectStmt = 0; }
 			</destroy>
 			<prepare>
 				mysqlCheckStmtErr(m_selectStmt, mysql_stmt_prepare(m_selectStmt, s_selectSQL, s_selectSQL_len));
@@ -112,7 +112,7 @@
 				m_insertStmt = mysql_stmt_init(m_conn);
 			</create>
 			<destroy>
-				if (m_insertStmt) { mysql_stmt_close(m_insertStmt); }
+				if (m_insertStmt) { mysql_stmt_close(m_insertStmt); m_insertStmt = 0; }
 			</destroy>
 			<prepare>
 				mysqlCheckStmtErr(m_insertStmt, mysql_stmt_prepare(m_insertStmt, s_insertSQL, s_insertSQL_len) );
@@ -131,7 +131,7 @@
 				m_updateStmt = mysql_stmt_init(m_conn);
 			</create>
 			<destroy>
-				if (m_updateStmt) { mysql_stmt_close(m_updateStmt) };
+				if (m_updateStmt) { mysql_stmt_close(m_updateStmt); m_updateStmt = 0; };
 			</destroy>
 			<prepare>
 				mysqlCheckStmtErr(m_updateStmt, mysql_stmt_prepare(m_updateStmt, s_updateSQL, s_updateSQL_len) );
@@ -150,7 +150,7 @@
 				m_deleteStmt = mysql_stmt_init(m_conn);
 			</create>
 			<destroy>
-				if (m_deleteStmt) { mysql_stmt_close(m_deleteStmt); }
+				if (m_deleteStmt) { mysql_stmt_close(m_deleteStmt); m_deleteStmt = 0; }
 			</destroy>
 			<prepare>
 				mysqlCheckStmtErr( m_deleteStmt, mysql_stmt_prepare(m_deleteStmt, s_deleteSQL, s_deleteSQL_len) );
