@@ -78,15 +78,14 @@
 
 				switch( ret )
 				{
+					case MYSQL_DATA_TRUNCATED:
+						LOG_MSG("MySQL data truncated!");
 					case 0:
 						m_currentRow.reset( new _row_type( this ));
 						return true;
 					case MYSQL_NO_DATA:
 						m_currentRow.reset();
 						break;
-					case MYSQL_DATA_TRUNCATED:
-						LOG_MSG("MySQL data truncated!");
-						return true;
 					default:
 						mysqlCheckStmtErr( m_selectStmt, ret );
 						break;
