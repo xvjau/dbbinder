@@ -86,7 +86,7 @@
 						break;
 					case MYSQL_DATA_TRUNCATED:
 						LOG_MSG("MySQL data truncated!");
-						break;
+						return true;
 					default:
 						mysqlCheckStmtErr( m_selectStmt, ret );
 						break;
