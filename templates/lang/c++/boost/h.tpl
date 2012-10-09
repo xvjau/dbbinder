@@ -29,12 +29,12 @@
 {{#EXTRA_HEADERS}}{{EXTRA_HEADERS_TYPE}}
 {{/EXTRA_HEADERS}}
 
-#ifndef ASSERT_MSG
-	#ifdef NDEBUG
-		#define ASSERT_MSG(cond, msg) { if (!(cond)) { std::cerr << " WARNING: " << msg << std::endl; assert(cond); }}
-	#else
-		#define ASSERT_MSG(cond, msg) { if (!(cond)) { std::cerr << __FILE__ << ':' << __LINE__ << " WARNING: " << msg << std::endl; assert(cond); }}
-	#endif
+#ifdef NDEBUG
+#define ASSERT_MSG(cond, msg) do { if (!(cond)) { std::cerr << " WARNING: " << msg << std::endl; assert(cond); }} while (false)
+#define LOG_MSG(msg) { std::cerr << " WARNING: " << msg << std::endl; } while (false)
+#else
+#define ASSERT_MSG(cond, msg) do { if (!(cond)) { std::cerr << __FILE__ << ':' << __LINE__ << " WARNING: " << msg << std::endl; assert(cond); }} while (false)
+#define LOG_MSG(msg) do { std::cerr << __FILE__ << ':' << __LINE__ << " WARNING: " << msg << std::endl; } while (false)
 #endif
 
 {{#CLASS}}
@@ -234,8 +234,7 @@ class {{CLASSNAME}}
 } // {{NAMESPACE}}
 {{/NAMESPACES}}
 
-#undef ASSERT
 #undef ASSERT_MSG
-#undef ASSERT_MSG_FILE_LINE
+#undef LOG_MSG
 
 #endif
