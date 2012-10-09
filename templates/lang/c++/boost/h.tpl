@@ -30,11 +30,19 @@
 {{/EXTRA_HEADERS}}
 
 #ifdef NDEBUG
+#ifndef ASSERT_MSG
 #define ASSERT_MSG(cond, msg) do { if (!(cond)) { std::cerr << " WARNING: " << msg << std::endl; assert(cond); }} while (false)
+#endif
+#ifndef LOG_MSG
 #define LOG_MSG(msg) { std::cerr << " WARNING: " << msg << std::endl; } while (false)
+#endif
 #else
+#ifndef ASSERT_MSG
 #define ASSERT_MSG(cond, msg) do { if (!(cond)) { std::cerr << __FILE__ << ':' << __LINE__ << " WARNING: " << msg << std::endl; assert(cond); }} while (false)
+#endif
+#ifndef LOG_MSG
 #define LOG_MSG(msg) do { std::cerr << __FILE__ << ':' << __LINE__ << " WARNING: " << msg << std::endl; } while (false)
+#endif
 #endif
 
 {{#CLASS}}
