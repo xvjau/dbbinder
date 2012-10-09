@@ -84,6 +84,9 @@
 					case MYSQL_NO_DATA:
 						m_currentRow.reset();
 						break;
+					case MYSQL_DATA_TRUNCATED:
+						LOG_MSG("MySQL data truncated!");
+						break;
 					default:
 						mysqlCheckStmtErr( m_selectStmt, ret );
 						break;
