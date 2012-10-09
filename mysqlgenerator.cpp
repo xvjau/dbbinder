@@ -99,10 +99,7 @@ bool MySQLGenerator::checkConnection()
 
 std::string MySQLGenerator::getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
 {
-	if (_type == sstSelect)
-		return std::string("m_param") + _item->name + " = _" + _item->name + ";";
-	else
-		return "";
+	return "";
 }
 
 std::string MySQLGenerator::getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
