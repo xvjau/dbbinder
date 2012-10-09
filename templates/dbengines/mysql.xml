@@ -64,13 +64,13 @@
 		</disconnect>
 		<select>
 			<create>
-				m_selectStmt = mysql_stmt_init( m_conn );
+				m_selectStmt = mysql_stmt_init(m_conn);
 			</create>
 			<destroy>
 				if (m_selectStmt) { mysql_stmt_close(m_selectStmt); }
 			</destroy>
 			<prepare>
-				mysqlCheckStmtErr( m_selectStmt, mysql_stmt_prepare(m_selectStmt, s_selectSQL, s_selectSQL_len) );
+				mysqlCheckStmtErr(m_selectStmt, mysql_stmt_prepare(m_selectStmt, s_selectSQL, s_selectSQL_len));
 			</prepare>
 			<fetch>
 				<![CDATA[
@@ -97,11 +97,14 @@
 			</fetch>
 			<execute>
 				<![CDATA[
-				mysqlCheckStmtErr( m_selectStmt, mysql_stmt_bind_param(m_selectStmt, inBuffer));
-				mysqlCheckStmtErr( m_selectStmt, mysql_stmt_execute(m_selectStmt));
-				mysqlCheckStmtErr( m_selectStmt, mysql_stmt_bind_result(m_selectStmt, selOutBuffer));
+				mysqlCheckStmtErr(m_selectStmt, mysql_stmt_bind_param(m_selectStmt, inBuffer));
+				mysqlCheckStmtErr(m_selectStmt, mysql_stmt_execute(m_selectStmt));
+				mysqlCheckStmtErr(m_selectStmt, mysql_stmt_bind_result(m_selectStmt, selOutBuffer));
 				]]>
 			</execute>
+			<reset>
+				mysqlCheckStmtErr(m_selectStmt, mysql_stmt_reset(m_selectStmt));
+			</reset>
 		</select>
 
 		<insert>
@@ -117,9 +120,9 @@
 			<execute>
 				mysqlCheckStmtErr(m_insertStmt, mysql_stmt_bind_param(m_insertStmt, inBuffer));
 				mysqlCheckStmtErr(m_insertStmt, mysql_stmt_execute(m_insertStmt));
-				mysqlCheckStmtErr(m_insertStmt, mysql_stmt_reset(m_insertStmt));
 			</execute>
 			<reset>
+				mysqlCheckStmtErr(m_insertStmt, mysql_stmt_reset(m_insertStmt));
 			</reset>
 		</insert>
 
@@ -136,9 +139,9 @@
 			<execute>
 				mysqlCheckStmtErr(m_updateStmt, mysql_stmt_bind_param(m_updateStmt, inBuffer));
 				mysqlCheckStmtErr(m_updateStmt, mysql_stmt_execute(m_updateStmt));
-				mysqlCheckStmtErr(m_updateStmt, mysql_stmt_reset(m_updateStmt));
 			</execute>
 			<reset>
+				mysqlCheckStmtErr(m_updateStmt, mysql_stmt_reset(m_updateStmt));
 			</reset>
 		</update>
 
@@ -155,9 +158,9 @@
 			<execute>
 				mysqlCheckStmtErr(m_deleteStmt, mysql_stmt_bind_param(m_deleteStmt, inBuffer));
 				mysqlCheckStmtErr(m_deleteStmt, mysql_stmt_execute(m_deleteStmt));
-				mysqlCheckStmtErr(m_deleteStmt, mysql_stmt_reset(m_deleteStmt));
 			</execute>
 			<reset>
+				mysqlCheckStmtErr(m_deleteStmt, mysql_stmt_reset(m_deleteStmt));
 			</reset>
 		</delete>
 
