@@ -1,198 +1,201 @@
 <xml>
-	<lang type="c++">
-		<includes>
-			<file name="mysql/mysql.h" />
-			<file name="mysql/errmsg.h" />
-		</includes>
-		<global_functions>
-			<function>
-				<![CDATA[
-				#ifndef DBBINDERCONVERTTIME
-				#define DBBINDERCONVERTTIME
-				inline MYSQL_TIME dbbinderConvertTime(ptime v)
-				{
-					MYSQL_TIME result;
+    <lang type="c++">
+        <includes>
+            <file name="mysql/mysql.h" />
+            <file name="mysql/errmsg.h" />
+        </includes>
+        <global_functions>
+            <function>
+                <![CDATA[
+                #ifndef DBBINDERCONVERTTIME
+                #define DBBINDERCONVERTTIME
+                inline MYSQL_TIME dbbinderConvertTime(ptime v)
+                {
+                    MYSQL_TIME result;
 
-					const boost::gregorian::date& d = v.date();
-					result.year = d.year();
-					result.month = d.month();
-					result.day = d.day();
+                    const boost::gregorian::date& d = v.date();
+                    result.year = d.year();
+                    result.month = d.month();
+                    result.day = d.day();
 
-					const boost::posix_time::time_duration& t = v.time_of_day();
-					result.hour = t.hours();
-					result.minute = t.minutes();
-					result.second = t.seconds();
+                    const boost::posix_time::time_duration& t = v.time_of_day();
+                    result.hour = t.hours();
+                    result.minute = t.minutes();
+                    result.second = t.seconds();
 
-					result.neg = false;
-					result.time_type = MYSQL_TIMESTAMP_DATETIME;
+                    result.neg = false;
+                    result.time_type = MYSQL_TIMESTAMP_DATETIME;
 
-					return result;
-				}
+                    return result;
+                }
 
-				inline ptime dbbinderConvertTime(MYSQL_TIME v)
-				{
-					return ptime(boost::gregorian::date(v.year, v.month, v.day),
-								boost::posix_time::time_duration(v.hour, v.minute, v.second, v.second_part));
-				}
-				#endif // DBBINDER_CONVERT_TIME_MYSQL_TIME
+                inline ptime dbbinderConvertTime(MYSQL_TIME v)
+                {
+                    return ptime(boost::gregorian::date(v.year, v.month, v.day),
+                                boost::posix_time::time_duration(v.hour, v.minute, v.second, v.second_part));
+                }
+                #endif // DBBINDER_CONVERT_TIME_MYSQL_TIME
+                ]]>
+            </function>
+            <function>
+                <![CDATA[
+                #ifndef MYSQLCHECKSTMTERR
+                #define MYSQLCHECKSTMTERR
+                inline void mysqlCheckStmtErr(MYSQL_STMT *_stmt, int _status)
+                {
+                    if (_status)
+                    {
+                        switch(_status)
+                        {
+                            case CR_COMMANDS_OUT_OF_SYNC:
+                                ASSERT_MSG(false, "Commands were executed in an improper order.");
+                                break;
+                            case CR_OUT_OF_MEMORY:
+                                ASSERT_MSG(false, "Out of memory.");
+                                break;
+                            case CR_SERVER_GONE_ERROR:
+                                ASSERT_MSG(false, "The MySQL server has gone away.");
+                                break;
+                            case CR_SERVER_LOST:
+                                ASSERT_MSG(false, "The m_connection to the server was lost during the query.");
+                                break;
+                            case CR_UNKNOWN_ERROR:
+                                ASSERT_MSG(false, "An unknown error occurred.");
+                                break;
+                            case CR_UNSUPPORTED_PARAM_TYPE:
+                                ASSERT_MSG(false, "The buffer type is MYSQL_TYPE_DATE, MYSQL_TYPE_TIME, MYSQL_TYPE_DATETIME, or MYSQL_TYPE_TIMESTAMP, but the data type is not DATE, TIME, DATETIME, or TIMESTAMP.");
+                                break;
+                        }
 
-				#ifndef MYSQLCHECKSTMTERR
-				#define MYSQLCHECKSTMTERR
-				inline void mysqlCheckStmtErr( MYSQL_STMT *_stmt, int _status )
-				{
-					if ( _status )
-					{
-						switch( _status )
-						{
-							case CR_COMMANDS_OUT_OF_SYNC:
-								ASSERT_MSG( false, "Commands were executed in an improper order." );
-								break;
-							case CR_OUT_OF_MEMORY:
-								ASSERT_MSG( false, "Out of memory." );
-								break;
-							case CR_SERVER_GONE_ERROR:
-								ASSERT_MSG( false, "The MySQL server has gone away." );
-								break;
-							case CR_SERVER_LOST:
-								ASSERT_MSG( false, "The m_connection to the server was lost during the query." );
-								break;
-							case CR_UNKNOWN_ERROR:
-								ASSERT_MSG( false, "An unknown error occurred." );
-								break;
-							case CR_UNSUPPORTED_PARAM_TYPE:
-								ASSERT_MSG( false, "The buffer type is MYSQL_TYPE_DATE, MYSQL_TYPE_TIME, MYSQL_TYPE_DATETIME, or MYSQL_TYPE_TIMESTAMP, but the data type is not DATE, TIME, DATETIME, or TIMESTAMP." );
-								break;
-						}
+                        ASSERT_MSG(false, "MySQL: " << mysql_stmt_error(_stmt));
+                        exit(-1);
+                    }
+                }
+                #endif // MYSQLCHECKSTMTERR
+                ]]>
+            </function>
+        </global_functions>
+        <types>
+            <connection>
+                <type value="MYSQL*"/>
+                <null value="0"/>
+            </connection>
+            <statement>
+                <type value="MYSQL_STMT*"/>
+                <null value="0"/>
+            </statement>
+        </types>
+        <connect>
+            <![CDATA[
+            m_conn = mysql_init(0);
+            m_conn = mysql_real_connect(m_conn, s_dbparam_host, s_dbparam_user, s_dbparam_password, s_dbparam_db, s_dbparam_port, 0, CLIENT_COMPRESS);
+            ASSERT_MSG( m_conn, "Unable to connect to:" << s_dbparam_host );
+            ]]>
+        </connect>
+        <disconnect>
+            mysql_close(m_conn);
+        </disconnect>
+        <select>
+            <create>
+                m_selectStmt = mysql_stmt_init(m_conn);
+            </create>
+            <destroy>
+                if (m_selectStmt) { mysql_stmt_close(m_selectStmt); m_selectStmt = 0; }
+            </destroy>
+            <prepare>
+                mysqlCheckStmtErr(m_selectStmt, mysql_stmt_prepare(m_selectStmt, s_selectSQL, s_selectSQL_len));
+            </prepare>
+            <fetch>
+                <![CDATA[
+                int ret = mysql_stmt_fetch(m_selectStmt);
 
-						ASSERT_MSG( false, "MySQL: " << mysql_stmt_error(_stmt) );
-						exit(-1);
-					}
-				}
-				#endif // MYSQLCHECKSTMTERR
-				]]>
-			</function>
-		</global_functions>
-		<types>
-			<connection>
-				<type value="MYSQL*"/>
-				<null value="0"/>
-			</connection>
-			<statement>
-				<type value="MYSQL_STMT*"/>
-				<null value="0"/>
-			</statement>
-		</types>
-		<connect>
-			<![CDATA[
-			m_conn = mysql_init(0);
-			m_conn = mysql_real_connect(m_conn, s_dbparam_host, s_dbparam_user, s_dbparam_password, s_dbparam_db, s_dbparam_port, 0, CLIENT_COMPRESS);
-			ASSERT_MSG( m_conn, "Unable to connect to:" << s_dbparam_host );
-			]]>
-		</connect>
-		<disconnect>
-			mysql_close(m_conn);
-		</disconnect>
-		<select>
-			<create>
-				m_selectStmt = mysql_stmt_init(m_conn);
-			</create>
-			<destroy>
-				if (m_selectStmt) { mysql_stmt_close(m_selectStmt); m_selectStmt = 0; }
-			</destroy>
-			<prepare>
-				mysqlCheckStmtErr(m_selectStmt, mysql_stmt_prepare(m_selectStmt, s_selectSQL, s_selectSQL_len));
-			</prepare>
-			<fetch>
-				<![CDATA[
-				int ret = mysql_stmt_fetch(m_selectStmt);
+                switch( ret )
+                {
+                    case MYSQL_DATA_TRUNCATED:
+                        LOG_MSG("MySQL data truncated!");
+                    case 0:
+                        m_currentRow.reset( new _row_type( this ));
+                        return true;
+                    case MYSQL_NO_DATA:
+                        m_currentRow.reset();
+                        mysql_stmt_reset(m_selectStmt);
+                        break;
+                    default:
+                        mysqlCheckStmtErr( m_selectStmt, ret );
+                        break;
+                }
 
-				switch( ret )
-				{
-					case MYSQL_DATA_TRUNCATED:
-						LOG_MSG("MySQL data truncated!");
-					case 0:
-						m_currentRow.reset( new _row_type( this ));
-						return true;
-					case MYSQL_NO_DATA:
-						m_currentRow.reset();
-						mysql_stmt_reset(m_selectStmt);
-						break;
-					default:
-						mysqlCheckStmtErr( m_selectStmt, ret );
-						break;
-				}
+                return false;
+                ]]>
+            </fetch>
+            <execute>
+                <![CDATA[
+                mysqlCheckStmtErr(m_selectStmt, mysql_stmt_bind_param(m_selectStmt, inBuffer));
+                mysqlCheckStmtErr(m_selectStmt, mysql_stmt_execute(m_selectStmt));
+                mysqlCheckStmtErr(m_selectStmt, mysql_stmt_bind_result(m_selectStmt, selOutBuffer));
+                ]]>
+            </execute>
+            <reset>
+                mysqlCheckStmtErr(m_selectStmt, mysql_stmt_reset(m_selectStmt));
+            </reset>
+        </select>
 
-				return false;
-				]]>
-			</fetch>
-			<execute>
-				<![CDATA[
-				mysqlCheckStmtErr(m_selectStmt, mysql_stmt_bind_param(m_selectStmt, inBuffer));
-				mysqlCheckStmtErr(m_selectStmt, mysql_stmt_execute(m_selectStmt));
-				mysqlCheckStmtErr(m_selectStmt, mysql_stmt_bind_result(m_selectStmt, selOutBuffer));
-				]]>
-			</execute>
-			<reset>
-				mysqlCheckStmtErr(m_selectStmt, mysql_stmt_reset(m_selectStmt));
-			</reset>
-		</select>
+        <insert>
+            <create>
+                m_insertStmt = mysql_stmt_init(m_conn);
+            </create>
+            <destroy>
+                if (m_insertStmt) { mysql_stmt_close(m_insertStmt); m_insertStmt = 0; }
+            </destroy>
+            <prepare>
+                mysqlCheckStmtErr(m_insertStmt, mysql_stmt_prepare(m_insertStmt, s_insertSQL, s_insertSQL_len) );
+            </prepare>
+            <execute>
+                mysqlCheckStmtErr(m_insertStmt, mysql_stmt_bind_param(m_insertStmt, inBuffer));
+                mysqlCheckStmtErr(m_insertStmt, mysql_stmt_execute(m_insertStmt));
+            </execute>
+            <reset>
+                mysqlCheckStmtErr(m_insertStmt, mysql_stmt_reset(m_insertStmt));
+            </reset>
+        </insert>
 
-		<insert>
-			<create>
-				m_insertStmt = mysql_stmt_init(m_conn);
-			</create>
-			<destroy>
-				if (m_insertStmt) { mysql_stmt_close(m_insertStmt); m_insertStmt = 0; }
-			</destroy>
-			<prepare>
-				mysqlCheckStmtErr(m_insertStmt, mysql_stmt_prepare(m_insertStmt, s_insertSQL, s_insertSQL_len) );
-			</prepare>
-			<execute>
-				mysqlCheckStmtErr(m_insertStmt, mysql_stmt_bind_param(m_insertStmt, inBuffer));
-				mysqlCheckStmtErr(m_insertStmt, mysql_stmt_execute(m_insertStmt));
-			</execute>
-			<reset>
-				mysqlCheckStmtErr(m_insertStmt, mysql_stmt_reset(m_insertStmt));
-			</reset>
-		</insert>
+        <update>
+            <create>
+                m_updateStmt = mysql_stmt_init(m_conn);
+            </create>
+            <destroy>
+                if (m_updateStmt) { mysql_stmt_close(m_updateStmt); m_updateStmt = 0; };
+            </destroy>
+            <prepare>
+                mysqlCheckStmtErr(m_updateStmt, mysql_stmt_prepare(m_updateStmt, s_updateSQL, s_updateSQL_len) );
+            </prepare>
+            <execute>
+                mysqlCheckStmtErr(m_updateStmt, mysql_stmt_bind_param(m_updateStmt, inBuffer));
+                mysqlCheckStmtErr(m_updateStmt, mysql_stmt_execute(m_updateStmt));
+            </execute>
+            <reset>
+                mysqlCheckStmtErr(m_updateStmt, mysql_stmt_reset(m_updateStmt));
+            </reset>
+        </update>
 
-		<update>
-			<create>
-				m_updateStmt = mysql_stmt_init(m_conn);
-			</create>
-			<destroy>
-				if (m_updateStmt) { mysql_stmt_close(m_updateStmt); m_updateStmt = 0; };
-			</destroy>
-			<prepare>
-				mysqlCheckStmtErr(m_updateStmt, mysql_stmt_prepare(m_updateStmt, s_updateSQL, s_updateSQL_len) );
-			</prepare>
-			<execute>
-				mysqlCheckStmtErr(m_updateStmt, mysql_stmt_bind_param(m_updateStmt, inBuffer));
-				mysqlCheckStmtErr(m_updateStmt, mysql_stmt_execute(m_updateStmt));
-			</execute>
-			<reset>
-				mysqlCheckStmtErr(m_updateStmt, mysql_stmt_reset(m_updateStmt));
-			</reset>
-		</update>
+        <delete>
+            <create>
+                m_deleteStmt = mysql_stmt_init(m_conn);
+            </create>
+            <destroy>
+                if (m_deleteStmt) { mysql_stmt_close(m_deleteStmt); m_deleteStmt = 0; }
+            </destroy>
+            <prepare>
+                mysqlCheckStmtErr( m_deleteStmt, mysql_stmt_prepare(m_deleteStmt, s_deleteSQL, s_deleteSQL_len) );
+            </prepare>
+            <execute>
+                mysqlCheckStmtErr(m_deleteStmt, mysql_stmt_bind_param(m_deleteStmt, inBuffer));
+                mysqlCheckStmtErr(m_deleteStmt, mysql_stmt_execute(m_deleteStmt));
+            </execute>
+            <reset>
+                mysqlCheckStmtErr(m_deleteStmt, mysql_stmt_reset(m_deleteStmt));
+            </reset>
+        </delete>
 
-		<delete>
-			<create>
-				m_deleteStmt = mysql_stmt_init(m_conn);
-			</create>
-			<destroy>
-				if (m_deleteStmt) { mysql_stmt_close(m_deleteStmt); m_deleteStmt = 0; }
-			</destroy>
-			<prepare>
-				mysqlCheckStmtErr( m_deleteStmt, mysql_stmt_prepare(m_deleteStmt, s_deleteSQL, s_deleteSQL_len) );
-			</prepare>
-			<execute>
-				mysqlCheckStmtErr(m_deleteStmt, mysql_stmt_bind_param(m_deleteStmt, inBuffer));
-				mysqlCheckStmtErr(m_deleteStmt, mysql_stmt_execute(m_deleteStmt));
-			</execute>
-			<reset>
-				mysqlCheckStmtErr(m_deleteStmt, mysql_stmt_reset(m_deleteStmt));
-			</reset>
-		</delete>
-
-	</lang>
+    </lang>
 </xml>
