@@ -375,7 +375,7 @@ std::string AbstractGenerator::getType(SQLTypes _sqlType)
 			case stTime:
 			case stDate:
 			{
-				result = "int";
+				result = "ptime";
 				break;
 			}
 			case stText:
@@ -408,9 +408,6 @@ std::string AbstractGenerator::getInit(SQLTypes _sqlType)
 		case stUFloat:
 		case stDouble:
 		case stUDouble:
-		case stTimeStamp:
-		case stTime:
-		case stDate:
 		{
 			result = "0";
 			break;

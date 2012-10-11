@@ -105,7 +105,10 @@ std::string MySQLGenerator::getBind(SQLStatementTypes _type, const ListElements:
 std::string MySQLGenerator::getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
 {
 	UNUSED(_type);
-	return std::string("m_") + _item->name + " = _parent->m_buff" + _item->name + ";";
+	if (_item->type == stTimeStamp)
+		return std::string("m_") + _item->name + " = dbbinderConvertTime(_parent->m_buff" + _item->name + ");";
+	else
+		return std::string("m_") + _item->name + " = _parent->m_buff" + _item->name + ";";
 }
 
 std::string MySQLGenerator::getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)

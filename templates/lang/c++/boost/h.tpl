@@ -13,6 +13,8 @@
 #include <memory>
 #endif
 
+#include <boost/date_time/posix_time/posix_time_types.hpp>
+
 #include <iostream>
 #include <string.h>
 #include <libgen.h>
@@ -29,6 +31,8 @@
 {{#EXTRA_HEADERS}}{{EXTRA_HEADERS_TYPE}}
 {{/EXTRA_HEADERS}}
 
+using boost::posix_time::ptime;
+
 #ifdef NDEBUG
 #ifndef ASSERT_MSG
 #define ASSERT_MSG(cond, msg) do { if (!(cond)) { std::cerr << " WARNING: " << msg << std::endl; assert(cond); }} while (false)
@@ -44,6 +48,10 @@
 #define LOG_MSG(msg) do { std::cerr << __FILE__ << ':' << __LINE__ << " WARNING: " << msg << std::endl; } while (false)
 #endif
 #endif
+
+{{#DBENGINE_GLOBAL_FUNCTIONS}}
+{{FUNCTION}}
+{{/DBENGINE_GLOBAL_FUNCTIONS}}
 
 {{#CLASS}}
 
