@@ -211,7 +211,7 @@ class {{CLASSNAME}}
         {
             return s_endIterator;
         }
-        bool empty() const
+        bool empty()
         {
             return begin() == end();
         }
