@@ -13,26 +13,34 @@
                 {
                     MYSQL_TIME result;
 
-                    const boost::gregorian::date& d = v.date();
-                    result.year = d.year();
-                    result.month = d.month();
-                    result.day = d.day();
+                    if (v.is_not_a_date_time())
+                    {
+                        memset(&result, 0, sizeof(MYSQL_TIME));
+                    }
+                    else
+                    {
+                        const boost::gregorian::date& d = v.date();
+                        result.year = d.year();
+                        result.month = d.month();
+                        result.day = d.day();
 
-                    const boost::posix_time::time_duration& t = v.time_of_day();
-                    result.hour = t.hours();
-                    result.minute = t.minutes();
-                    result.second = t.seconds();
+                        const boost::posix_time::time_duration& t = v.time_of_day();
+                        result.hour = t.hours();
+                        result.minute = t.minutes();
+                        result.second = t.seconds();
 
-                    result.neg = false;
-                    result.time_type = MYSQL_TIMESTAMP_DATETIME;
-
+                        result.neg = false;
+                        result.time_type = MYSQL_TIMESTAMP_DATETIME;
+                    }
                     return result;
                 }
 
                 inline ptime dbbinderConvertTime(MYSQL_TIME v)
                 {
-                    return ptime(boost::gregorian::date(v.year, v.month, v.day),
-                                boost::posix_time::time_duration(v.hour, v.minute, v.second, v.second_part));
+                    if (v.year && v.month && v.day)
+                        return ptime(boost::gregorian::date(v.year, v.month, v.day),
+                                    boost::posix_time::time_duration(v.hour, v.minute, v.second, v.second_part));
+                    return ptime();
                 }
                 #endif // DBBINDER_CONVERT_TIME_MYSQL_TIME
                 ]]>
