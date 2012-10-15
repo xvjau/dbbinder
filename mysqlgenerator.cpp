@@ -264,62 +264,81 @@ ctemplate::TemplateDictionary* MySQLGenerator::getSubDict(SQLStatementTypes _typ
 
 void MySQLGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements)
 {
-	std::string langType, myType;
-	int index = 0;
+    std::string langType, myType;
+    int index = 0;
 
-	if (_elements->input.empty() || _elements->input.size() == 0)
-	{
-		ctemplate::TemplateDictionary *subDict = getSubDict(_type);
-		subDict->SetValue(tpl_BUFFER_DECLARE, "MYSQL_BIND inBuffer[0];\n\n" );
-	}
-	else
-	{
-		foreach(SQLElement field, _elements->input)
-		{
-			std::stringstream decl, init;
+    if (_elements->input.empty() || _elements->input.size() == 0)
+    {
+        ctemplate::TemplateDictionary *subDict = getSubDict(_type);
+        subDict->SetValue(tpl_BUFFER_DECLARE, "MYSQL_BIND inBuffer[0];\n\n" );
+    }
+    else
+    {
+        foreach(SQLElement field, _elements->input)
+        {
+            std::stringstream decl, init;
 
-			getMySQLTypes( field.type, langType, myType );
+            getMySQLTypes( field.type, langType, myType );
 
-			if ( index == 0 )
-			{
-				decl << "MYSQL_BIND inBuffer[" << _elements->input.size() << "];\n\n";
-				init << "memset(inBuffer, 0, sizeof(inBuffer));\n\n";
-			}
+            if ( index == 0 )
+            {
+                decl << "MYSQL_BIND inBuffer[" << _elements->input.size() << "];\n\n";
+                init << "memset(inBuffer, 0, sizeof(inBuffer));\n\n";
+            }
 
-			if (_type == sstSelect)
-				decl << langType << " m_param" << field.name << ";\n";
+            if (_type == sstSelect)
+                decl << langType << " m_param" << field.name << ";\n";
 
-			decl << "long unsigned m_param" << field.name << "Length;\n";
-			decl << "my_bool m_param" << field.name << "IsNull;\n";
+            decl << "long unsigned m_param" << field.name << "Length;\n";
+            decl << "my_bool m_param" << field.name << "IsNull;\n";
 
-			init << "inBuffer[" << index << "].buffer_type = " << myType << ";\n";
+            init << "inBuffer[" << index << "].buffer_type = " << myType << ";\n";
 
-			if ( field.type != stText )
-			{
-				init << "m_param" << field.name << "IsNull = 0;\n"
-					<< "m_param" << field.name << "Length = 0;\n\n";
+            switch( field.type )
+            {
+                case stDate:
+                case stTime:
+                case stTimeStamp:
+                {
+                    decl << "MYSQL_TIME m_param" << field.name << "MyTime;\n";
 
-				init << "inBuffer[" << index << "].buffer = reinterpret_cast<void *>(&_" << field.name << ");\n";
-			}
-			else
-			{
-				init << "m_param" << field.name << "IsNull = (_" << field.name << ") ? 0 : 1;\n"
-					<< "m_param" << field.name << "Length = (_" << field.name << ") ? strlen(_" << field.name << ") : 0;\n\n";
+                    init << "m_param" << field.name << "IsNull = (_" << field.name << ".is_not_a_date_time()) ? 1 : 0;\n"
+                        << "m_param" << field.name << "Length = sizeof(MYSQL_TIME);\n"
+                        << "m_param" << field.name << "MyTime = dbbinderConvertTime(_" << field.name << ");\n\n";
 
-				init << "inBuffer[" << index << "].buffer = const_cast<void*>(reinterpret_cast<const void *>(_" << field.name << "));\n";
-			}
+                    init << "inBuffer[" << index << "].buffer = reinterpret_cast<void *>(&m_param" << field.name << "MyTime);\n";
+                    break;
+                }
+                case stText:
+                {
+                    init << "m_param" << field.name << "IsNull = (_" << field.name << ") ? 0 : 1;\n"
+                        << "m_param" << field.name << "Length = (_" << field.name << ") ? strlen(_" << field.name << ") : 0;\n\n";
 
-			init << "inBuffer[" << index << "].is_null = &m_param" << field.name << "IsNull;\n"
-					<< "inBuffer[" << index << "].length = &m_param" << field.name << "Length;\n"
-					<< "\n";
+                    init << "inBuffer[" << index << "].buffer = const_cast<void*>(reinterpret_cast<const void *>(_" << field.name << "));\n";
+                    break;
+                }
+                default:
+                {
+                    init << "m_param" << field.name << "IsNull = 0;\n"
+                        << "m_param" << field.name << "Length = 0;\n\n";
 
-			ctemplate::TemplateDictionary *subDict = getSubDict(_type);
-			subDict->SetValue(tpl_BUFFER_DECLARE, decl.str() );
-			subDict->SetValue(tpl_BUFFER_ALLOC, init.str() );
+                    init << "inBuffer[" << index << "].buffer = reinterpret_cast<void *>(&_" << field.name << ");\n";
+                    break;
+                }
+            }
 
-			++index;
-		}
-	}
+
+            init << "inBuffer[" << index << "].is_null = &m_param" << field.name << "IsNull;\n"
+                    << "inBuffer[" << index << "].length = &m_param" << field.name << "Length;\n"
+                    << "\n";
+
+            ctemplate::TemplateDictionary *subDict = getSubDict(_type);
+            subDict->SetValue(tpl_BUFFER_DECLARE, decl.str() );
+            subDict->SetValue(tpl_BUFFER_ALLOC, init.str() );
+
+            ++index;
+        }
+    }
 }
 
 void MySQLGenerator::addOutBuffers(SQLStatementTypes _type, const AbstractIOElements* _elements)
