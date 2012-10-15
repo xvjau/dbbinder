@@ -216,6 +216,9 @@ void {{CLASSNAME}}::close()
     {{/SEL_IN_FIELDS_BUFFERS}}
     {{#SEL_OUT_FIELDS_BUFFERS}}{{BUFFER_FREE}}
     {{/SEL_OUT_FIELDS_BUFFERS}}
+
+    delete m_iterator;
+    m_iterator = NULL;
 }
 {{/SELECT}}
 
