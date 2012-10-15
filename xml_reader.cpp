@@ -30,206 +30,206 @@ static std::string fileName;
 
 static void getXMLParams(XMLElementPtr _elem, AbstractElements* _elements)
 {
-	{
-		XMLElementPtr sql = _elem->FirstChildElement("sql");
-		if ( sql )
-			_elements->sql = sql->GetText();
-		else
-		{
-			sql = _elem->FirstChildElement("include");
-			if ( sql )
-			{
-				std::string path( getFilenameRelativeTo(fileName, sql->GetText()) );
+    {
+        XMLElementPtr sql = _elem->FirstChildElement("sql");
+        if ( sql )
+            _elements->sql = sql->GetText();
+        else
+        {
+            sql = _elem->FirstChildElement("include");
+            if ( sql )
+            {
+                std::string path( getFilenameRelativeTo(fileName, sql->GetText()) );
 
-				std::ifstream include(path.c_str());
-				if ( include.good() )
-				{
-					include.seekg(0, std::ios_base::end);
-					int size = include.tellg();
-					include.seekg(0);
+                std::ifstream include(path.c_str());
+                if ( include.good() )
+                {
+                    include.seekg(0, std::ios_base::end);
+                    int size = include.tellg();
+                    include.seekg(0);
 
-					char *buffer = static_cast<char*>( malloc( size + 1 ) );
+                    char *buffer = static_cast<char*>( malloc( size + 1 ) );
 
-					include.read(buffer, size);
-					buffer[size] = '\0';
+                    include.read(buffer, size);
+                    buffer[size] = '\0';
 
-					_elements->sql = buffer;
+                    _elements->sql = buffer;
 
-					free( buffer );
-				}
-			}
-		}
-	}
+                    free( buffer );
+                }
+            }
+        }
+    }
 
-	SQLTypes type;
-	std::string name, defaultValue, strType;
-	int index;
+    SQLTypes type;
+    std::string name, defaultValue, strType;
+    int index;
 
-	XMLElementPtr param;
-	XMLNodePtr node = 0;
-	while( node = _elem->IterateChildren( "param", node ))
-	{
-		param = node->ToElement();
+    XMLElementPtr param;
+    XMLNodePtr node = 0;
+    while( node = _elem->IterateChildren( "param", node ))
+    {
+        param = node->ToElement();
 
-		param->GetAttribute( "name", &name );
-		param->GetAttributeOrDefault( "type", &strType, "" );
-		param->GetAttributeOrDefault( "default", &defaultValue, "" );
-		param->GetAttributeOrDefault( "index", &index, -1 );
+        param->GetAttribute( "name", &name );
+        param->GetAttributeOrDefault( "type", &strType, "" );
+        param->GetAttributeOrDefault( "default", &defaultValue, "" );
+        param->GetAttributeOrDefault( "index", &index, -1 );
 
-		type = typeNameToSQLType(strType);
-		if ( type == stUnknown )
-		{
-			WARNING("unknown param type for: " << name);
-			type = stText;
-		}
+        type = typeNameToSQLType(strType);
+        if ( type == stUnknown )
+        {
+            WARNING("unknown param type for: " << name);
+            type = stText;
+        }
 
-		_elements->input.push_back( SQLElement( name, type, index, defaultValue ));
-	}
+        _elements->input.push_back( SQLElement( name, type, index, defaultValue ));
+    }
 }
 
 void parseXML(const std::string& _fileName)
 {
-	fileName = _fileName;
+    fileName = _fileName;
 
-	try
-	{
-		XMLDocument xmlFile( fileName );
-		xmlFile.LoadFile();
+    try
+    {
+        XMLDocument xmlFile( fileName );
+        xmlFile.LoadFile();
 
-		DBBinder::optDepends.push_back( fileName );
+        DBBinder::optDepends.push_back( fileName );
 
-		XMLElementPtr xml = xmlFile.FirstChildElement("xml");
+        XMLElementPtr xml = xmlFile.FirstChildElement("xml");
 
-		XMLElementPtr db = xml->FirstChildElement("database");
+        XMLElementPtr db = xml->FirstChildElement("database");
 
-		AbstractGenerator *generator = AbstractGenerator::getGenerator( db->FirstChildElement("type")->GetText() );
+        AbstractGenerator *generator = AbstractGenerator::getGenerator( db->FirstChildElement("type")->GetText() );
 
-		XMLElementPtr elem;
-		XMLNodePtr node, subnode, valnode;
+        XMLElementPtr elem;
+        XMLNodePtr node, subnode, valnode;
 
-		node = 0;
-		while( node = db->IterateChildren( node ))
-		{
-			elem = node->ToElement();
+        node = 0;
+        while( node = db->IterateChildren( node ))
+        {
+            elem = node->ToElement();
 
-			std::string str;
-			elem->GetAttribute( "type", &str, false );
+            std::string str;
+            elem->GetAttribute( "type", &str, false );
 
-			if ( stringToLower(str) == "int" )
-			{
-				generator->setDBParam( elem->Value(), atoi( elem->GetText().c_str() ));
-			}
-			else
-				generator->setDBParam( elem->Value(), elem->GetText() );
-		}
+            if ( stringToLower(str) == "int" )
+            {
+                generator->setDBParam( elem->Value(), atoi( elem->GetText().c_str() ));
+            }
+            else
+                generator->setDBParam( elem->Value(), elem->GetText() );
+        }
 
-		node = 0;
-		while( node = xml->IterateChildren( "select", node ))
-		{
-			elem = node->ToElement();
+        node = 0;
+        while( node = xml->IterateChildren( "select", node ))
+        {
+            elem = node->ToElement();
 
-			SelectElements elements;
-			elem->GetAttribute( "name", &elements.name );
-			getXMLParams( elem, &elements );
+            SelectElements elements;
+            elem->GetAttribute( "name", &elements.name );
+            getXMLParams( elem, &elements );
 
-			generator->addSelect( elements );
-		}
+            generator->addSelect( elements );
+        }
 
-		node = 0;
-		while( node = xml->IterateChildren( "update", node ))
-		{
-			elem = node->ToElement();
+        node = 0;
+        while( node = xml->IterateChildren( "update", node ))
+        {
+            elem = node->ToElement();
 
-			UpdateElements elements;
-			elem->GetAttribute( "name", &elements.name );
-			getXMLParams( elem, &elements );
+            UpdateElements elements;
+            elem->GetAttribute( "name", &elements.name );
+            getXMLParams( elem, &elements );
 
-			generator->addUpdate( elements );
-		}
+            generator->addUpdate( elements );
+        }
 
-		node = 0;
-		while( node = xml->IterateChildren( "insert", node ))
-		{
-			elem = node->ToElement();
+        node = 0;
+        while( node = xml->IterateChildren( "insert", node ))
+        {
+            elem = node->ToElement();
 
-			InsertElements elements;
-			elem->GetAttribute( "name", &elements.name );
-			getXMLParams( elem, &elements );
+            InsertElements elements;
+            elem->GetAttribute( "name", &elements.name );
+            getXMLParams( elem, &elements );
 
-			generator->addInsert( elements );
-		}
+            generator->addInsert( elements );
+        }
 
-		node = 0;
-		while( node = xml->IterateChildren( "extra", node ))
-		{
-			subnode = 0;
-			while( subnode = node->IterateChildren( "types", subnode ))
-			{
-				valnode = 0;
-				while( valnode = subnode->IterateChildren( valnode ))
-				{
-					elem = valnode->ToElement();
+        node = 0;
+        while( node = xml->IterateChildren( "extra", node ))
+        {
+            subnode = 0;
+            while( subnode = node->IterateChildren( "types", subnode ))
+            {
+                valnode = 0;
+                while( valnode = subnode->IterateChildren( valnode ))
+                {
+                    elem = valnode->ToElement();
 
-					std::string str;
-					elem->GetText( &str, false );
-					if ( str.empty() )
-						elem->GetAttribute( "type", &str, false );
+                    std::string str;
+                    elem->GetText( &str, false );
+                    if ( str.empty() )
+                        elem->GetAttribute( "type", &str, false );
 
-					if ( str.length() )
-					{
-						SQLTypes type = typeNameToSQLType( elem->Value() );
+                    if ( str.length() )
+                    {
+                        SQLTypes type = typeNameToSQLType( elem->Value() );
 
-						if ( type == stUnknown )
-						{
-							WARNING("unknown type for: " << elem->Value());
-						}
-						else
-							generator->setType( type, str );
-					}
-				}
-			}
+                        if ( type == stUnknown )
+                        {
+                            WARNING("unknown type for: " << elem->Value());
+                        }
+                        else
+                            generator->setType( type, str );
+                    }
+                }
+            }
 
-			subnode = 0;
-			while( subnode = node->IterateChildren( "namespaces", subnode ))
-			{
-				valnode = 0;
-				while( valnode = subnode->IterateChildren( "namespace", valnode ))
-				{
-					elem = valnode->ToElement();
+            subnode = 0;
+            while( subnode = node->IterateChildren( "namespaces", subnode ))
+            {
+                valnode = 0;
+                while( valnode = subnode->IterateChildren( "namespace", valnode ))
+                {
+                    elem = valnode->ToElement();
 
-					std::string str;
-					elem->GetText( &str, false );
-					if ( str.empty() )
-						elem->GetAttribute( "name", &str, false );
+                    std::string str;
+                    elem->GetText( &str, false );
+                    if ( str.empty() )
+                        elem->GetAttribute( "name", &str, false );
 
-					if ( !str.empty() )
-						generator->addNamespace( str );
-				}
-			}
+                    if ( !str.empty() )
+                        generator->addNamespace( str );
+                }
+            }
 
-			subnode = 0;
-			while( subnode = node->IterateChildren( "headers", subnode ))
-			{
-				valnode = 0;
-				while( valnode = subnode->IterateChildren( "header", valnode ))
-				{
-					elem = valnode->ToElement();
+            subnode = 0;
+            while( subnode = node->IterateChildren( "headers", subnode ))
+            {
+                valnode = 0;
+                while( valnode = subnode->IterateChildren( "header", valnode ))
+                {
+                    elem = valnode->ToElement();
 
-					std::string str;
-					elem->GetText( &str, false );
-					if ( str.empty() )
-						elem->GetAttribute( "value", &str, false );
+                    std::string str;
+                    elem->GetText( &str, false );
+                    if ( str.empty() )
+                        elem->GetAttribute( "value", &str, false );
 
-					if ( !str.empty() )
-						generator->addHeader( str );
-				}
-			}
-		}
-	}
-	catch( ticpp::Exception &e )
-	{
-		FATAL("XML: " << fileName << ": " << e.what());
-	}
+                    if ( !str.empty() )
+                        generator->addHeader( str );
+                }
+            }
+        }
+    }
+    catch( ticpp::Exception &e )
+    {
+        FATAL("XML: " << fileName << ": " << e.what());
+    }
 }
 
 }

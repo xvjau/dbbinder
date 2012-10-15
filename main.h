@@ -36,8 +36,8 @@ namespace DBBinder
 {
 
 /*
-	Since Google decided to change the namespace between releases,
-	these typedefs will put everything we need in the DBBinder namespace
+    Since Google decided to change the namespace between releases,
+    these typedefs will put everything we need in the DBBinder namespace
 */
 #ifdef CTEMPLATE_TEMPLATE_H_
 typedef ctemplate::TemplateDictionary TemplateDictionary;
@@ -53,10 +53,10 @@ typedef std::vector<std::string> ListString;
 
 enum FileType
 {
-	ftNULL,
-	ftYAML,
-	ftXML,
-	ftSQL,
+    ftNULL,
+    ftYAML,
+    ftXML,
+    ftSQL,
 };
 
 // Options set by command line
@@ -74,136 +74,136 @@ extern ListString	optIncludeFiles;
 // Utility funcs and defines
 inline std::string stringToLower(const std::string& _string)
 {
-	std::string::size_type sz = _string.length();
+    std::string::size_type sz = _string.length();
 
-	std::string result;
-	result.resize( sz );
+    std::string result;
+    result.resize( sz );
 
-	for(std::string::size_type i = 0; i < sz; ++i)
-		result[i] += tolower(_string[i]);
+    for(std::string::size_type i = 0; i < sz; ++i)
+        result[i] += tolower(_string[i]);
 
-	return result;
+    return result;
 }
 
 inline std::string stringToUpper(const std::string& _string)
 {
-	std::string::size_type sz = _string.length();
+    std::string::size_type sz = _string.length();
 
-	std::string result;
-	result.resize( sz );
+    std::string result;
+    result.resize( sz );
 
-	for(std::string::size_type i = 0; i < sz; ++i)
-		result[i] += toupper(_string[i]);
+    for(std::string::size_type i = 0; i < sz; ++i)
+        result[i] += toupper(_string[i]);
 
-	return result;
+    return result;
 }
 
 inline std::string extractFileName(const std::string& _string)
 {
-	std::string::size_type pos = _string.rfind( '/' );
-	if ( pos != std::string::npos )
-		return _string.substr( pos + 1 );
-	else
-		return _string;
+    std::string::size_type pos = _string.rfind( '/' );
+    if ( pos != std::string::npos )
+        return _string.substr( pos + 1 );
+    else
+        return _string;
 }
 std::string cescape(const std::string& _string);
 
 inline ListString stringTok(const std::string &_string, const char _sep)
 {
-	ListString result;
+    ListString result;
 
-	const char *p = _string.c_str();
-	const char *s = p;
+    const char *p = _string.c_str();
+    const char *s = p;
 
-	while ( *++p )
-	{
-		if ( *p == _sep )
-		{
-			result.push_back( std::string( s, p - s ));
-			++p;
-			s = p;
-		}
-	}
+    while ( *++p )
+    {
+        if ( *p == _sep )
+        {
+            result.push_back( std::string( s, p - s ));
+            ++p;
+            s = p;
+        }
+    }
 
-	if ( *s )
-		result.push_back( std::string( s, p - s ));
+    if ( *s )
+        result.push_back( std::string( s, p - s ));
 
-	return result;
+    return result;
 }
 
 
 inline ListString stringTok(const std::string &_string)
 {
-	ListString result;
+    ListString result;
 
-	const char *p = _string.c_str();
-	const char *s;
+    const char *p = _string.c_str();
+    const char *s;
 
-	while ( *p )
-	{
-		if ( !isspace( *p ))
-		{
-			s = p;
-			while( *s && !isspace( *s ))
-				++s;
+    while ( *p )
+    {
+        if ( !isspace( *p ))
+        {
+            s = p;
+            while( *s && !isspace( *s ))
+                ++s;
 
-			result.push_back( std::string( p, s - p ));
+            result.push_back( std::string( p, s - p ));
 
-			p = s;
-		}
-		else
-			p++;
-	}
+            p = s;
+        }
+        else
+            p++;
+    }
 
-	return result;
+    return result;
 }
 
 inline std::string getFilenameRelativeTo(const std::string& _relFileName, const std::string& _fileName)
 {
-	std::string result;
+    std::string result;
 
-	std::string::size_type pos = _relFileName.rfind('/');
-	if ( pos && pos != std::string::npos )
-	{
-		result = _relFileName.substr(0, pos);
-		result += '/';
-	}
+    std::string::size_type pos = _relFileName.rfind('/');
+    if ( pos && pos != std::string::npos )
+    {
+        result = _relFileName.substr(0, pos);
+        result += '/';
+    }
 
-	result += _fileName;
+    result += _fileName;
 
-	return result;
+    return result;
 }
 
 inline bool fileExists(const std::string& fileName)
 {
-	struct stat fs;
-	return stat(fileName.c_str(), &fs) == 0;
+    struct stat fs;
+    return stat(fileName.c_str(), &fs) == 0;
 }
 
 enum FileCheckType
 {
-	fctRegularFile = S_IFREG,
-	fctDirectory = S_IFDIR
+    fctRegularFile = S_IFREG,
+    fctDirectory = S_IFDIR
 };
 
 enum FileCheck
 {
-	fcOK,
-	fcDoesNotExist,
-	fcIsNotExpectedType
+    fcOK,
+    fcDoesNotExist,
+    fcIsNotExpectedType
 };
 
 inline FileCheck checkFileExistsAndType(const std::string& fileName, FileCheckType type)
 {
-	struct stat fs;
-	if ( stat(fileName.c_str(), &fs) )
-		return fcDoesNotExist;
-	else
-	{
-		if (( fs.st_mode & S_IFMT ) != type )
-			return fcIsNotExpectedType;
-	}
-	return fcOK;
+    struct stat fs;
+    if ( stat(fileName.c_str(), &fs) )
+        return fcDoesNotExist;
+    else
+    {
+        if (( fs.st_mode & S_IFMT ) != type )
+            return fcIsNotExpectedType;
+    }
+    return fcOK;
 }
 
 

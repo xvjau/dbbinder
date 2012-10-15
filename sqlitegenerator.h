@@ -28,26 +28,26 @@ namespace DBBinder
 
 class SQLiteGenerator : public AbstractGenerator
 {
-	friend class AbstractGenerator; //wtf??
+    friend class AbstractGenerator; //wtf??
 
-	protected:
-		SQLiteGenerator();
-		virtual ~SQLiteGenerator();
+    protected:
+        SQLiteGenerator();
+        virtual ~SQLiteGenerator();
 
-		virtual bool checkConnection();
+        virtual bool checkConnection();
 
-		sqlite3 *m_db;
+        sqlite3 *m_db;
 
-		sqlite3_stmt *execSQL(AbstractElements &_elements);
+        sqlite3_stmt *execSQL(AbstractElements &_elements);
 
-		virtual std::string getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
-		virtual std::string getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
-		virtual std::string getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
-	public:
-		virtual void addSelect(SelectElements _elements);
-		virtual void addUpdate(UpdateElements _elements);
-		virtual void addInsert(InsertElements _elements);
-		virtual void addDelete(DeleteElements _elements);
+        virtual std::string getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+        virtual std::string getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+        virtual std::string getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+    public:
+        virtual void addSelect(SelectElements _elements);
+        virtual void addUpdate(UpdateElements _elements);
+        virtual void addInsert(InsertElements _elements);
+        virtual void addDelete(DeleteElements _elements);
 };
 
 }

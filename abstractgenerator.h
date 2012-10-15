@@ -29,234 +29,234 @@ namespace DBBinder
 
 enum SQLTypes
 {
-	stUnknown,
-	stInt,
-	stInt64,
-	stUInt,
-	stUInt64,
-	stFloat,
-	stDouble,
-	stUFloat,
-	stUDouble,
-	stTimeStamp,
-	stTime,
-	stDate,
-	stText
+    stUnknown,
+    stInt,
+    stInt64,
+    stUInt,
+    stUInt64,
+    stFloat,
+    stDouble,
+    stUFloat,
+    stUDouble,
+    stTimeStamp,
+    stTime,
+    stDate,
+    stText
 };
 SQLTypes typeNameToSQLType(std::string _name);
 
 enum SQLStatementTypes
 {
-	sstUnknown,
-	sstSelect,
-	sstInsert,
-	sstUpdate,
-	sstDelete,
+    sstUnknown,
+    sstSelect,
+    sstInsert,
+    sstUpdate,
+    sstDelete,
 };
 
 struct SQLElement
 {
-	SQLElement( const std::string& _name, SQLTypes _type, int _index = -1, int _length = 0, const std::string& _comment = "" ):
-			name( _name ), type( _type ), index( _index ), length( _length ), comment(_comment)
-	{}
-	SQLElement( const std::string& _name, SQLTypes _type, int _index, const std::string& _default, const std::string& _comment = "" ):
-			name( _name ), type( _type ), index( _index ), length(0), defaultValue( _default ), comment(_comment)
-	{}
+    SQLElement( const std::string& _name, SQLTypes _type, int _index = -1, int _length = 0, const std::string& _comment = "" ):
+            name( _name ), type( _type ), index( _index ), length( _length ), comment(_comment)
+    {}
+    SQLElement( const std::string& _name, SQLTypes _type, int _index, const std::string& _default, const std::string& _comment = "" ):
+            name( _name ), type( _type ), index( _index ), length(0), defaultValue( _default ), comment(_comment)
+    {}
 
-	std::string	name;
-	SQLTypes	type;
-	int			index;
-	int			length;
-	std::string	defaultValue;
-	std::string	comment;
+    std::string	name;
+    SQLTypes	type;
+    int			index;
+    int			length;
+    std::string	defaultValue;
+    std::string	comment;
 };
 typedef std::vector<SQLElement> ListElements;
 
 struct Location
 {
-	std::string	file;
-	int			line;
-	int			col;
+    std::string	file;
+    int			line;
+    int			col;
 };
 
 struct AbstractElements
 {
-	std::string		name;
-	std::string		sql;
-	Location		sql_location;
-	ListElements	input;
-	SQLStatementTypes	type;
+    std::string		name;
+    std::string		sql;
+    Location		sql_location;
+    ListElements	input;
+    SQLStatementTypes	type;
 };
 
 struct AbstractIOElements: public AbstractElements
 {
-	ListElements	output;
+    ListElements	output;
 };
 
 struct SelectElements: public AbstractIOElements
 {
-	SelectElements(): AbstractIOElements() { type = sstSelect; }
+    SelectElements(): AbstractIOElements() { type = sstSelect; }
 };
 
 struct UpdateElements: public AbstractElements
 {
-	UpdateElements(): AbstractElements() { type = sstUpdate; }
+    UpdateElements(): AbstractElements() { type = sstUpdate; }
 };
 
 struct InsertElements: public AbstractElements
 {
-	InsertElements(): AbstractElements() { type = sstInsert; }
+    InsertElements(): AbstractElements() { type = sstInsert; }
 };
 
 struct DeleteElements: public AbstractElements
 {
-	DeleteElements(): AbstractElements() { type = sstDelete; }
+    DeleteElements(): AbstractElements() { type = sstDelete; }
 };
 
 // Main class
 class AbstractGenerator
 {
-	protected:
-		AbstractGenerator();
-		virtual ~AbstractGenerator();
+    protected:
+        AbstractGenerator();
+        virtual ~AbstractGenerator();
 
-		struct dbParam
-		{
-			dbParam():
-				isInt( false )
-			{}
+        struct dbParam
+        {
+            dbParam():
+                isInt( false )
+            {}
 
-			dbParam( const std::string& _value ):
-				isInt( false )
-			{
-				value = _value;
-			}
+            dbParam( const std::string& _value ):
+                isInt( false )
+            {
+                value = _value;
+            }
 
-			dbParam( int _value ):
-				isInt( true )
-			{
-				std::stringstream str;
-				str << _value;
-				value = str.str();
-			}
+            dbParam( int _value ):
+                isInt( true )
+            {
+                std::stringstream str;
+                str << _value;
+                value = str.str();
+            }
 
-			std::string	value;
-			bool		isInt;
-		};
-		typedef std::map<std::string, dbParam> _dbParams;
+            std::string	value;
+            bool		isInt;
+        };
+        typedef std::map<std::string, dbParam> _dbParams;
 
-		_dbParams	m_dbParams;
+        _dbParams	m_dbParams;
 
-		enum _fileTypes
-		{
-			ftIntf,
-			ftImpl,
-			ftMAX
-		};
-		struct _classParams
-		{
-			SelectElements	select;
-			UpdateElements	update;
-			InsertElements	insert;
-			DeleteElements	del;
-		};
-		typedef boost::shared_ptr<_classParams> _classParamsPtr;
-		typedef std::map<std::string, _classParamsPtr> classParams;
+        enum _fileTypes
+        {
+            ftIntf,
+            ftImpl,
+            ftMAX
+        };
+        struct _classParams
+        {
+            SelectElements	select;
+            UpdateElements	update;
+            InsertElements	insert;
+            DeleteElements	del;
+        };
+        typedef boost::shared_ptr<_classParams> _classParamsPtr;
+        typedef std::map<std::string, _classParamsPtr> classParams;
 
-		typedef std::map<SQLTypes, std::string> mapTypes;
-		mapTypes	m_types;
+        typedef std::map<SQLTypes, std::string> mapTypes;
+        mapTypes	m_types;
 
-		ListString	m_namespaces;
-		ListString	m_headers;
+        ListString	m_namespaces;
+        ListString	m_headers;
 
-		struct TmplDestPair
-		{
-			std::string tmpl;
-			std::string dest;
-		};
-		typedef std::vector<TmplDestPair> ListTplDestPair;
-		ListTplDestPair m_extraFiles;
+        struct TmplDestPair
+        {
+            std::string tmpl;
+            std::string dest;
+        };
+        typedef std::vector<TmplDestPair> ListTplDestPair;
+        ListTplDestPair m_extraFiles;
 
-		std::string		m_dbengine;
+        std::string		m_dbengine;
 
-		classParams	m_classParams;
+        classParams	m_classParams;
 
-		bool m_connected;
-		virtual bool checkConnection();
+        bool m_connected;
+        virtual bool checkConnection();
 
-		std::string	m_outIntFile;
-		std::string	m_outImplFile;
+        std::string	m_outIntFile;
+        std::string	m_outImplFile;
 
-		TemplateDictionary	*m_dict;
-		std::string			m_templ[ftMAX];
+        TemplateDictionary	*m_dict;
+        std::string			m_templ[ftMAX];
 
-		virtual void loadDictionary();
+        virtual void loadDictionary();
 
-		virtual void loadDatabase();
-		virtual bool loadXMLDatabase(const std::string& _path);
-		virtual bool loadYAMLDatabase(const std::string& _path);
+        virtual void loadDatabase();
+        virtual bool loadXMLDatabase(const std::string& _path);
+        virtual bool loadYAMLDatabase(const std::string& _path);
 
-		virtual void loadTemplates();
-		virtual bool loadXMLTemplate(const std::string& _path);
-		virtual bool loadYAMLTemplate(const std::string& _path);
+        virtual void loadTemplates();
+        virtual bool loadXMLTemplate(const std::string& _path);
+        virtual bool loadYAMLTemplate(const std::string& _path);
 
-		// <SUCKS>
-		// TODO: There must be a better way to implement this.
-		virtual bool needIOBuffers() const;
+        // <SUCKS>
+        // TODO: There must be a better way to implement this.
+        virtual bool needIOBuffers() const;
 
-		virtual void addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements);
-		virtual void addOutBuffers(SQLStatementTypes _type, const AbstractIOElements* _elements);
+        virtual void addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements);
+        virtual void addOutBuffers(SQLStatementTypes _type, const AbstractIOElements* _elements);
 
-		virtual std::string getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) = 0;
-		virtual std::string getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) = 0;
-		virtual std::string getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) = 0;
+        virtual std::string getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) = 0;
+        virtual std::string getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) = 0;
+        virtual std::string getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) = 0;
 
-		// </SUCKS>
+        // </SUCKS>
 
-		//TODO: This might be better implemented;
-		static AbstractGenerator* s_generator;
+        //TODO: This might be better implemented;
+        static AbstractGenerator* s_generator;
 
-	private:
-		void readParam(void* xml, const char *xmlElem, _fileTypes fileType, std::string& outFile, std::string& str, const std::string & _path);
+    private:
+        void readParam(void* xml, const char *xmlElem, _fileTypes fileType, std::string& outFile, std::string& str, const std::string & _path);
 
-	public:
-		static AbstractGenerator* getGenerator() { return s_generator; }
-		static AbstractGenerator* getGenerator(const std::string& _type);
+    public:
+        static AbstractGenerator* getGenerator() { return s_generator; }
+        static AbstractGenerator* getGenerator(const std::string& _type);
 
-		void setDBParam(const std::string& _key, const std::string& _value)
-		{
-			m_dbParams[_key] = _value;
-		}
+        void setDBParam(const std::string& _key, const std::string& _value)
+        {
+            m_dbParams[_key] = _value;
+        }
 
-		void setDBParam(const std::string& _key, const int _value)
-		{
-			m_dbParams[_key] = _value;
-		}
+        void setDBParam(const std::string& _key, const int _value)
+        {
+            m_dbParams[_key] = _value;
+        }
 
-		void setType(SQLTypes _sqlType, const std::string& _genType)
-		{
-			m_types[_sqlType] = _genType;
-		}
+        void setType(SQLTypes _sqlType, const std::string& _genType)
+        {
+            m_types[_sqlType] = _genType;
+        }
 
-		std::string getType(SQLTypes _sqlType);
-		std::string getInit(SQLTypes _sqlType);
+        std::string getType(SQLTypes _sqlType);
+        std::string getInit(SQLTypes _sqlType);
 
-		void addNamespace(const std::string& _name)
-		{
-			m_namespaces.push_back(_name);
-		}
+        void addNamespace(const std::string& _name)
+        {
+            m_namespaces.push_back(_name);
+        }
 
-		void addHeader(const std::string& _header)
-		{
-			m_headers.push_back(_header);
-		}
+        void addHeader(const std::string& _header)
+        {
+            m_headers.push_back(_header);
+        }
 
-		virtual void generate();
+        virtual void generate();
 
-		virtual void addSelect(SelectElements _elements);
-		virtual void addUpdate(UpdateElements _elements);
-		virtual void addInsert(InsertElements _elements);
-		virtual void addDelete(DeleteElements _elements);
+        virtual void addSelect(SelectElements _elements);
+        virtual void addUpdate(UpdateElements _elements);
+        virtual void addInsert(InsertElements _elements);
+        virtual void addDelete(DeleteElements _elements);
 };
 typedef AbstractGenerator* AbstractGeneratorPtr;
 

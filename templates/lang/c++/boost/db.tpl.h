@@ -25,17 +25,17 @@ namespace DBBinder
 
 class Connection
 {
-	private:
-		{{DBENGINE_CONNECTION_TYPE}} m_conn;
+    private:
+        {{DBENGINE_CONNECTION_TYPE}} m_conn;
 
-	public:
-		Connection({{#DBENGINE_CONNECT_PARAMS}} {{DBENGINE_CONNECT_PARAM_TYPE}} _{{DBENGINE_CONNECT_PARAM_PARAM}}{{DBENGINE_CONNECT_PARAM_COMMA}}{{/DBENGINE_CONNECT_PARAMS}});
-		~Connection();
-		
-		operator {{DBENGINE_CONNECTION_TYPE}}()
-		{
-			return m_conn;
-		}
+    public:
+        Connection({{#DBENGINE_CONNECT_PARAMS}} {{DBENGINE_CONNECT_PARAM_TYPE}} _{{DBENGINE_CONNECT_PARAM_PARAM}}{{DBENGINE_CONNECT_PARAM_COMMA}}{{/DBENGINE_CONNECT_PARAMS}});
+        ~Connection();
+
+        operator {{DBENGINE_CONNECTION_TYPE}}()
+        {
+            return m_conn;
+        }
 };
 }
 

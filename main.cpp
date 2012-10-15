@@ -46,33 +46,33 @@ ListString		optIncludeFiles;
 
 static const char*	defaultTemplateDirs[] =
 {
-	"/usr/share/dbbinder/templates",
-	"/usr/local/share/dbbinder/templates",
-	"~/share/dbbinder/templates",
-	0
+    "/usr/share/dbbinder/templates",
+    "/usr/local/share/dbbinder/templates",
+    "~/share/dbbinder/templates",
+    0
 };
 
 std::string cescape(const std::string & _string)
 {
-	std::string result;
-	foreach(char c, _string)
-	{
-		switch( c )
-		{
-			case '\\':
-				result += "\\\\";
-				break;
-			case '"':
-				result += "\\\"";
-				break;
-			case '\n':
-				result += " \\\n";
-				break;
-			default:
-				result += c;
-		}
-	}
-	return result;
+    std::string result;
+    foreach(char c, _string)
+    {
+        switch( c )
+        {
+            case '\\':
+                result += "\\\\";
+                break;
+            case '"':
+                result += "\\\"";
+                break;
+            case '\n':
+                result += " \\\n";
+                break;
+            default:
+                result += c;
+        }
+    }
+    return result;
 }
 
 }
@@ -81,255 +81,255 @@ std::string cescape(const std::string & _string)
 
 int main(int argc, char *argv[])
 {
-	using namespace DBBinder;
-	namespace po = boost::program_options;
+    using namespace DBBinder;
+    namespace po = boost::program_options;
 
-	// Declare the supported options.
-	po::options_description desc("Usage");
-	desc.add_options()
-		("help,h", "print this help message")
-		("input,i", po::value<std::string>(), "set the input file name")
-		("output,o", po::value<std::string>(), "set the output file name")
-		("xml,x", "set the input format to XML (default)")
+    // Declare the supported options.
+    po::options_description desc("Usage");
+    desc.add_options()
+        ("help,h", "print this help message")
+        ("input,i", po::value<std::string>(), "set the input file name")
+        ("output,o", po::value<std::string>(), "set the output file name")
+        ("xml,x", "set the input format to XML (default)")
 
 #ifdef WITH_YAML
-		("yaml,y", "set the input format to YAML")
+        ("yaml,y", "set the input format to YAML")
 #endif
-		("depends,d", "list the dependencies for a target (does nothing else)")
-		("extras,e", "generate any extra files that a template might depend/use")
-		("include,I", po::value<ListString>(), "add an include file")
-		("template-dir,d", po::value<ListString>(), "add a template directory")
-		("template,t", po::value<std::string>()->default_value(DEFAULT_TEMLPATE), "FOO[,BAR] set the template and optional sub-template")
-		("database,db", po::value<std::string>(), "TYPE[,CONN0[,CONN1]] Database to connect and, optionally, connection params\n"
-			"\texample: --database MySQL,127.0.0.1,db,user,password"
-		)
-		("sql", po::value<std::string>(), "SQL command\n"
-			"\texample: --sql 'select FIELD1, FIELD2 from TABLE where FIELD3 = ?'"
-		)
-		("sql-param", po::value<ListString>(), "PARAM,TYPE[,DEFAULT] parameters for the SQL command\n"
-			"\texample: --param name,string,'no name' --param age,int"
-		)
-		("version,V", "program version")
-		("vmajor", "major program version")
-		("vminor", "minor program version");
+        ("depends,d", "list the dependencies for a target (does nothing else)")
+        ("extras,e", "generate any extra files that a template might depend/use")
+        ("include,I", po::value<ListString>(), "add an include file")
+        ("template-dir,d", po::value<ListString>(), "add a template directory")
+        ("template,t", po::value<std::string>()->default_value(DEFAULT_TEMLPATE), "FOO[,BAR] set the template and optional sub-template")
+        ("database,db", po::value<std::string>(), "TYPE[,CONN0[,CONN1]] Database to connect and, optionally, connection params\n"
+            "\texample: --database MySQL,127.0.0.1,db,user,password"
+        )
+        ("sql", po::value<std::string>(), "SQL command\n"
+            "\texample: --sql 'select FIELD1, FIELD2 from TABLE where FIELD3 = ?'"
+        )
+        ("sql-param", po::value<ListString>(), "PARAM,TYPE[,DEFAULT] parameters for the SQL command\n"
+            "\texample: --param name,string,'no name' --param age,int"
+        )
+        ("version,V", "program version")
+        ("vmajor", "major program version")
+        ("vminor", "minor program version");
 
-	appName = extractFileName( argv[0] );
+    appName = extractFileName( argv[0] );
 
-	po::variables_map vm;
-	po::store(po::parse_command_line(argc, argv, desc), vm);
-	po::notify(vm);
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::notify(vm);
 
-	std::string fileName;
-	FileType fileType = ftNULL;
+    std::string fileName;
+    FileType fileType = ftNULL;
 
-	if ( argc <= 1 || vm.count("help") )
-	{
-		std::cout << desc << std::endl;
-		return 0;
-	}
+    if ( argc <= 1 || vm.count("help") )
+    {
+        std::cout << desc << std::endl;
+        return 0;
+    }
 
-	if (vm.count("version"))
-	{
-		std::cout << optVersionMajor << '.' << optVersionMinor << std::endl;
-		return 0;
-	}
+    if (vm.count("version"))
+    {
+        std::cout << optVersionMajor << '.' << optVersionMinor << std::endl;
+        return 0;
+    }
 
-	if (vm.count("vmajor"))
-	{
-		std::cout << optVersionMajor << std::endl;
-		return 0;
-	}
+    if (vm.count("vmajor"))
+    {
+        std::cout << optVersionMajor << std::endl;
+        return 0;
+    }
 
-	if (vm.count("vminor"))
-	{
-		std::cout << optVersionMinor << std::endl;
-		return 0;
-	}
+    if (vm.count("vminor"))
+    {
+        std::cout << optVersionMinor << std::endl;
+        return 0;
+    }
 
-	if (vm.count("input") == 0)
-	{
-		FATAL_EXIT("missing input file name");
-	}
-	else
-	{
-		std::string s = vm["input"].as<std::string>();
+    if (vm.count("input") == 0)
+    {
+        FATAL_EXIT("missing input file name");
+    }
+    else
+    {
+        std::string s = vm["input"].as<std::string>();
 
-		switch (checkFileExistsAndType(s, fctRegularFile))
-		{
-			case fcOK:					fileName = s; break;
-			case fcDoesNotExist:		FATAL_EXIT( s << ": No such file");
-			case fcIsNotExpectedType:	FATAL_EXIT( s << ": must be a regular file");
-		}
-	}
+        switch (checkFileExistsAndType(s, fctRegularFile))
+        {
+            case fcOK:					fileName = s; break;
+            case fcDoesNotExist:		FATAL_EXIT( s << ": No such file");
+            case fcIsNotExpectedType:	FATAL_EXIT( s << ": must be a regular file");
+        }
+    }
 
-	if (vm.count("output") == 0)
-	{
-		optOutput = fileName;
-		std::string::size_type pos = optOutput.rfind('.');
-		if ( pos == std::string::npos )
-		{
-			optOutput += "_out";
-		}
-		else
-		{
-			optOutput = optOutput.substr(0, pos);
-		}
-	}
-	else
-	{
-		std::string s = vm["output"].as<std::string>();
+    if (vm.count("output") == 0)
+    {
+        optOutput = fileName;
+        std::string::size_type pos = optOutput.rfind('.');
+        if ( pos == std::string::npos )
+        {
+            optOutput += "_out";
+        }
+        else
+        {
+            optOutput = optOutput.substr(0, pos);
+        }
+    }
+    else
+    {
+        std::string s = vm["output"].as<std::string>();
 
-		switch (checkFileExistsAndType(s, fctRegularFile))
-		{
-			case fcOK:
-				WARNING(s << " : will be overritten");
-			case fcDoesNotExist:
-				optOutput = s;
-				break;
+        switch (checkFileExistsAndType(s, fctRegularFile))
+        {
+            case fcOK:
+                WARNING(s << " : will be overritten");
+            case fcDoesNotExist:
+                optOutput = s;
+                break;
 
-			case fcIsNotExpectedType:
-				FATAL_EXIT( s << ": must be a regular file");
-		}
-	}
+            case fcIsNotExpectedType:
+                FATAL_EXIT( s << ": must be a regular file");
+        }
+    }
 
-	if (vm.count("xml") + vm.count("yaml") > 1)
-	{
-		FATAL_EXIT("cannot set more than one file type flag");
-	}
+    if (vm.count("xml") + vm.count("yaml") > 1)
+    {
+        FATAL_EXIT("cannot set more than one file type flag");
+    }
 
-	if (vm.count("xml"))
-	{
-		fileType = ftXML;
-	}
-	else if (vm.count("yaml"))
-	{
+    if (vm.count("xml"))
+    {
+        fileType = ftXML;
+    }
+    else if (vm.count("yaml"))
+    {
 #ifdef WITH_YAML
-		fileType = ftYAML;
+        fileType = ftYAML;
 #else
-		FATAL_EXIT("no yaml support");
+        FATAL_EXIT("no yaml support");
 #endif
-	}
+    }
 
-	optListDepends = vm.count("depends");
-	optExtras = vm.count("extras");
+    optListDepends = vm.count("depends");
+    optExtras = vm.count("extras");
 
-	if (vm.count("include"))
-		optIncludeFiles = vm["include"].as<ListString>();
+    if (vm.count("include"))
+        optIncludeFiles = vm["include"].as<ListString>();
 
-	if (vm.count("template"))
-		optTemplate = vm["template"].as<std::string>();
+    if (vm.count("template"))
+        optTemplate = vm["template"].as<std::string>();
 
-	if (vm.count("template-dir"))
-	{
-		optTemplateDirs = vm["template-dir"].as<ListString>();
+    if (vm.count("template-dir"))
+    {
+        optTemplateDirs = vm["template-dir"].as<ListString>();
 
-		std::string dir;
-		foreach(dir, optTemplateDirs)
-		{
-			switch (checkFileExistsAndType(dir, fctDirectory))
-			{
-				case fcOK:					break;
-				case fcDoesNotExist:		FATAL_EXIT( dir << ": No such directory");
-				case fcIsNotExpectedType:	FATAL_EXIT( dir << ": must be a directory");
-			}
-		}
-	}
+        std::string dir;
+        foreach(dir, optTemplateDirs)
+        {
+            switch (checkFileExistsAndType(dir, fctDirectory))
+            {
+                case fcOK:					break;
+                case fcDoesNotExist:		FATAL_EXIT( dir << ": No such directory");
+                case fcIsNotExpectedType:	FATAL_EXIT( dir << ": must be a directory");
+            }
+        }
+    }
 
-	assert( !optTemplate.empty() );
+    assert( !optTemplate.empty() );
 
-	//Add the program's own path
-	{
-		std::string dir = argv[0];
-		dir = dir.substr(0, dir.rfind('/'));
-		dir += "/templates";
+    //Add the program's own path
+    {
+        std::string dir = argv[0];
+        dir = dir.substr(0, dir.rfind('/'));
+        dir += "/templates";
 
-		if ( checkFileExistsAndType(dir, fctDirectory) == fcOK )
-			optTemplateDirs.push_back( dir );
-	}
+        if ( checkFileExistsAndType(dir, fctDirectory) == fcOK )
+            optTemplateDirs.push_back( dir );
+    }
 
-	for( int i = 0; defaultTemplateDirs[i]; i++ )
-	{
-		// Check to see if default dirs exists before adding them
-		if ( checkFileExistsAndType(defaultTemplateDirs[i], fctDirectory) == fcOK )
-			optTemplateDirs.push_back( defaultTemplateDirs[i] );
-	}
+    for( int i = 0; defaultTemplateDirs[i]; i++ )
+    {
+        // Check to see if default dirs exists before adding them
+        if ( checkFileExistsAndType(defaultTemplateDirs[i], fctDirectory) == fcOK )
+            optTemplateDirs.push_back( defaultTemplateDirs[i] );
+    }
 
-	// If not explicitly selected by the user, deduce the type fromt the file's extension
-	if ( fileType == ftNULL )
-	{
-		std::string::size_type pos = fileName.rfind('.');
-		const char *c = fileName.c_str() + pos + 1;
+    // If not explicitly selected by the user, deduce the type fromt the file's extension
+    if ( fileType == ftNULL )
+    {
+        std::string::size_type pos = fileName.rfind('.');
+        const char *c = fileName.c_str() + pos + 1;
 
-		switch( *c )
-		{
-			case 's':
-				if ( strcasecmp(c, "sql") == 0 )
-				{
-					fileType = ftSQL;
-					break;
-				}
-			case 'x':
-				if ( strcasecmp(c, "xml") == 0 )
-				{
-					fileType = ftXML;
-					break;
-				}
-				// no break
-			case 'y':
-				if ( strcasecmp(c, "yaml") == 0 )
-				{
-					fileType = ftYAML;
-					break;
-				}
-				// no break
-			default:
-				FATAL(fileName << ": unknown file extension - " << c);
-		}
-	}
+        switch( *c )
+        {
+            case 's':
+                if ( strcasecmp(c, "sql") == 0 )
+                {
+                    fileType = ftSQL;
+                    break;
+                }
+            case 'x':
+                if ( strcasecmp(c, "xml") == 0 )
+                {
+                    fileType = ftXML;
+                    break;
+                }
+                // no break
+            case 'y':
+                if ( strcasecmp(c, "yaml") == 0 )
+                {
+                    fileType = ftYAML;
+                    break;
+                }
+                // no break
+            default:
+                FATAL(fileName << ": unknown file extension - " << c);
+        }
+    }
 
-	switch ( fileType )
-	{
-		case ftXML:
-		{
-			parseXML(fileName);
-			break;
-		}
-		case ftYAML:
-		{
+    switch ( fileType )
+    {
+        case ftXML:
+        {
+            parseXML(fileName);
+            break;
+        }
+        case ftYAML:
+        {
 #ifdef WITH_YAML
-			parseYAML(fileName);
+            parseYAML(fileName);
 #else
-			FATAL_EXIT("no yaml support");
+            FATAL_EXIT("no yaml support");
 #endif
-			break;
-		}
-		case ftSQL:
-		{
-			parseSQL(fileName);
-			break;
-		}
-		default:
-			FATAL("Unknown file type.");
-	}
+            break;
+        }
+        case ftSQL:
+        {
+            parseSQL(fileName);
+            break;
+        }
+        default:
+            FATAL("Unknown file type.");
+    }
 
-	AbstractGenerator* generator = AbstractGenerator::getGenerator();
+    AbstractGenerator* generator = AbstractGenerator::getGenerator();
 
-	// Add the extra include files passed by command-line
-	ListString::iterator it = optIncludeFiles.begin(), end = optIncludeFiles.end();
-	for(; it != end; ++it)
-		generator->addHeader(std::string("#include ") + *it);
+    // Add the extra include files passed by command-line
+    ListString::iterator it = optIncludeFiles.begin(), end = optIncludeFiles.end();
+    for(; it != end; ++it)
+        generator->addHeader(std::string("#include ") + *it);
 
-	generator->generate();
+    generator->generate();
 
-	if ( optListDepends )
-	{
-		std::cout << "Depends:\n";
+    if ( optListDepends )
+    {
+        std::cout << "Depends:\n";
 
-		ListString::iterator it;
-		for(it = optDepends.begin(); it != optDepends.end(); ++it)
-			std::cout << *it << "\n";
+        ListString::iterator it;
+        for(it = optDepends.begin(); it != optDepends.end(); ++it)
+            std::cout << *it << "\n";
 
-		std::cout << std::flush;
-	}
-	return 0;
+        std::cout << std::flush;
+    }
+    return 0;
 }

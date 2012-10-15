@@ -28,31 +28,31 @@ namespace DBBinder
 
 class MySQLGenerator : public AbstractGenerator
 {
-	friend class AbstractGenerator; //wtf??
+    friend class AbstractGenerator; //wtf??
 
-	private:
-		ctemplate::TemplateDictionary *getSubDict(SQLStatementTypes _type);
+    private:
+        ctemplate::TemplateDictionary *getSubDict(SQLStatementTypes _type);
 
-	protected:
-		MySQLGenerator();
-		virtual ~MySQLGenerator();
+    protected:
+        MySQLGenerator();
+        virtual ~MySQLGenerator();
 
-		MYSQL *m_conn;
+        MYSQL *m_conn;
 
-		virtual bool checkConnection();
-		virtual std::string getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
-		virtual std::string getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
-		virtual std::string getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+        virtual bool checkConnection();
+        virtual std::string getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+        virtual std::string getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+        virtual std::string getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
 
-		virtual bool   needIOBuffers() const;
+        virtual bool   needIOBuffers() const;
 
-		virtual void addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements);
-		virtual void addOutBuffers(SQLStatementTypes _type, const AbstractIOElements* _elements);
+        virtual void addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements);
+        virtual void addOutBuffers(SQLStatementTypes _type, const AbstractIOElements* _elements);
 
-	public:
-		virtual void addInsert(InsertElements _elements);
-		virtual void addSelect(SelectElements _elements);
-		virtual void addUpdate(UpdateElements _elements);
+    public:
+        virtual void addInsert(InsertElements _elements);
+        virtual void addSelect(SelectElements _elements);
+        virtual void addUpdate(UpdateElements _elements);
 
 };
 

@@ -27,35 +27,35 @@ namespace DBBinder
 {
 
 /**
-	@author
+    @author
 */
 class OracleGenerator : public AbstractGenerator
 {
-	friend class AbstractGenerator; //wtf??
+    friend class AbstractGenerator; //wtf??
 
-	protected:
-		OracleGenerator();
-		virtual ~OracleGenerator();
+    protected:
+        OracleGenerator();
+        virtual ~OracleGenerator();
 
-		OCIEnv		*m_env;
-		OCIError	*m_err;
-		OCIServer	*m_srv;
-		OCISvcCtx	*m_svc;
-		OCISession	*m_auth;
+        OCIEnv		*m_env;
+        OCIError	*m_err;
+        OCIServer	*m_srv;
+        OCISvcCtx	*m_svc;
+        OCISession	*m_auth;
 
-		virtual bool checkConnection();
+        virtual bool checkConnection();
 
-		virtual String getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
-		virtual String getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
-		virtual String getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+        virtual String getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+        virtual String getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+        virtual String getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
 
-		virtual bool   needIOBuffers() const;
+        virtual bool   needIOBuffers() const;
 
-		virtual void addSelInBuffers(const SelectElements* _select);
-		virtual void addSelOutBuffers(const SelectElements* _select);
+        virtual void addSelInBuffers(const SelectElements* _select);
+        virtual void addSelOutBuffers(const SelectElements* _select);
 
-	public:
-		virtual void addSelect(SelectElements _elements);
+    public:
+        virtual void addSelect(SelectElements _elements);
 };
 
 }

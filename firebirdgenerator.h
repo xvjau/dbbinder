@@ -26,29 +26,29 @@
 namespace DBBinder {
 
 /**
-	@author
+    @author
 */
 class FirebirdGenerator : public AbstractGenerator
 {
-	public:
-		FirebirdGenerator();
-		virtual ~FirebirdGenerator();
+    public:
+        FirebirdGenerator();
+        virtual ~FirebirdGenerator();
 
-		virtual void addSelect(SelectElements _elements);
+        virtual void addSelect(SelectElements _elements);
 
-	private:
-		isc_db_handle	m_conn;
+    private:
+        isc_db_handle	m_conn;
 
-	protected:
-		virtual bool checkConnection();
-		virtual std::string getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
-		virtual std::string getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
-		virtual std::string getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+    protected:
+        virtual bool checkConnection();
+        virtual std::string getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+        virtual std::string getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+        virtual std::string getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
 
-		virtual bool   needIOBuffers() const;
+        virtual bool   needIOBuffers() const;
 
-		virtual void addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements);
-		virtual void addOutBuffers(SQLStatementTypes _type, const AbstractIOElements* _elements);
+        virtual void addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements);
+        virtual void addOutBuffers(SQLStatementTypes _type, const AbstractIOElements* _elements);
 
 };
 
