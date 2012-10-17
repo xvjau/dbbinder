@@ -412,6 +412,13 @@ std::string AbstractGenerator::getInit(SQLTypes _sqlType)
             result = "0";
             break;
         }
+        case stDate:
+        case stTime:
+        case stTimeStamp:
+        {
+            result = "ptime()";
+            break;
+        }
         case stText:
         {
             result = "NULL";

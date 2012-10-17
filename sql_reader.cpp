@@ -132,7 +132,7 @@ void parseSQL(const std::string& _fileName)
                 file.getline(buffer, 4096);
                 line++;
 
-                #warning This should be sent to generator->db server to determine the 'corret' statement type.
+                #warning This should be sent to generator->db server to determine the 'correct' statement type.
                 if ( strncmp(buffer, "--", 2 ) != 0 )
                 {
                     char *c = buffer;
