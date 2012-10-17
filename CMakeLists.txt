@@ -69,6 +69,8 @@ if(ENABLE_MYSQL)
         execute_process(COMMAND mysql_config --cflags RESULT_VARIABLE RET OUTPUT_VARIABLE str_includes OUTPUT_STRIP_TRAILING_WHITESPACE)
         if (${RET} EQUAL 0)
             message(STATUS "MySQL found version ${str_version}")
+            add_definitions(-DWITH_MYSQL)
+            list(APPEND extra_files mysqlgenerator.cpp)
 
             string(FIND ${str_libs} " " pos)
             if(${pos} EQUAL -1)
