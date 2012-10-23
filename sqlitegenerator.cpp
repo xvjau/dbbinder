@@ -45,8 +45,15 @@ bool SQLiteGenerator::checkConnection()
     {
         std::string dbName = m_dbParams["file"].value;
 
-        if ( dbName.empty() )
+        if ( dbName.empty() || dbName.length() < 1 )
             FATAL( "SQLite3: 'file' db parameter is empty." );
+
+        if ( dbName[0] != '/' )
+        {
+            std::string root = m_dbParams["rootDir"].value;
+            root += '/';
+            dbName =  root + dbName;
+        }
 
         int ret = sqlite3_open( dbName.c_str(), &m_db );
 

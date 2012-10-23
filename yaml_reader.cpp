@@ -60,7 +60,7 @@ inline void getYAMLEvent(yaml_parser_t &_parser, yaml_event_t& _event)
         sendYAMLError(_parser);
 }
 
-static void parseYAMLDatabase(yaml_parser_t &_parser)
+static void parseYAMLDatabase(std::string rootDir, yaml_parser_t &_parser)
 {
     yaml_event_t event;
     getYAMLEvent(_parser, event);
@@ -80,6 +80,8 @@ static void parseYAMLDatabase(yaml_parser_t &_parser)
         sendYAMLError(_parser, "Expected YAML_SCALAR_EVENT");
 
     AbstractGenerator *generator = AbstractGenerator::getGenerator( reinterpret_cast<const char*>(event.data.scalar.value) );
+
+    generator->setDBParam( "rootDir", rootDir );
 
     bool done = false;
 
@@ -474,7 +476,7 @@ void parseYAML(const std::string& _fileName)
                 {
                     case 'd':
                         if ( value == "database" )
-                            parseYAMLDatabase(parser);
+                            parseYAMLDatabase(getFilenameRelativeTo(fileName, ""), parser);
                         break;
 
                     case 'e':
