@@ -281,4 +281,4 @@ install(FILES extra/CMake/DBBinderConfig.cmake
         DESTINATION share/dbbinder/
         PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ)
 
-install(CODE "execute_process(COMMAND install --mode=-r--r--r-- ${CMAKE_CURRENT_LIST_DIR}/extra/CMake/DBBinderConfig.cmake ${CMAKE_ROOT}/Modules)")
+install(CODE "execute_process(COMMAND install --mode=a+r,a-wx ${CMAKE_CURRENT_LIST_DIR}/extra/CMake/DBBinderConfig.cmake ${CMAKE_ROOT}/Modules)")
