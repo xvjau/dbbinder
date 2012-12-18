@@ -229,6 +229,8 @@ bool {{CLASSNAME}}::fetchRow()
 
 {{CLASSNAME}}::iterator & {{CLASSNAME}}::begin()
 {
+    ASSERT_MSG(m_selectIsActive, "Select is not active.  Ensure open() was called.");
+
     if ( m_iterator )
         return *m_iterator;
 
