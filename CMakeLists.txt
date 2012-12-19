@@ -259,6 +259,8 @@ endif()
 
 ########################## Done ##########################
 
+message(STATUS ${Boost_LIBRARIES})
+
 add_executable(dbbinder
     main.cpp
     xml_reader.cpp

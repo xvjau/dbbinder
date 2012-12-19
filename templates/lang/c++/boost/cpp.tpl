@@ -204,21 +204,24 @@ void {{CLASSNAME}}::open(
 {{#SELECT}}
 void {{CLASSNAME}}::close()
 {
-    m_selectIsActive = false;
+    if ( m_selectIsActive )
+    {
+        m_selectIsActive = false;
 
-    {{#DBENGINE_TRANSACTION}}
-    {{#SELECT}}{{DBENGINE_TRANSACTION_ROLLBACK}}{{/SELECT}}
-    {{DBENGINE_TRANSACTION_COMMIT}}
-    {{/DBENGINE_TRANSACTION}}
+        {{#DBENGINE_TRANSACTION}}
+        {{#SELECT}}{{DBENGINE_TRANSACTION_ROLLBACK}}{{/SELECT}}
+        {{DBENGINE_TRANSACTION_COMMIT}}
+        {{/DBENGINE_TRANSACTION}}
 
-    {{DBENGINE_DESTROY_SELECT}}
-    {{#SEL_IN_FIELDS_BUFFERS}}{{BUFFER_FREE}}
-    {{/SEL_IN_FIELDS_BUFFERS}}
-    {{#SEL_OUT_FIELDS_BUFFERS}}{{BUFFER_FREE}}
-    {{/SEL_OUT_FIELDS_BUFFERS}}
+        {{DBENGINE_DESTROY_SELECT}}
+        {{#SEL_IN_FIELDS_BUFFERS}}{{BUFFER_FREE}}
+        {{/SEL_IN_FIELDS_BUFFERS}}
+        {{#SEL_OUT_FIELDS_BUFFERS}}{{BUFFER_FREE}}
+        {{/SEL_OUT_FIELDS_BUFFERS}}
 
-    delete m_iterator;
-    m_iterator = NULL;
+        delete m_iterator;
+        m_iterator = NULL;
+    }
 }
 {{/SELECT}}
 
