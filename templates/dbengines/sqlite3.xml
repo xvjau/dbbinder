@@ -28,7 +28,7 @@
 			<create>
 			</create>
 			<destroy>
-				sqlite3_finalize( m_selectStmt );
+                SQLCHECK( sqlite3_finalize( m_selectStmt ) );
 			</destroy>
 			<prepare>
 				{
@@ -68,7 +68,7 @@
 			<create>
 			</create>
 			<destroy>
-				sqlite3_finalize( m_updateStmt );
+                SQLCHECK( sqlite3_finalize( m_updateStmt ) );
 			</destroy>
 			<prepare>
 				{
@@ -92,7 +92,7 @@
 			<create>
 			</create>
 			<destroy>
-				sqlite3_finalize( m_insertStmt );
+                SQLCHECK( sqlite3_finalize( m_insertStmt ) );
 			</destroy>
 			<prepare>
 				{
@@ -116,7 +116,7 @@
 			<create>
 			</create>
 			<destroy>
-				sqlite3_finalize( m_deleteStmt );
+                SQLCHECK( sqlite3_finalize( m_deleteStmt ) );
 			</destroy>
 			<prepare>
 				{
