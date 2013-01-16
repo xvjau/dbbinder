@@ -328,6 +328,14 @@ void MySQLGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElement
 
             switch( field.type )
             {
+                case stBlob:
+                {
+                    init << "m_param" << field.name << "IsNull = (_" << field.name << ") ? 0 : 1;\n"
+                        << "m_param" << field.name << "Length = (_" << field.name << ") ? _" << field.name << "->size() : 0;\n\n";
+
+                    init << "inBuffer[" << index << "].buffer = reinterpret_cast<void*>(&((*_" << field.name << ")[0]));\n";
+                    break;
+                }
                 case stDate:
                 case stTime:
                 case stTimeStamp:

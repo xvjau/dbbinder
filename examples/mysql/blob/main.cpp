@@ -1,4 +1,5 @@
 #include "select.h"
+#include "insert.h"
 
 #include <iostream>
 
@@ -17,6 +18,16 @@ int main()
         mysql_options(conn, MYSQL_OPT_RECONNECT, &val);
 
         m_conn = mysql_real_connect(conn, "localhost", "root", "masterkey", "test", 3306, NULL, 0);
+    }
+
+    {
+        insert_blob ins(m_conn);
+
+        const char* str = "Hey there!  Another test is here.";
+
+        shared_ptr<vector<char>> blob = make_shared<vector<char>>(str, str + strlen(str));
+
+        ins.insert(blob);
     }
 
     {
