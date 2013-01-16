@@ -41,7 +41,8 @@ enum SQLTypes
     stTimeStamp,
     stTime,
     stDate,
-    stText
+    stText,
+    stBlob
 };
 SQLTypes typeNameToSQLType(std::string _name);
 

@@ -115,6 +115,7 @@ std::string SQLiteGenerator::getBind( SQLStatementTypes _type, const ListElement
         case stTime:
         case stDate:
         case stText:
+        case stBlob:
         {
             str << "text";
             str << "(m_" << typeName << "Stmt, " << _index + 1 << ", _" << _item->name << ", strlen(_" << _item->name << "), ";
@@ -186,6 +187,7 @@ std::string SQLiteGenerator::getReadValue( SQLStatementTypes _type, const ListEl
         case stTime:
         case stDate:
         case stText:
+        case stBlob:
         {
             str << "m_" << _item->name << " = reinterpret_cast<const char*>( sqlite3_column_text(_parent->m_" << typeName << "Stmt, " << _index << ") );";
             break;

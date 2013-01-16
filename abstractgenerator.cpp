@@ -192,6 +192,13 @@ SQLTypes typeNameToSQLType(std::string _name)
 
         switch( _name[0] )
         {
+            case 'b':
+            {
+                if ( _name == "blob" )
+                    return stBlob;
+
+                break;
+            }
             case 'd':
             {
                 if ( _name == "double" )
@@ -383,6 +390,11 @@ std::string AbstractGenerator::getType(SQLTypes _sqlType)
                 result = "const char*";
                 break;
             }
+            case stBlob:
+            {
+                result = "std::shared_ptr< std::vector<char> >";
+                break;
+            }
         }
     }
 
@@ -422,6 +434,11 @@ std::string AbstractGenerator::getInit(SQLTypes _sqlType)
         case stText:
         {
             result = "NULL";
+            break;
+        }
+        case stBlob:
+        {
+            // Nothing!  Use default initializer
             break;
         }
     }

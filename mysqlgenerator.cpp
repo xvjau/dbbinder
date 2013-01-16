@@ -105,10 +105,33 @@ std::string MySQLGenerator::getBind(SQLStatementTypes _type, const ListElements:
 std::string MySQLGenerator::getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
 {
     UNUSED(_type);
-    if (_item->type == stTimeStamp)
-        return std::string("m_") + _item->name + " = dbbinderConvertTime(_parent->m_buff" + _item->name + ");";
-    else
-        return std::string("m_") + _item->name + " = _parent->m_buff" + _item->name + ";";
+    switch(_item->type)
+    {
+        case stTimeStamp:
+            return std::string("m_") + _item->name + " = dbbinderConvertTime(_parent->m_buff" + _item->name + ");";
+        case stBlob:
+        {
+            std::stringstream str;
+
+            str << "if (!_parent->m_" << _item->name + "IsNull)\n{";
+            str <<  "m_" << _item->name << " = std::make_shared< std::vector<char> >();\n";
+            str <<  "m_" << _item->name << "->resize(_parent->m_" << _item->name + "Length);\n\n";
+
+            str << "_parent->selOutBuffer[" << _index << "].buffer_length = _parent->m_" << _item->name << "Length;\n";
+            str << "_parent->selOutBuffer[" << _index <<"].buffer = &(*m_" << _item->name << ")[0];\n\n";
+
+            str << "if(_parent->m_" << _item->name + "Length)\n";
+            str << "mysqlCheckStmtErr(_parent->m_selectStmt, mysql_stmt_fetch_column(_parent->m_selectStmt, &(_parent->selOutBuffer[" << _index << "]), " << _index << ", 0));\n\n";
+
+            str << "_parent->selOutBuffer[" << _index << "].buffer_length = 0;\n";
+            str << "_parent->selOutBuffer[" << _index <<"].buffer = nullptr;\n";
+            str << "}";
+
+            return str.str();
+        }
+        default:
+            return std::string("m_") + _item->name + " = _parent->m_buff" + _item->name + ";";
+    }
 }
 
 std::string MySQLGenerator::getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
@@ -170,6 +193,10 @@ void MySQLGenerator::addSelect(SelectElements _elements)
             case MYSQL_TYPE_YEAR:
             case MYSQL_TYPE_NEWDATE:
                 type = stDate;
+                break;
+
+            case MYSQL_TYPE_BLOB:
+                type = stBlob;
                 break;
 
             case MYSQL_TYPE_NULL:
@@ -237,6 +264,11 @@ void getMySQLTypes(SQLTypes _type, std::string& _lang, std::string& _mysql)
         case stDate:
             _lang = "MYSQL_TIME";
             _mysql = "MYSQL_TYPE_DATE";
+            break;
+
+        case stBlob:
+            _lang = "std::shared_ptr< std::vector<char> >";
+            _mysql = "MYSQL_TYPE_BLOB";
             break;
 
         case stText:
@@ -362,22 +394,34 @@ void MySQLGenerator::addOutBuffers(SQLStatementTypes _type, const AbstractIOElem
         decl << "my_bool	m_" << field.name << "IsNull;\n"
                 << "long unsigned m_" << field.name << "Length;\n";
 
-        if ( field.type != stText )
+        switch(field.type)
         {
-            decl << langType << " m_buff" << field.name << ";\n";
-            init << "selOutBuffer[" << index << "].buffer_length = sizeof(" << langType << ");\n";
-        }
-        else
-        {
-            decl << langType << " m_buff" << field.name << "[" << field.length + 1 << "];\n";
-            init << "selOutBuffer[" << index << "].buffer_length = " << field.length << ";\n";
+            case stBlob:
+            {
+                break;
+            }
+            case stText:
+            {
+                decl << langType << " m_buff" << field.name << "[" << field.length + 1 << "];\n";
+                init << "selOutBuffer[" << index << "].buffer_length = " << field.length << ";\n";
+                break;
+            }
+            default:
+            {
+                decl << langType << " m_buff" << field.name << ";\n";
+                init << "selOutBuffer[" << index << "].buffer_length = sizeof(" << langType << ");\n";
+            }
         }
 
-        init << "selOutBuffer[" << index << "].buffer_type = " << myType << ";\n"
-                << "selOutBuffer[" << index << "].buffer = reinterpret_cast<void *>(&m_buff" << field.name << ");\n"
-                << "selOutBuffer[" << index << "].is_null = &m_" << field.name << "IsNull;\n"
+        init << "selOutBuffer[" << index << "].buffer_type = " << myType << ";\n";
+
+        if (field.type != stBlob)
+            init << "selOutBuffer[" << index << "].buffer = reinterpret_cast<void *>(&m_buff" << field.name << ");\n";
+
+        init << "selOutBuffer[" << index << "].is_null = &m_" << field.name << "IsNull;\n"
                 << "selOutBuffer[" << index << "].length = &m_" << field.name << "Length;\n"
                 << "\n";
+
 
         subDict = m_dict->AddSectionDictionary(tpl_SEL_OUT_FIELDS_BUFFERS);
         subDict->SetValue(tpl_BUFFER_DECLARE, decl.str() );

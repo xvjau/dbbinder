@@ -206,7 +206,6 @@ inline FileCheck checkFileExistsAndType(const std::string& fileName, FileCheckTy
     return fcOK;
 }
 
-
 }
 
 #ifdef NDEBUG

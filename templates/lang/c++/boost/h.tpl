@@ -124,7 +124,7 @@ class {{CLASSNAME}}
                 {{#SEL_OUT_FIELDS}}m_{{SEL_OUT_FIELD_NAME}}({{SEL_OUT_FIELD_INIT}}){{SEL_OUT_FIELD_COMMA}}{{/SEL_OUT_FIELDS}}
                 {}
 
-                _row_type(const {{CLASSNAME}} *_parent)
+                _row_type({{CLASSNAME}} *_parent)
                 {
                     {{#SEL_OUT_FIELDS}}{{SEL_OUT_FIELD_GETVALUE}}
                     m_isNull{{SEL_OUT_FIELD_NAME}} = {{SEL_OUT_FIELD_ISNULL}};
