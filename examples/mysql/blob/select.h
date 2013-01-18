@@ -181,7 +181,7 @@ public:
                 m_comment->resize(_parent->m_commentLength);
 
                 _parent->selOutBuffer[1].buffer_length = _parent->m_commentLength;
-                _parent->selOutBuffer[1].buffer = &(*m_comment)[0];
+                _parent->selOutBuffer[1].buffer = m_comment->data();
 
                 if(_parent->m_commentLength)
                     mysqlCheckStmtErr(_parent->m_selectStmt, mysql_stmt_fetch_column(_parent->m_selectStmt, &(_parent->selOutBuffer[1]), 1, 0));
@@ -264,6 +264,14 @@ public:
             ASSERT_MSG( m_parent, "Called operator++ without parent/after end." );
             if ( !m_parent->fetchRow() )
                 m_parent = 0;
+        }
+
+        void operator++(int count)
+        {
+            while(count-- > 0)
+            {
+                operator++();
+            }
         }
 
         bool operator==(const iterator& _other) const

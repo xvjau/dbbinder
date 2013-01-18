@@ -118,7 +118,7 @@ std::string MySQLGenerator::getReadValue(SQLStatementTypes _type, const ListElem
             str <<  "m_" << _item->name << "->resize(_parent->m_" << _item->name + "Length);\n\n";
 
             str << "_parent->selOutBuffer[" << _index << "].buffer_length = _parent->m_" << _item->name << "Length;\n";
-            str << "_parent->selOutBuffer[" << _index <<"].buffer = &(*m_" << _item->name << ")[0];\n\n";
+            str << "_parent->selOutBuffer[" << _index <<"].buffer = m_" << _item->name << "->data();\n\n";
 
             str << "if(_parent->m_" << _item->name + "Length)\n";
             str << "mysqlCheckStmtErr(_parent->m_selectStmt, mysql_stmt_fetch_column(_parent->m_selectStmt, &(_parent->selOutBuffer[" << _index << "]), " << _index << ", 0));\n\n";
@@ -333,7 +333,7 @@ void MySQLGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElement
                     init << "m_param" << field.name << "IsNull = (_" << field.name << ") ? 0 : 1;\n"
                         << "m_param" << field.name << "Length = (_" << field.name << ") ? _" << field.name << "->size() : 0;\n\n";
 
-                    init << "inBuffer[" << index << "].buffer = reinterpret_cast<void*>(&((*_" << field.name << ")[0]));\n";
+                    init << "inBuffer[" << index << "].buffer = reinterpret_cast<void*>(_" << field.name << "->data());\n";
                     break;
                 }
                 case stDate:
