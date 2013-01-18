@@ -188,6 +188,14 @@ class {{CLASSNAME}}
                         m_parent = 0;
                 }
 
+                void operator++(int count)
+                {
+                    while(count-- > 0)
+                    {
+                        operator++();
+                    }
+                }
+
                 bool operator==(const iterator& _other) const
                 {
                     return m_parent == _other.m_parent;
