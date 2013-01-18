@@ -120,17 +120,27 @@
                 switch( ret )
                 {
                     case MYSQL_DATA_TRUNCATED:
+                    {
+                    #ifndef NDEBUG
                         LOG_MSG("MySQL data truncated!");
+                    #endif
+                    }
                     case 0:
+                    {
                         m_currentRow.reset( new _row_type( this ));
                         return true;
+                    }
                     case MYSQL_NO_DATA:
+                    {
                         m_currentRow.reset();
                         mysql_stmt_reset(m_selectStmt);
                         break;
+                    }
                     default:
+                    {
                         mysqlCheckStmtErr( m_selectStmt, ret );
                         break;
+                    }
                 }
 
                 return false;
