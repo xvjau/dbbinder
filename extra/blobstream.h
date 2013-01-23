@@ -74,16 +74,22 @@ private:
             if (v->empty())
             {
                 v->resize(n);
-                memcpy(v->data(), s, n);
+                setp(v->data(), v->data() + v->size());
+                memcpy(pptr(), s, n);
             }
             else
             {
                 auto size = v->size();
-                v->resize(size + n);
-                memcpy(v->data() + size, s, n);
-            }
+                auto remain = epptr() - pptr();
 
-            setp(v->data(), v->data() + v->size());
+                if (remain < n)
+                {
+                    auto delta = n - remain;
+                    v->resize(size + delta);
+                    setp(v->data(), v->data() + v->size());
+                }
+                memcpy(pptr(), s, n);
+            }
         }
 
         virtual int overflow( int c ) override
