@@ -28,17 +28,34 @@ namespace DBBinder
 {
 
 /**
- * Helper class for generated code which uses shared_ptr<vector<char>> for blob fields
+ * @class BlobStream
+ * Helper class for Blob field.
+ *
+ * This class helps create a std::stream interface to a
+ * shared_ptr<vector<char>> object which might be the
+ * C++ type used for blob/TEXT fields.
+ *
+ * IStream example:
+ *
+ *    auto blob = std::make_shared< std::vector<char>>();
+ *    DBBinder::BlobStream stream(blob);
+ *    pb->serializeToOstream(stream.ostream());
+ *    ins.insert(1, blob);
+ *
+ * OStream example::
+ *
+ *    DBBinder::BlobStream str(j->getpbData());
+ *    pb->parseFromIstream(str.istream());
  */
 class BlobStream
 {
 private:
-    typedef char CharT;
-    typedef std::char_traits<CharT> TraitsT;
-    typedef std::vector<CharT> vector_t;
+    typedef char char_t;
+    typedef std::char_traits<char_t> traits_t;
+    typedef std::vector<char_t> vector_t;
     typedef std::shared_ptr<vector_t> vector_ref_t;
 
-    class VectorWrapper : public std::basic_streambuf<CharT, TraitsT> {
+    class VectorWrapper : public std::basic_streambuf<char_t, traits_t> {
     private:
         vector_ref_t _vector;
     public:
