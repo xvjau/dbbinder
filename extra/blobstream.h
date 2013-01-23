@@ -79,13 +79,12 @@ private:
             }
             else
             {
-                auto size = v->size();
                 auto remain = epptr() - pptr();
 
                 if (remain < n)
                 {
                     auto delta = n - remain;
-                    v->resize(size + delta);
+                    v->resize(v->size() + delta);
                     setp(v->data(), v->data() + v->size());
                 }
                 memcpy(pptr(), s, n);
