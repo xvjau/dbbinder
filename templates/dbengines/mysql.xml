@@ -28,6 +28,7 @@
                         result.hour = t.hours();
                         result.minute = t.minutes();
                         result.second = t.seconds();
+                        result.second_part = t.total_microseconds() % 1000000;
 
                         result.neg = false;
                         result.time_type = MYSQL_TIMESTAMP_DATETIME;
