@@ -22,13 +22,59 @@
 namespace DBBinder
 {
 
+class PQResult
+{
+private:
+    PGresult    *m_res;
+
+public:
+    PQResult(): m_res(0) {}
+    PQResult(PGresult *_res): m_res(_res) {}
+    ~PQResult() { if (m_res) PQclear(m_res); }
+
+    operator const PGresult*() const { return m_res; }
+
+    void operator=(PGresult *_res)
+    {
+        if (m_res)
+            PQclear(m_res);
+
+        m_res = _res;
+    }
+};
+
+#ifndef NDEBUG
+#define PGCommandCheck(CONN, RES) do { __pqCheckErr(CONN, RES, PGRES_COMMAND_OK, __FILE__, __LINE__); } while (false)
+#define PGResultCheck(CONN, RES) do { __pqCheckErr(CONN, RES, PGRES_TUPLES_OK, __FILE__, __LINE__); } while (false)
+#else
+#define PGCommandCheck(CONN, RES) do { __pqCheckErr(CONN, RES, PGRES_COMMAND_OK); } while (false)
+#define PGResultCheck(CONN, RES) do { __pqCheckErr(CONN, RES, PGRES_TUPLES_OK); } while (false)
+#endif
+
+void __pqCheckErr(PGconn *_conn, const PQResult &_res, ExecStatusType _statusCheck
+#ifndef NDEBUG
+    , const char* _file, int _line
+#endif
+    )
+{
+    if (PQresultStatus(_res) != _statusCheck)
+    {
+#ifndef NDEBUG
+        FATAL(_file << ':' << _line << " - PostgreSQL: " << PQerrorMessage(_conn));
+#else
+        FATAL("PostgreSQL: " << PQerrorMessage(_conn));
+#endif
+        abort();
+    }
+}
+
 struct PGTypePair
 {
     std::string lang;
     std::string pg;
 };
 
-PGTypePair getPgTypes(SQLStatementTypes _type)
+PGTypePair getPgTypes(SQLTypes _type)
 {
     switch(_type)
     {
@@ -110,22 +156,7 @@ bool PostgreSQLGenerator::checkConnection()
 
 std::string PostgreSQLGenerator::getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
 {
-    std::stringstream str;
-
-    if ( _index == 0 )
-    {
-        std::string type = getStmtType(_type);
-
-        str << "const char* m_paramValues[s_" << type << "ParamCount];\n";
-        str << "int m_paramLengths[s_" << type << "ParamCount];\n";
-        str << "int m_paramFormats[s_" << type << "ParamCount];\n";
-    }
-
-    PGTypePair type = getPgTypes(_item->type);
-
-    str << type.lang << " m_param" << _item->name << ";\n";
-
-    return str.str();
+    return std::string();
 }
 
 std::string PostgreSQLGenerator::getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
@@ -152,70 +183,28 @@ void PostgreSQLGenerator::addSelect(SelectElements _elements)
 {
     checkConnection();
 
-    ISC_STATUS		err[32];
-    isc_tr_handle	tr = 0;
-    isc_stmt_handle	stmt = 0;
-    XSQLDA			*buffOutput = 0;
+    PQResult res;
 
-    // Start Transaction
+    res = PQprepare(m_conn, _elements.name.c_str(), _elements.sql.c_str(), _elements.input.size(), 0);
+    PGCommandCheck(m_conn, res);
+
+    res = PQdescribePrepared(m_conn, _elements.name);
+    PGCommandCheck(m_conn, res);
+
+    int fields = PQnfields(res);
+    for(int i = 0; i != fields; i++)
     {
-        char dpb[] = { isc_tpb_version3, isc_tpb_read, isc_tpb_read_committed, isc_tpb_no_rec_version, isc_tpb_wait};
-        isc_start_transaction( err, &tr, 1, &m_conn, sizeof(dpb), dpb );
-        checkFBError( err );
-    }
+        std::cout << "Field(" << i << "): '" << PQfname(res, i) << "' = " << PQftype(res, i) << std::endl;
 
-    // statement
-    isc_dsql_alloc_statement2( err, &m_conn, &stmt );
-    checkFBError( err );
-
-    buffOutput = (XSQLDA *)malloc( XSQLDA_LENGTH( DEFAULT_COL_COUNT ) );
-    memset(buffOutput, 0, XSQLDA_LENGTH( DEFAULT_COL_COUNT ));
-    buffOutput->version = SQLDA_VERSION1;
-    buffOutput->sqln = DEFAULT_COL_COUNT;
-
-    isc_dsql_prepare( err, &tr, &stmt, _elements.sql.length(), const_cast<char*>(_elements.sql.c_str()), 3, buffOutput );
-    checkFBError( err );
-
-    // Check to see if the buffer is big enough
-    if ( buffOutput->sqld > buffOutput->sqln )
-    {
-        // Resize and re-describe
-        int num = buffOutput->sqld;
-        buffOutput = (XSQLDA *)realloc( buffOutput, XSQLDA_LENGTH( buffOutput->sqld ) );
-        memset(buffOutput, 0, XSQLDA_LENGTH( buffOutput->sqld ));
-        buffOutput->version = SQLDA_VERSION1;
-        buffOutput->sqln = num;
-
-        isc_dsql_describe( err, &stmt, SQLDA_VERSION1, buffOutput );
-        checkFBError( err );
-    }
-
-    XSQLVAR *p = buffOutput->sqlvar;
-    for( int i = 0; i < buffOutput->sqld; ++i, p++ )
-    {
-        std::string comment;
-        if ( p->relname_length )
+        SQLTypes type;
+        switch(PQftype(res, i))
         {
-            comment.assign( p->relname, p->relname_length );
-            comment.append( "." );
+            default:
+                FATAL(__FILE__  << ':' << __LINE__ << ": Invalide field type.");
         }
 
-        if ( p->sqlname_length )
-        {
-            comment.append( p->sqlname, p->sqlname_length );
-        }
-        _elements.output.push_back( SQLElement( p->aliasname, fbtypeToSQLType( p->sqltype ), i, p->sqllen, comment ));
+        _elements.output.push_back( SQLElement( PQfname(res, i), type, i, PQfsize(res, i) ));
     }
-
-    //Free, deallocate and rollback everything
-
-    free(buffOutput);
-
-    isc_dsql_free_statement( err, &stmt, DSQL_drop );
-    checkFBError( err );
-
-    isc_rollback_transaction( err, &tr );
-    checkFBError( err );
 
     AbstractGenerator::addSelect(_elements);
 }
@@ -253,11 +242,22 @@ void PostgreSQLGenerator::addInBuffers(SQLStatementTypes _type, const AbstractEl
     }
     else
     {
-        /*
-            Nothing to see here.. please move on to:
-            PostgreSQLGenerator::getBind
-                -> if ( _index == 0 )
-        */
+        std::stringstream str;
+
+        if ( _index == 0 )
+        {
+            std::string type = getStmtType(_type);
+
+            str << "const char* m_paramValues[s_" << type << "ParamCount];\n";
+            str << "int m_paramLengths[s_" << type << "ParamCount];\n";
+            str << "int m_paramFormats[s_" << type << "ParamCount];\n";
+        }
+
+        PGTypePair type = getPgTypes(_item->type);
+
+        str << type.lang << " m_param" << _item->name << ";\n";
+
+        return str.str();
     }
 }
 
