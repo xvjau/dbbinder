@@ -64,29 +64,29 @@ struct SQLElement
             name( _name ), type( _type ), index( _index ), length(0), defaultValue( _default ), comment(_comment)
     {}
 
-    std::string	name;
-    SQLTypes	type;
-    int			index;
-    int			length;
-    std::string	defaultValue;
-    std::string	comment;
+    std::string name;
+    SQLTypes    type;
+    int         index;
+    int         length;
+    std::string defaultValue;
+    std::string comment;
 };
 typedef std::vector<SQLElement> ListElements;
 
 struct Location
 {
-    std::string	file;
-    int			line;
-    int			col;
+    std::string file;
+    int         line;
+    int         col;
 };
 
 struct AbstractElements
 {
-    std::string		name;
-    std::string		sql;
-    Location		sql_location;
-    ListElements	input;
-    SQLStatementTypes	type;
+    std::string         name;
+    std::string         sql;
+    Location            sql_location;
+    ListElements        input;
+    SQLStatementTypes   type;
 };
 
 struct AbstractIOElements: public AbstractElements
@@ -141,12 +141,12 @@ class AbstractGenerator
                 value = str.str();
             }
 
-            std::string	value;
-            bool		isInt;
+            std::string value;
+            bool        isInt;
         };
         typedef std::map<std::string, dbParam> _dbParams;
 
-        _dbParams	m_dbParams;
+        _dbParams       m_dbParams;
 
         enum _fileTypes
         {
@@ -156,19 +156,19 @@ class AbstractGenerator
         };
         struct _classParams
         {
-            SelectElements	select;
-            UpdateElements	update;
-            InsertElements	insert;
-            DeleteElements	del;
+            SelectElements      select;
+            UpdateElements      update;
+            InsertElements      insert;
+            DeleteElements      del;
         };
         typedef boost::shared_ptr<_classParams> _classParamsPtr;
         typedef std::map<std::string, _classParamsPtr> classParams;
 
         typedef std::map<SQLTypes, std::string> mapTypes;
-        mapTypes	m_types;
+        mapTypes        m_types;
 
-        ListString	m_namespaces;
-        ListString	m_headers;
+        ListString      m_namespaces;
+        ListString      m_headers;
 
         struct TmplDestPair
         {
@@ -178,18 +178,18 @@ class AbstractGenerator
         typedef std::vector<TmplDestPair> ListTplDestPair;
         ListTplDestPair m_extraFiles;
 
-        std::string		m_dbengine;
+        std::string     m_dbengine;
 
-        classParams	m_classParams;
+        classParams     m_classParams;
 
         bool m_connected;
         virtual bool checkConnection();
 
-        std::string	m_outIntFile;
-        std::string	m_outImplFile;
+        std::string     m_outIntFile;
+        std::string     m_outImplFile;
 
-        TemplateDictionary	*m_dict;
-        std::string			m_templ[ftMAX];
+        TemplateDictionary      *m_dict;
+        std::string             m_templ[ftMAX];
 
         virtual void loadDictionary();
 
