@@ -55,10 +55,7 @@ endif()
 
 ##########################  MySQL ##########################
 
-string(LENGTH "${ENABLE_MYSQL}" ENABLE_MYSQL_LEN)
-if (ENABLE_MYSQL_LEN EQUAL 0)
-    set(ENABLE_MYSQL ON)
-endif()
+set(ENABLE_MYSQL true CACHE BOOL "Enable MySQL target.")
 
 if(ENABLE_MYSQL)
     execute_process(COMMAND mysql_config --version OUTPUT_VARIABLE str_version OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -137,12 +134,24 @@ if(ENABLE_MYSQL)
     endif()
 endif()
 
+##########################  PostgreSQL ##########################
+
+set(ENABLE_POSTGRESQL true CACHE BOOL "Enable PostgreSQL target.")
+
+if(ENABLE_POSTGRESQL)
+    find_package(PostgreSQL)
+    if(PostgreSQL_LIBRARIES AND PostgreSQL_INCLUDE_DIRS)
+        message(STATUS "PostgreSQL found: ${PostgreSQL_VERSION_STRING}")
+
+        list(APPEND extra_files postgresqlgenerator.cpp)
+        list(APPEND extra_libs ${PostgreSQL_LIBRARIES})
+        include_directories(${PostgreSQL_INCLUDE_DIRS})
+    endif()
+endif()
+
 ########################## Firebird ##########################
 
-string(LENGTH "${ENABLE_FIREBIRD}" ENABLE_FIREBIRD_LEN)
-if (ENABLE_FIREBIRD_LEN EQUAL 0)
-    set(ENABLE_FIREBIRD ON)
-endif()
+set(ENABLE_FIREBIRD true CACHE BOOL "Enable Firebird target.")
 
 if(ENABLE_FIREBIRD)
     find_file(FIREBIRD_CONFIG fb_config PATH /usr/bin /usr/local/bin /opt/firebird/bin)
@@ -203,10 +212,7 @@ endif()
 
 ########################## Oracle ##########################
 
-string(LENGTH "${ENABLE_ORACLE}" ENABLE_ORACLE_LEN)
-if (ENABLE_ORACLE_LEN EQUAL 0)
-    set(ENABLE_ORACLE ON)
-endif()
+set(ENABLE_ORACLE true CACHE BOOL "Enable Oracle target.")
 
 if(ENABLE_ORACLE)
     find_file(ORACLE_INCLUDE oci.h PATHS $ENV{C_INCLUDE_PATH})
@@ -231,10 +237,7 @@ endif()
 
 ########################## YAML ##########################
 
-string(LENGTH "${ENABLE_YAML}" ENABLE_YAML_LEN)
-if (ENABLE_YAML_LEN EQUAL 0)
-    set(ENABLE_YAML ON)
-endif()
+set(ENABLE_YAML true CACHE BOOL "Enable YAML parser.")
 
 if(ENABLE_YAML)
     find_file(YAML_INCLUDE yaml.h)
