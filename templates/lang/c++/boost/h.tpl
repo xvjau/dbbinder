@@ -181,19 +181,17 @@ class {{CLASSNAME}}
                     return m_parent->m_currentRow;
                 }
 
-                void operator++()
+                iterator& operator++()
                 {
                     ASSERT_MSG( m_parent, "Called operator++ without parent/after end." );
                     if ( !m_parent->fetchRow() )
                         m_parent = 0;
+                    return *this;
                 }
 
-                void operator++(int count)
+                iterator& operator++(int)
                 {
-                    while(count-- > 0)
-                    {
-                        operator++();
-                    }
+                    return operator++();
                 }
 
                 bool operator==(const iterator& _other) const
