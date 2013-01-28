@@ -227,8 +227,8 @@ class {{CLASSNAME}}
         std::vector<row> fetchAll()
         {
             std::vector<row> result;
-            for(auto it : *this)
-                result.push_back(it);
+            for(iterator it = begin(); it != end(); it++)
+                result.push_back(*it);
             return result;
         }
 
