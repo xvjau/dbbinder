@@ -1,0 +1,15 @@
+database:
+  type: "MySQL"
+  host: 189.76.166.25
+  port: 3306
+  db: OPM_Test
+  user: iptv
+  password: 4782-99e7
+  charset: utf8
+
+extra:
+  namespaces:
+    - bitforge
+    - db
+  headers:
+    - #include "protobuf.h"
