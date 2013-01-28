@@ -206,7 +206,7 @@ class {{CLASSNAME}}
                     return m_parent != _other.m_parent;
                 }
 
-                typedef iterator iterator_category;
+                typedef std::forward_iterator_tag iterator_category;
                 typedef row value_type;
                 typedef bool difference_type;
                 typedef _row_type* pointer;
@@ -222,6 +222,14 @@ class {{CLASSNAME}}
         bool empty()
         {
             return begin() == end();
+        }
+
+        std::vector<row> fetchAll()
+        {
+            std::vector<row> result;
+            for(auto it : *this)
+                result.push_back(it);
+            return result;
         }
 
     private:
