@@ -48,7 +48,6 @@ const int {{CLASSNAME}}::s_deleteSQL_len = {{DELETE_SQL_LEN}};
 {{#SELECT}}
         ,m_selectStmt({{DBENGINE_STATEMENT_NULL}})
         ,m_selectIsActive( false )
-        ,m_iterator(0)
 {{/SELECT}}
 {{#UPDATE}}
         ,m_updateStmt({{DBENGINE_STATEMENT_NULL}})
@@ -151,8 +150,7 @@ const int {{CLASSNAME}}::s_selectParamCount = {{SELECT_PARAM_COUNT}};
         m_tr( {{DBENGINE_TRANSACTION_NULL}} ),
 {{/DBENGINE_TRANSACTION}}
         m_selectStmt({{DBENGINE_STATEMENT_NULL}}),
-        m_selectIsActive( false ),
-        m_iterator( 0 )
+        m_selectIsActive( false )
 {
     ASSERT_MSG(m_conn, "Connection must not be null!");
 
@@ -218,9 +216,6 @@ void {{CLASSNAME}}::close()
         {{/SEL_IN_FIELDS_BUFFERS}}
         {{#SEL_OUT_FIELDS_BUFFERS}}{{BUFFER_FREE}}
         {{/SEL_OUT_FIELDS_BUFFERS}}
-
-        delete m_iterator;
-        m_iterator = NULL;
     }
 }
 {{/SELECT}}
@@ -230,17 +225,13 @@ bool {{CLASSNAME}}::fetchRow()
     {{DBENGINE_FETCH_SELECT}}
 }
 
-{{CLASSNAME}}::iterator & {{CLASSNAME}}::begin()
+{{CLASSNAME}}::iterator {{CLASSNAME}}::begin()
 {
     ASSERT_MSG(m_selectIsActive, "Select is not active.  Ensure open() was called.");
 
-    if ( m_iterator )
-        return *m_iterator;
-
     if ( fetchRow() )
     {
-        m_iterator = new {{CLASSNAME}}::iterator(this);
-        return *m_iterator;
+        return {{CLASSNAME}}::iterator(this);
     }
     else
         return s_endIterator;
