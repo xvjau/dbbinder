@@ -235,7 +235,7 @@ class {{CLASSNAME}}
         };
         typedef iterator const_iterator;
 
-        iterator begin();
+        iterator& begin();
         iterator& end()
         {
             return s_endIterator;
@@ -252,6 +252,7 @@ class {{CLASSNAME}}
 
     private:
         row             m_currentRow;
+        iterator        *m_iterator;
         static iterator s_endIterator;
 {{/SELECT}}
 {{#UPDATE}}
