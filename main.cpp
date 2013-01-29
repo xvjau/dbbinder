@@ -33,18 +33,18 @@
 namespace DBBinder
 {
 
-std::string		appName;
-std::string		optOutput;
-std::string		optTemplate;
-ListString		optTemplateDirs;
-const char*		optVersionMajor = "0";
-const char*		optVersionMinor = "1";
-bool			optListDepends = false;
-ListString		optDepends;
-bool			optExtras = false;
-ListString		optIncludeFiles;
+std::string             appName;
+std::string             optOutput;
+std::string             optTemplate;
+ListString              optTemplateDirs;
+const char*             optVersionMajor = "0";
+const char*             optVersionMinor = "1";
+bool                    optListDepends = false;
+ListString              optDepends;
+bool                    optExtras = false;
+ListString              optIncludeFiles;
 
-static const char*	defaultTemplateDirs[] =
+static const char*      defaultTemplateDirs[] =
 {
     "/usr/share/dbbinder/templates",
     "/usr/local/share/dbbinder/templates",
@@ -156,9 +156,9 @@ int main(int argc, char *argv[])
 
         switch (checkFileExistsAndType(s, fctRegularFile))
         {
-            case fcOK:					fileName = s; break;
-            case fcDoesNotExist:		FATAL_EXIT( s << ": No such file");
-            case fcIsNotExpectedType:	FATAL_EXIT( s << ": must be a regular file");
+            case fcOK:                  fileName = s; break;
+            case fcDoesNotExist:        FATAL_EXIT( s << ": No such file");
+            case fcIsNotExpectedType:   FATAL_EXIT( s << ": must be a regular file");
         }
     }
 

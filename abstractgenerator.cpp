@@ -452,6 +452,33 @@ void AbstractGenerator::addSelect(SelectElements _elements)
 {
     std::string name = stringToLower( _elements.name );
 
+    if (!_elements.keyFieldName.empty())
+    {
+        std::string key = _elements.keyFieldName;
+
+        // Check whether the key field's index was passed
+        char *endptr = NULL;
+        int index = strtol(key.c_str(), &endptr, 10);
+
+        if (endptr && (*endptr == '\0' || isblank(*endptr) || *endptr == '\n'))
+        {
+            _elements.keyField = index - 1;
+        }
+        else
+        {
+            // Assunme, that the key field's name was passed
+            ListElements::iterator it = _elements.output.begin(), end = _elements.output.end();
+            for(; it != end; it++)
+            {
+                if (strcasecmp(it->name.c_str(), key.c_str()) == 0)
+                {
+                    _elements.keyField = it->index;
+                    break;
+                }
+            }
+        }
+    }
+
     _classParamsPtr params = m_classParams[ name ];
 
     if ( !params )

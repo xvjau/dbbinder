@@ -103,7 +103,8 @@ struct SelectElements: public AbstractIOElements
         type = sstSelect;
     }
 
-    int keyField;
+    std::string keyFieldName;
+    int         keyField;
 };
 
 struct UpdateElements: public AbstractElements
