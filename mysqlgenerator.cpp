@@ -114,7 +114,7 @@ std::string MySQLGenerator::getReadValue(SQLStatementTypes _type, const ListElem
             std::stringstream str;
 
             str << "if (!_parent->m_" << _item->name + "IsNull)\n{";
-            str <<  "m_" << _item->name << " = std::make_shared< std::vector<char> >();\n";
+            str <<  "m_" << _item->name << " = shared_pointer< std::vector<char> >::type();\n";
             str <<  "m_" << _item->name << "->resize(_parent->m_" << _item->name + "Length);\n\n";
 
             str << "_parent->selOutBuffer[" << _index << "].buffer_length = _parent->m_" << _item->name << "Length;\n";
@@ -124,7 +124,7 @@ std::string MySQLGenerator::getReadValue(SQLStatementTypes _type, const ListElem
             str << "mysqlCheckStmtErr(_parent->m_selectStmt, mysql_stmt_fetch_column(_parent->m_selectStmt, &(_parent->selOutBuffer[" << _index << "]), " << _index << ", 0));\n\n";
 
             str << "_parent->selOutBuffer[" << _index << "].buffer_length = 0;\n";
-            str << "_parent->selOutBuffer[" << _index <<"].buffer = nullptr;\n";
+            str << "_parent->selOutBuffer[" << _index <<"].buffer = NULL;\n";
             str << "}";
 
             return str.str();
@@ -267,7 +267,7 @@ void getMySQLTypes(SQLTypes _type, std::string& _lang, std::string& _mysql)
             break;
 
         case stBlob:
-            _lang = "std::shared_ptr< std::vector<char> >";
+            _lang = "shared_pointer< std::vector<char> >::type";
             _mysql = "MYSQL_TYPE_BLOB";
             break;
 

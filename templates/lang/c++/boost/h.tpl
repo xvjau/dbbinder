@@ -18,6 +18,7 @@
 #include <iostream>
 #include <string.h>
 #include <libgen.h>
+#include <vector>
 
 {{#DBENGINE_INCLUDES}}{{DBENGINE_INCLUDE_NAME}}
 {{/DBENGINE_INCLUDES}}
@@ -81,6 +82,18 @@ class {{CLASSNAME}}
     public:
         {{CLASSNAME}}({{DBENGINE_CONNECTION_TYPE}} _conn);
         ~{{CLASSNAME}}();
+
+        // Shared pointer selector
+        template<typename T>
+        struct shared_pointer
+        {
+#if __cplusplus < 201103L
+            typedef boost::shared_ptr<T> type;
+#else
+            typedef std::shared_ptr<T> type;
+#endif
+        };
+
     private:
         {{DBENGINE_CONNECTION_TYPE}}	m_conn;
         {{#EXTRA_HEADERS}}{{EXTRA_HEADERS_MEMBER}}
@@ -151,11 +164,8 @@ class {{CLASSNAME}}
                 }
                 {{/SEL_OUT_FIELDS}}
         };
-#if __cplusplus < 201103L
-        typedef boost::shared_ptr<_row_type> row;
-#else
-        typedef std::shared_ptr<_row_type> row;
-#endif
+
+        typedef shared_pointer<_row_type>::type row;
 
         class iterator
         {

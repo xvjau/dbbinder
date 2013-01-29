@@ -394,7 +394,7 @@ std::string AbstractGenerator::getType(SQLTypes _sqlType)
             }
             case stBlob:
             {
-                result = "std::shared_ptr< std::vector<char> >";
+                result = "shared_pointer< std::vector<char> >::type";
                 break;
             }
         }
