@@ -179,7 +179,8 @@ class {{CLASSNAME}}
                     m_row = other.m_row;
                     m_parent = other.m_parent;
                 }
-            private:
+
+            protected:
                 {{CLASSNAME}}* m_parent;
                 {{CLASSNAME}}::row m_row;
 
@@ -240,6 +241,56 @@ class {{CLASSNAME}}
         {
             return s_endIterator;
         }
+
+        class map_iterator: public iterator
+        {
+        public:
+            map_iterator()
+            {}
+
+            map_iterator(teste* _parent):
+                iterator(_parent)
+            {}
+
+            map_iterator(const map_iterator& other):
+                iterator(other)
+            {}
+
+            map_iterator(const iterator& other):
+                iterator(other)
+            {}
+
+            void operator=(const map_iterator& other)
+            {
+                iterator::operator=(other);
+            }
+
+        public:
+            typedef {{SEL_OUT_KEY_FIELD_TYPE}} key_type;
+
+            const std::pair<key_type, row> operator*() const
+            {
+                ASSERT_MSG( m_row, "Called operator* without parent/after end." );
+                return std::make_pair(m_row->get{{SEL_OUT_KEY_FIELD_NAME}}(), m_row);
+            }
+
+            const std::pair<key_type, row> operator->() const
+            {
+                ASSERT_MSG( m_row, "Called operator-> without parent/after end." );
+                return std::make_pair(m_row->get{{SEL_OUT_KEY_FIELD_NAME}}(), m_row);
+            }
+        };
+
+        map_iterator map_begin()
+        {
+            return map_iterator(begin());
+        }
+
+        map_iterator map_end()
+        {
+            return map_iterator();
+        }
+
         bool empty()
         {
             return begin() == end();

@@ -94,6 +94,8 @@ const char * const tpl_SEL_OUT_FIELD_GETVALUE = "SEL_OUT_FIELD_GETVALUE";
 const char * const tpl_SEL_OUT_FIELD_ISNULL = "SEL_OUT_FIELD_ISNULL";
 const char * const tpl_SEL_OUT_FIELDS_BUFFERS = "SEL_OUT_FIELDS_BUFFERS";
 const char * const tpl_SEL_OUT_FIELD_COMMENT = "SEL_OUT_FIELD_COMMENT";
+const char * const tpl_SEL_OUT_KEY_FIELD_NAME = "SEL_OUT_KEY_FIELD_NAME";
+const char * const tpl_SEL_OUT_KEY_FIELD_TYPE = "SEL_OUT_KEY_FIELD_TYPE";
 
 const char * const tpl_DBENGINE_STATEMENT_TYPE = "DBENGINE_STATEMENT_TYPE";
 const char * const tpl_DBENGINE_STATEMENT_NULL = "DBENGINE_STATEMENT_NULL";
@@ -1091,6 +1093,10 @@ void AbstractGenerator::loadDictionary()
             }
             if ( subDict )
                 subDict->SetValue( tpl_SEL_OUT_FIELD_COMMA, "" );
+
+            DBBinder::SQLElement &keyField = it->second->select.output.at(it->second->select.keyField);
+            classDict->SetValue( tpl_SEL_OUT_KEY_FIELD_NAME, keyField.name );
+            classDict->SetValue( tpl_SEL_OUT_KEY_FIELD_TYPE, getType( keyField.type ));
 
             if ( needIOBuffers() )
             {

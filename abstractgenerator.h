@@ -64,39 +64,46 @@ struct SQLElement
             name( _name ), type( _type ), index( _index ), length(0), defaultValue( _default ), comment(_comment)
     {}
 
-    std::string	name;
-    SQLTypes	type;
-    int			index;
-    int			length;
-    std::string	defaultValue;
-    std::string	comment;
+    std::string name;
+    SQLTypes    type;
+    int         index;
+    int         length;
+    std::string defaultValue;
+    std::string comment;
 };
 typedef std::vector<SQLElement> ListElements;
 
 struct Location
 {
-    std::string	file;
-    int			line;
-    int			col;
+    std::string file;
+    int         line;
+    int         col;
 };
 
 struct AbstractElements
 {
-    std::string		name;
-    std::string		sql;
-    Location		sql_location;
-    ListElements	input;
-    SQLStatementTypes	type;
+    std::string         name;
+    std::string         sql;
+    Location            sql_location;
+    ListElements        input;
+    SQLStatementTypes   type;
 };
 
 struct AbstractIOElements: public AbstractElements
 {
-    ListElements	output;
+    ListElements        output;
 };
 
 struct SelectElements: public AbstractIOElements
 {
-    SelectElements(): AbstractIOElements() { type = sstSelect; }
+    SelectElements():
+        AbstractIOElements(),
+        keyField(0)
+    {
+        type = sstSelect;
+    }
+
+    int keyField;
 };
 
 struct UpdateElements: public AbstractElements
@@ -309,6 +316,8 @@ extern const char * const tpl_SEL_OUT_FIELD_GETVALUE;
 extern const char * const tpl_SEL_OUT_FIELD_ISNULL;
 extern const char * const tpl_SEL_OUT_FIELDS_BUFFERS;
 extern const char * const tpl_SEL_OUT_FIELD_COMMENT;
+extern const char * const tpl_SEL_OUT_KEY_FIELD_NAME;
+extern const char * const tpl_SEL_OUT_KEY_FIELD_TYPE;
 
 extern const char * const tpl_DBENGINE_STATEMENT_TYPE;
 extern const char * const tpl_DBENGINE_STATEMENT_NULL;
