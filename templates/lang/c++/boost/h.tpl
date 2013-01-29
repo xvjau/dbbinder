@@ -159,52 +159,75 @@ class {{CLASSNAME}}
 
         class iterator
         {
-            friend class {{CLASSNAME}};
-
             public:
-                iterator({{CLASSNAME}}* _parent):
-                    m_parent( _parent )
+                iterator():
+                    m_parent(NULL)
                 {}
 
-                {{CLASSNAME}} *m_parent;
+                iterator({{CLASSNAME}}* _parent):
+                    m_parent( _parent ),
+                    m_row( _parent->m_currentRow )
+                {}
 
+                iterator(const iterator& other):
+                    m_parent( other.m_parent ),
+                    m_row( other.m_row )
+                {}
+
+                void operator=(const iterator& other)
+                {
+                    m_row = other.m_row;
+                    m_parent = other.m_parent;
+                }
+            private:
+                {{CLASSNAME}}* m_parent;
+                {{CLASSNAME}}::row m_row;
+
+                void inc()
+                {
+                    m_parent->fetchRow();
+                    m_row = m_parent->m_currentRow;
+                }
             public:
                 const row& operator*() const
                 {
-                    ASSERT_MSG( m_parent, "Called operator* without parent/after end." );
-                    return m_parent->m_currentRow;
+                    ASSERT_MSG( m_row, "Called operator* without parent/after end." );
+                    return m_row;
                 }
 
                 const row& operator->() const
                 {
-                    ASSERT_MSG( m_parent, "Called operator-> without parent/after end." );
-                    return m_parent->m_currentRow;
+                    ASSERT_MSG( m_row, "Called operator-> without parent/after end." );
+                    return m_row;
                 }
 
-                iterator& operator++()
+                iterator& operator++() // this++
                 {
-                    ASSERT_MSG( m_parent, "Called operator++ without parent/after end." );
-                    if ( !m_parent->fetchRow() )
-                        m_parent = 0;
+
+                    ASSERT_MSG( m_row, "Called operator++ without parent/after end." );
+                    inc();
                     return *this;
                 }
 
-                iterator& operator++(int)
+                iterator operator++(int) // ++this
                 {
-                    return operator++();
+                    ASSERT_MSG( m_row, "Called ++operator without parent/after end." );
+                    iterator result(*this);
+                    inc();
+                    return result;
                 }
 
                 bool operator==(const iterator& _other) const
                 {
-                    return m_parent == _other.m_parent;
+                    return m_row == _other.m_row;
                 }
 
                 bool operator!=(const iterator& _other) const
                 {
-                    return m_parent != _other.m_parent;
+                    return m_row != _other.m_row;
                 }
 
-                typedef std::forward_iterator_tag iterator_category;
+                typedef std::input_iterator_tag iterator_category;
                 typedef row value_type;
                 typedef bool difference_type;
                 typedef _row_type* pointer;
