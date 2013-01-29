@@ -114,7 +114,7 @@ std::string MySQLGenerator::getReadValue(SQLStatementTypes _type, const ListElem
             std::stringstream str;
 
             str << "if (!_parent->m_" << _item->name + "IsNull)\n{";
-            str <<  "m_" << _item->name << " = shared_pointer< std::vector<char> >::type();\n";
+            str <<  "m_" << _item->name << " = shared_pointer< std::vector<char> >::type(new std::vector<char>());\n";
             str <<  "m_" << _item->name << "->resize(_parent->m_" << _item->name + "Length);\n\n";
 
             str << "_parent->selOutBuffer[" << _index << "].buffer_length = _parent->m_" << _item->name << "Length;\n";
