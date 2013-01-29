@@ -247,10 +247,7 @@ class {{CLASSNAME}}
 
         std::vector<row> fetchAll()
         {
-            std::vector<row> result;
-            for(iterator it = begin(); it != end(); it++)
-                result.push_back(*it);
-            return result;
+            return std::vector<row>(begin(), end());
         }
 
     private:
