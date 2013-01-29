@@ -165,6 +165,7 @@ class {{CLASSNAME}}
                 {{/SEL_OUT_FIELDS}}
         };
 
+        typedef {{SEL_OUT_KEY_FIELD_TYPE}} key_type;
         typedef shared_pointer<_row_type>::type row;
 
         class iterator
