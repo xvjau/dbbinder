@@ -95,12 +95,12 @@ class {{CLASSNAME}}
         };
 
     private:
-        {{DBENGINE_CONNECTION_TYPE}}	m_conn;
+        {{DBENGINE_CONNECTION_TYPE}}                            m_conn;
         {{#EXTRA_HEADERS}}{{EXTRA_HEADERS_MEMBER}}
         {{/EXTRA_HEADERS}}
         {{#DBENGINE_EXTRAS}}{{DBENGINE_EXTRA_VAR}}
         {{/DBENGINE_EXTRAS}}
-        {{#DBENGINE_TRANSACTION}}{{DBENGINE_TRANSACTION_TYPE}} m_tr;
+        {{#DBENGINE_TRANSACTION}}{{DBENGINE_TRANSACTION_TYPE}}  m_tr;
         {{/DBENGINE_TRANSACTION}}
 {{#SELECT}}
     public:
@@ -308,7 +308,13 @@ class {{CLASSNAME}}
 
         std::vector<row> fetchAll()
         {
-            return std::vector<row>(begin(), end());
+            return fetchAll< std::vector<row> >();
+        }
+
+        template<typename T>
+        T fetchAll()
+        {
+            return T(begin(), end());
         }
 
     private:
