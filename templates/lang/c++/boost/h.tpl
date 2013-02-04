@@ -259,7 +259,7 @@ class {{CLASSNAME}}
             map_iterator()
             {}
 
-            map_iterator(teste* _parent):
+            map_iterator({{CLASSNAME}}* _parent):
                 iterator(_parent)
             {}
 
