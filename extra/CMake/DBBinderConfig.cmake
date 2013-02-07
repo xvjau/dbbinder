@@ -5,9 +5,12 @@ if (NOT DBBINDER_EXECUTABLE)
     if (NOT DBBINDER_EXECUTABLE)
         message(FATAL_ERROR "dbbinder executable not found")
     endif()
-endif()
 
-set(DBBINDER_EXECUTABLE ${DBBINDER_EXECUTABLE} CACHE BOOL "Path to the DBBinder executable for this project")
+    set(DBBINDER_EXECUTABLE ${DBBINDER_EXECUTABLE} CACHE PATH "Path to the DBBinder executable for this project")
+
+    set(DBBINDER_TEMPLATES "" CACHE PATH "Path to the DBBinder templates for this project")
+
+endif()
 
 #Need to add these:
 #XXX_VERSION_PATCH       The patch version of the package found, if any.
@@ -33,10 +36,12 @@ macro(generate_sql_bindings sql_files)
         get_filename_component(SQLFILE_WE ${file} NAME_WE)
         get_filename_component(SQLFILEPATH ${SQLFILE} PATH)
 
-        set(DBBINDER_OUTPUT_PATH ${SQLFILEPATH}/.tmp/dbbinder/)
+        if (NOT DBBINDER_OUTPUT_PATH)
+            set(DBBINDER_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR} CACHE PATH "Directory where DBBinder will save the generated files to.")
+        endif()
 
-        if (NOT ${DBBINDER_OUTPUT_PATH})
-            set(DBBINDER_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR})
+        if (DBBINDER_TEMPLATES)
+            set(PARAM_DBBINDER_TEMPLATES "-d ${DBBINDER_TEMPLATES}")
         endif()
 
         include_directories(${DBBINDER_OUTPUT_PATH})
@@ -49,29 +54,29 @@ macro(generate_sql_bindings sql_files)
 
         add_custom_command(OUTPUT "${DBBINDER_OUTPUT_PATH}/${SQLFILE_WE}.cpp"
                             COMMAND ${DBBINDER_EXECUTABLE}
-                            ARGS -i ${SQLFILE} -o ${DBBINDER_OUTPUT_PATH}/${SQLFILE_WE} ${DBBINDER_EXTRA_ARGS}
+                            ARGS -i ${SQLFILE} -o ${DBBINDER_OUTPUT_PATH}/${SQLFILE_WE} ${PARAM_DBBINDER_TEMPLATES} ${DBBINDER_EXTRA_ARGS}
                             DEPENDS ${SQLFILE}
                             WORKING_DIRECTORY ${DBBINDER_OUTPUT_PATH}
                             COMMENT dbbinder ${SQLFILE})
 
-        execute_process(COMMAND ${DBBINDER_EXECUTABLE} --depends -i ${SQLFILE} -o ${DBBINDER_OUTPUT_PATH}/${SQLFILE_WE} ${DBBINDER_EXTRA_ARGS}
+        execute_process(COMMAND ${DBBINDER_EXECUTABLE} --depends -i ${SQLFILE} -o ${DBBINDER_OUTPUT_PATH}/${SQLFILE_WE} ${PARAM_DBBINDER_TEMPLATES} ${DBBINDER_EXTRA_ARGS}
                         WORKING_DIRECTORY ${DBBINDER_OUTPUT_PATH}
                         RESULT_VARIABLE DEPENDS_RES
-                        OUTPUT_VARIABLE DEPENDS
+                        OUTPUT_VARIABLE DEPENDS_FILES
                         OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-        if (${DEPENDS_RES} EQUAL 0)
-            string(REPLACE "\n" ";" DEPENDS ${DEPENDS})
+        if ("${DEPENDS_RES}" STREQUAL "0")
+            string(REPLACE "\n" ";" DEPENDS_FILES ${DEPENDS_FILES})
 
-            list(FIND DEPENDS "Depends:" pos)
+            list(FIND DEPENDS_FILES "Depends:" pos)
             math(EXPR pos "${pos} + 1")
 
             while(${pos} GREATER -1)
-                list(REMOVE_AT DEPENDS ${pos})
+                list(REMOVE_AT DEPENDS_FILES ${pos})
                 math(EXPR pos "${pos} - 1")
             endwhile()
 
-            foreach(FILE ${DEPENDS})
+            foreach(FILE ${DEPENDS_FILES})
                 ADD_FILE_DEPENDENCIES("${SQLFILE}" "${FILE}")
             endforeach()
         endif()
