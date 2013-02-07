@@ -81,7 +81,7 @@ static void parseYAMLDatabase(std::string rootDir, yaml_parser_t &_parser)
 
     AbstractGenerator *generator = AbstractGenerator::getGenerator( reinterpret_cast<const char*>(event.data.scalar.value) );
 
-    generator->setDBParam( "rootDir", rootDir );
+    generator->setDBRootDir( rootDir );
 
     bool done = false;
 

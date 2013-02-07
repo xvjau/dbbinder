@@ -50,7 +50,7 @@ bool SQLiteGenerator::checkConnection()
 
         if ( dbName[0] != '/' )
         {
-            std::string root = m_dbParams["rootDir"].value;
+            std::string root = m_dbParamRootDir;
             root += '/';
             dbName =  root + dbName;
         }

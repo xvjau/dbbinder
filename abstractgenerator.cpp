@@ -32,6 +32,10 @@
 #include "firebirdgenerator.h"
 #endif
 
+#ifdef WITH_POSTGRESQL
+#include "postgresqlgenerator.h"
+#endif
+
 #include "main.h"
 #include "TinyXML/nvXML.h"
 
@@ -296,6 +300,16 @@ AbstractGenerator* AbstractGenerator::getGenerator(const std::string & _type)
                 }
             }
 #endif // WITH_ORACLE
+#ifdef WITH_POSTGRESQL
+            case 'p':
+            {
+                if ( type == "postgres" || type == "postgresql" )
+                {
+                    s_generator = new PostgreSQLGenerator();
+                    return s_generator;
+                }
+            }
+#endif // WITH_POSTGRESQL
             case 's':
             {
                 if ( type == "sqlite" || type == "sqlite3" )

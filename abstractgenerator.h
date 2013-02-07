@@ -117,147 +117,153 @@ struct DeleteElements: public AbstractElements
 // Main class
 class AbstractGenerator
 {
-    protected:
-        AbstractGenerator();
-        virtual ~AbstractGenerator();
+protected:
+    AbstractGenerator();
+    virtual ~AbstractGenerator();
 
-        struct dbParam
+    struct dbParam
+    {
+        dbParam():
+            isInt( false )
+        {}
+
+        dbParam( const std::string& _value ):
+            isInt( false )
         {
-            dbParam():
-                isInt( false )
-            {}
-
-            dbParam( const std::string& _value ):
-                isInt( false )
-            {
-                value = _value;
-            }
-
-            dbParam( int _value ):
-                isInt( true )
-            {
-                std::stringstream str;
-                str << _value;
-                value = str.str();
-            }
-
-            std::string value;
-            bool        isInt;
-        };
-        typedef std::map<std::string, dbParam> _dbParams;
-
-        _dbParams       m_dbParams;
-
-        enum _fileTypes
-        {
-            ftIntf,
-            ftImpl,
-            ftMAX
-        };
-        struct _classParams
-        {
-            SelectElements      select;
-            UpdateElements      update;
-            InsertElements      insert;
-            DeleteElements      del;
-        };
-        typedef boost::shared_ptr<_classParams> _classParamsPtr;
-        typedef std::map<std::string, _classParamsPtr> classParams;
-
-        typedef std::map<SQLTypes, std::string> mapTypes;
-        mapTypes        m_types;
-
-        ListString      m_namespaces;
-        ListString      m_headers;
-
-        struct TmplDestPair
-        {
-            std::string tmpl;
-            std::string dest;
-        };
-        typedef std::vector<TmplDestPair> ListTplDestPair;
-        ListTplDestPair m_extraFiles;
-
-        std::string     m_dbengine;
-
-        classParams     m_classParams;
-
-        bool m_connected;
-        virtual bool checkConnection();
-
-        std::string     m_outIntFile;
-        std::string     m_outImplFile;
-
-        TemplateDictionary      *m_dict;
-        std::string             m_templ[ftMAX];
-
-        virtual void loadDictionary();
-
-        virtual void loadDatabase();
-        virtual bool loadXMLDatabase(const std::string& _path);
-        virtual bool loadYAMLDatabase(const std::string& _path);
-
-        virtual void loadTemplates();
-        virtual bool loadXMLTemplate(const std::string& _path);
-        virtual bool loadYAMLTemplate(const std::string& _path);
-
-        // <SUCKS>
-        // TODO: There must be a better way to implement this.
-        virtual bool needIOBuffers() const;
-
-        virtual void addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements);
-        virtual void addOutBuffers(SQLStatementTypes _type, const AbstractIOElements* _elements);
-
-        virtual std::string getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) = 0;
-        virtual std::string getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) = 0;
-        virtual std::string getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) = 0;
-
-        // </SUCKS>
-
-        //TODO: This might be better implemented;
-        static AbstractGenerator* s_generator;
-
-    private:
-        void readParam(void* xml, const char *xmlElem, _fileTypes fileType, std::string& outFile, std::string& str, const std::string & _path);
-
-    public:
-        static AbstractGenerator* getGenerator() { return s_generator; }
-        static AbstractGenerator* getGenerator(const std::string& _type);
-
-        void setDBParam(const std::string& _key, const std::string& _value)
-        {
-            m_dbParams[_key] = _value;
+            value = _value;
         }
 
-        void setDBParam(const std::string& _key, const int _value)
+        dbParam( int _value ):
+            isInt( true )
         {
-            m_dbParams[_key] = _value;
+            std::stringstream str;
+            str << _value;
+            value = str.str();
         }
 
-        void setType(SQLTypes _sqlType, const std::string& _genType)
-        {
-            m_types[_sqlType] = _genType;
-        }
+        std::string value;
+        bool        isInt;
+    };
+    typedef std::map<std::string, dbParam> _dbParams;
 
-        std::string getType(SQLTypes _sqlType);
-        std::string getInit(SQLTypes _sqlType);
+    _dbParams       m_dbParams;
+    std::string     m_dbParamRootDir;
 
-        void addNamespace(const std::string& _name)
-        {
-            m_namespaces.push_back(_name);
-        }
+    enum _fileTypes
+    {
+        ftIntf,
+        ftImpl,
+        ftMAX
+    };
+    struct _classParams
+    {
+        SelectElements      select;
+        UpdateElements      update;
+        InsertElements      insert;
+        DeleteElements      del;
+    };
+    typedef boost::shared_ptr<_classParams> _classParamsPtr;
+    typedef std::map<std::string, _classParamsPtr> classParams;
 
-        void addHeader(const std::string& _header)
-        {
-            m_headers.push_back(_header);
-        }
+    typedef std::map<SQLTypes, std::string> mapTypes;
+    mapTypes        m_types;
 
-        virtual void generate();
+    ListString      m_namespaces;
+    ListString      m_headers;
 
-        virtual void addSelect(SelectElements _elements);
-        virtual void addUpdate(UpdateElements _elements);
-        virtual void addInsert(InsertElements _elements);
-        virtual void addDelete(DeleteElements _elements);
+    struct TmplDestPair
+    {
+        std::string tmpl;
+        std::string dest;
+    };
+    typedef std::vector<TmplDestPair> ListTplDestPair;
+    ListTplDestPair m_extraFiles;
+
+    std::string     m_dbengine;
+
+    classParams     m_classParams;
+
+    bool m_connected;
+    virtual bool checkConnection();
+
+    std::string     m_outIntFile;
+    std::string     m_outImplFile;
+
+    TemplateDictionary      *m_dict;
+    std::string             m_templ[ftMAX];
+
+    virtual void loadDictionary();
+
+    virtual void loadDatabase();
+    virtual bool loadXMLDatabase(const std::string& _path);
+    virtual bool loadYAMLDatabase(const std::string& _path);
+
+    virtual void loadTemplates();
+    virtual bool loadXMLTemplate(const std::string& _path);
+    virtual bool loadYAMLTemplate(const std::string& _path);
+
+    // <SUCKS>
+    // TODO: There must be a better way to implement this.
+    virtual bool needIOBuffers() const;
+
+    virtual void addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements);
+    virtual void addOutBuffers(SQLStatementTypes _type, const AbstractIOElements* _elements);
+
+    virtual std::string getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) = 0;
+    virtual std::string getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) = 0;
+    virtual std::string getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) = 0;
+
+    // </SUCKS>
+
+    //TODO: This might be better implemented;
+    static AbstractGenerator* s_generator;
+
+private:
+    void readParam(void* xml, const char *xmlElem, _fileTypes fileType, std::string& outFile, std::string& str, const std::string & _path);
+
+public:
+    static AbstractGenerator* getGenerator() { return s_generator; }
+    static AbstractGenerator* getGenerator(const std::string& _type);
+
+    void setDBParam(const std::string& _key, const std::string& _value)
+    {
+        m_dbParams[_key] = _value;
+    }
+
+    void setDBParam(const std::string& _key, const int _value)
+    {
+        m_dbParams[_key] = _value;
+    }
+
+    void setDBRootDir(const std::string& _rootDir)
+    {
+        m_dbParamRootDir = _rootDir;
+    }
+
+    void setType(SQLTypes _sqlType, const std::string& _genType)
+    {
+        m_types[_sqlType] = _genType;
+    }
+
+    std::string getType(SQLTypes _sqlType);
+    std::string getInit(SQLTypes _sqlType);
+
+    void addNamespace(const std::string& _name)
+    {
+        m_namespaces.push_back(_name);
+    }
+
+    void addHeader(const std::string& _header)
+    {
+        m_headers.push_back(_header);
+    }
+
+    virtual void generate();
+
+    virtual void addSelect(SelectElements _elements);
+    virtual void addUpdate(UpdateElements _elements);
+    virtual void addInsert(InsertElements _elements);
+    virtual void addDelete(DeleteElements _elements);
 };
 typedef AbstractGenerator* AbstractGeneratorPtr;
 

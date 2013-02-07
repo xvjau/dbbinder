@@ -146,6 +146,7 @@ if(ENABLE_POSTGRESQL)
         list(APPEND extra_files postgresqlgenerator.cpp)
         list(APPEND extra_libs ${PostgreSQL_LIBRARIES})
         include_directories(${PostgreSQL_INCLUDE_DIRS})
+        add_definitions(-DWITH_POSTGRESQL)
     endif()
 endif()
 
