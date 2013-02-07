@@ -1,8 +1,13 @@
-find_program(DBBINDER_EXECUTABLE NAMES dbbinder)
 
 if (NOT DBBINDER_EXECUTABLE)
-    message(FATAL_ERROR "dbbinder executable not found")
+    find_program(DBBINDER_EXECUTABLE NAMES dbbinder)
+
+    if (NOT DBBINDER_EXECUTABLE)
+        message(FATAL_ERROR "dbbinder executable not found")
+    endif()
 endif()
+
+set(DBBINDER_EXECUTABLE ${DBBINDER_EXECUTABLE} CACHE BOOL "Path to the DBBinder executable for this project")
 
 #Need to add these:
 #XXX_VERSION_PATCH       The patch version of the package found, if any.
