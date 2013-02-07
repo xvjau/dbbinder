@@ -1,0 +1,159 @@
+<xml>
+    <lang type="c++">
+        <includes>
+            <file name="libpq-fe.h" />
+        </includes>
+        <global_functions>
+            <function>
+                <![CDATA[
+                #ifndef DBBINDERCONVERTTIME
+                #define DBBINDERCONVERTTIME
+                inline MYSQL_TIME dbbinderConvertTime(ptime v)
+                {
+                    MYSQL_TIME result;
+
+                    if (v.is_not_a_date_time())
+                    {
+                        memset(&result, 0, sizeof(MYSQL_TIME));
+                    }
+                    else
+                    {
+                        const boost::gregorian::date& d = v.date();
+                        result.year = d.year();
+                        result.month = d.month();
+                        result.day = d.day();
+
+                        const boost::posix_time::time_duration& t = v.time_of_day();
+                        result.hour = t.hours();
+                        result.minute = t.minutes();
+                        result.second = t.seconds();
+                        result.second_part = t.total_microseconds() % 1000000;
+
+                        result.neg = false;
+                        result.time_type = MYSQL_TIMESTAMP_DATETIME;
+                    }
+                    return result;
+                }
+
+                inline ptime dbbinderConvertTime(MYSQL_TIME v)
+                {
+                    if (v.year && v.month && v.day)
+                        return ptime(boost::gregorian::date(v.year, v.month, v.day),
+                                    boost::posix_time::time_duration(v.hour, v.minute, v.second, v.second_part));
+                    return ptime();
+                }
+                #endif // DBBINDER_CONVERT_TIME_MYSQL_TIME
+                ]]>
+            </function>
+            <function>
+                <![CDATA[
+                #ifndef MYSQLCHECKSTMTERR
+                #define MYSQLCHECKSTMTERR
+                inline void mysqlCheckStmtErr(MYSQL_STMT *_stmt, int _status)
+                {
+                    if (_status)
+                    {
+                        switch(_status)
+                        {
+                            case CR_COMMANDS_OUT_OF_SYNC:
+                                ASSERT_MSG(false, "Commands were executed in an improper order.");
+                                break;
+                            case CR_OUT_OF_MEMORY:
+                                ASSERT_MSG(false, "Out of memory.");
+                                break;
+                            case CR_SERVER_GONE_ERROR:
+                                ASSERT_MSG(false, "The MySQL server has gone away.");
+                                break;
+                            case CR_SERVER_LOST:
+                                ASSERT_MSG(false, "The m_connection to the server was lost during the query.");
+                                break;
+                            case CR_UNKNOWN_ERROR:
+                                ASSERT_MSG(false, "An unknown error occurred.");
+                                break;
+                            case CR_UNSUPPORTED_PARAM_TYPE:
+                                ASSERT_MSG(false, "The buffer type is MYSQL_TYPE_DATE, MYSQL_TYPE_TIME, MYSQL_TYPE_DATETIME, or MYSQL_TYPE_TIMESTAMP, but the data type is not DATE, TIME, DATETIME, or TIMESTAMP.");
+                                break;
+                        }
+
+                        ASSERT_MSG(false, "MySQL: " << mysql_stmt_error(_stmt));
+                        exit(-1);
+                    }
+                }
+                #endif // MYSQLCHECKSTMTERR
+                ]]>
+            </function>
+        </global_functions>
+        <types>
+            <connection>
+                <type value="PGconn*"/>
+                <null value="NULL"/>
+            </connection>
+            <statement>
+            </statement>
+        </types>
+        <connect>
+        </connect>
+        <disconnect>
+        </disconnect>
+        <select>
+            <create>
+            </create>
+            <destroy>
+            </destroy>
+            <prepare>
+                res = PQprepare(m_conn, "", s_selectSQL, s_selectSQL_len, 0);
+                PGCommandCheck(m_conn, res);
+            </prepare>
+            <fetch>
+                <![CDATA[
+                ]]>
+            </fetch>
+            <execute>
+                <![CDATA[
+                ]]>
+            </execute>
+            <reset>
+            </reset>
+        </select>
+
+        <insert>
+            <create>
+            </create>
+            <destroy>
+            </destroy>
+            <prepare>
+            </prepare>
+            <execute>
+            </execute>
+            <reset>
+            </reset>
+        </insert>
+
+        <update>
+            <create>
+            </create>
+            <destroy>
+            </destroy>
+            <prepare>
+            </prepare>
+            <execute>
+            </execute>
+            <reset>
+            </reset>
+        </update>
+
+        <delete>
+            <create>
+            </create>
+            <destroy>
+            </destroy>
+            <prepare>
+            </prepare>
+            <execute>
+            </execute>
+            <reset>
+            </reset>
+        </delete>
+
+    </lang>
+</xml>

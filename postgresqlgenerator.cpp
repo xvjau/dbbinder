@@ -19,6 +19,94 @@
 
 #include "postgresqlgenerator.h"
 
+/* These defines were extracted from postgresql/server/catalog/pg_type.y by
+ * executing this command:
+ *
+ * grep '#define ' pg_type.h | grep OID
+ *
+ * TODO find the 'proper' way of getting these
+ * No .h include seems to work.
+ */
+#define BOOLOID                 16
+#define BYTEAOID                17
+#define CHAROID                 18
+#define NAMEOID                 19
+#define INT8OID                 20
+#define INT2OID                 21
+#define INT2VECTOROID           22
+#define INT4OID                 23
+#define REGPROCOID              24
+#define TEXTOID                 25
+#define OIDOID                  26
+#define TIDOID                  27
+#define XIDOID                  28
+#define CIDOID                  29
+#define OIDVECTOROID            30
+#define JSONOID                 114
+#define XMLOID                  142
+#define PGNODETREEOID           194
+#define POINTOID                600
+#define LSEGOID                 601
+#define PATHOID                 602
+#define BOXOID                  603
+#define POLYGONOID              604
+#define LINEOID                 628
+#define FLOAT4OID               700
+#define FLOAT8OID               701
+#define ABSTIMEOID              702
+#define RELTIMEOID              703
+#define TINTERVALOID            704
+#define UNKNOWNOID              705
+#define CIRCLEOID               718
+#define CASHOID                 790
+#define MACADDROID              829
+#define INETOID                 869
+#define CIDROID                 650
+#define INT4ARRAYOID            1007
+#define TEXTARRAYOID            1009
+#define FLOAT4ARRAYOID          1021
+#define ACLITEMOID              1033
+#define CSTRINGARRAYOID         1263
+#define BPCHAROID               1042
+#define VARCHAROID              1043
+#define DATEOID                 1082
+#define TIMEOID                 1083
+#define TIMESTAMPOID            1114
+#define TIMESTAMPTZOID          1184
+#define INTERVALOID             1186
+#define TIMETZOID               1266
+#define BITOID                  1560
+#define VARBITOID               1562
+#define NUMERICOID              1700
+#define REFCURSOROID            1790
+#define REGPROCEDUREOID         2202
+#define REGOPEROID              2203
+#define REGOPERATOROID          2204
+#define REGCLASSOID             2205
+#define REGTYPEOID              2206
+#define REGTYPEARRAYOID         2211
+#define TSVECTOROID             3614
+#define GTSVECTOROID            3642
+#define TSQUERYOID              3615
+#define REGCONFIGOID            3734
+#define REGDICTIONARYOID        3769
+#define INT4RANGEOID            3904
+#define RECORDOID               2249
+#define RECORDARRAYOID          2287
+#define CSTRINGOID              2275
+#define ANYOID                  2276
+#define ANYARRAYOID             2277
+#define VOIDOID                 2278
+#define TRIGGEROID              2279
+#define LANGUAGE_HANDLEROID     2280
+#define INTERNALOID             2281
+#define OPAQUEOID               2282
+#define ANYELEMENTOID           2283
+#define ANYNONARRAYOID          2776
+#define ANYENUMOID              3500
+#define FDW_HANDLEROID          3115
+#define ANYRANGEOID             3831
+
 namespace DBBinder
 {
 
@@ -70,6 +158,19 @@ void __pqCheckErr(PGconn *_conn, const PQResult &_res, ExecStatusType _statusChe
 
 struct PGTypePair
 {
+    PGTypePair(std::string _lang, std::string _pg):
+        lang(_lang),
+        pg(_pg)
+    {}
+
+    PGTypePair(std::string _lang, int _pg):
+        lang(_lang)
+    {
+        std::stringstream s;
+        s << _pg;
+        pg = s.str();
+    }
+
     std::string lang;
     std::string pg;
 };
@@ -81,25 +182,55 @@ PGTypePair getPgTypes(SQLTypes _type)
         case stUnknown:
         case stInt:
         case stUInt:
-            return { "int32_t", "23" };
+            return PGTypePair( "int32_t", INT4OID );
         case stInt64:
         case stUInt64:
-            return { "int64_t", "20" };
+            return PGTypePair( "int64_t", INT8OID );
         case stFloat:
         case stUFloat:
-            return { "float4", "700" };
+            return PGTypePair( "float4", FLOAT4OID );
         case stDouble:
         case stUDouble:
-            return { "float4", "701" };
+            return PGTypePair( "float8", FLOAT8OID );
         case stTimeStamp:
-            return { "float4", "1184" };
+            return PGTypePair( "float4", TIMESTAMPTZOID );
         case stTime:
-            return { "float4", "1083" };
+            return PGTypePair( "float4", TIMEOID );
         case stDate:
-            return { "float4", "1082" };
+            return PGTypePair( "float4", DATEOID );
         case stText:
+            return PGTypePair( "string", VARCHAROID );
         case stBlob:
-            return { "string", "25" };
+            return PGTypePair( "string", TEXTOID );
+        default:
+            FATAL(__FILE__  << ':' << __LINE__ << ": Invalide field type: " << _type);
+    }
+}
+
+SQLTypes getSQLTypes(Oid _pgType)
+{
+    switch(_pgType)
+    {
+        case INT4OID:
+            return stInt;
+        case INT8OID:
+            return stInt64;
+        case FLOAT4OID:
+            return stFloat;
+        case FLOAT8OID:
+            return stDouble;
+        case TIMESTAMPTZOID:
+            return stTimeStamp;
+        case TIMEOID:
+            return stTime;
+        case DATEOID:
+            return stDate;
+        case VARCHAROID:
+            return stText;
+        case TEXTOID:
+            return stBlob;
+        default:
+            FATAL(__FILE__  << ':' << __LINE__ << ": Invalide field type: " << _pgType);
     }
 }
 
@@ -147,9 +278,20 @@ bool PostgreSQLGenerator::checkConnection()
         values.push_back(0);
 
         m_conn = PQconnectdbParams(keywords.data(), values.data(), 0);
-
-        m_connected = m_conn;
     }
+
+    ConnStatusType status = PQstatus(m_conn);
+    if(status != CONNECTION_OK)
+    {
+#ifndef NDEBUG
+        FATAL(__FILE__ << ':' << __LINE__ << " - PostgreSQL: " << PQerrorMessage(m_conn));
+#else
+        FATAL("PostgreSQL: " << PQerrorMessage(m_conn));
+#endif
+        m_connected = false;
+    }
+    else
+        m_connected = true;
 
     return m_connected;
 }
@@ -188,7 +330,7 @@ void PostgreSQLGenerator::addSelect(SelectElements _elements)
     res = PQprepare(m_conn, _elements.name.c_str(), _elements.sql.c_str(), _elements.input.size(), 0);
     PGCommandCheck(m_conn, res);
 
-    res = PQdescribePrepared(m_conn, _elements.name);
+    res = PQdescribePrepared(m_conn, _elements.name.c_str());
     PGCommandCheck(m_conn, res);
 
     int fields = PQnfields(res);
@@ -196,13 +338,7 @@ void PostgreSQLGenerator::addSelect(SelectElements _elements)
     {
         std::cout << "Field(" << i << "): '" << PQfname(res, i) << "' = " << PQftype(res, i) << std::endl;
 
-        SQLTypes type;
-        switch(PQftype(res, i))
-        {
-            default:
-                FATAL(__FILE__  << ':' << __LINE__ << ": Invalide field type.");
-        }
-
+        SQLTypes type = getSQLTypes(PQftype(res, i));
         _elements.output.push_back( SQLElement( PQfname(res, i), type, i, PQfsize(res, i) ));
     }
 
@@ -216,48 +352,53 @@ bool PostgreSQLGenerator::needIOBuffers() const
 
 void PostgreSQLGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements)
 {
+    TemplateDictionary *subDict;
+
+    switch ( _type )
+    {
+        case sstSelect:
+            subDict = m_dict->AddSectionDictionary(tpl_SEL_IN_FIELDS_BUFFERS);
+            break;
+        case sstInsert:
+            subDict = m_dict->AddSectionDictionary(tpl_INS_IN_FIELDS_BUFFERS);
+            break;
+        case sstUpdate:
+            subDict = m_dict->AddSectionDictionary(tpl_UPD_IN_FIELDS_BUFFERS);
+            break;
+        case sstDelete:
+            subDict = m_dict->AddSectionDictionary(tpl_DEL_IN_FIELDS_BUFFERS);
+            break;
+        default:
+            FATAL(__FILE__  << ':' << __LINE__ << ": Invalide statement type.");
+    };
+
     if ( _elements->input.empty() )
     {
-        TemplateDictionary *subDict;
-
-        switch ( _type )
-        {
-            case sstSelect:
-                subDict = m_dict->AddSectionDictionary(tpl_SEL_IN_FIELDS_BUFFERS);
-                break;
-            case sstInsert:
-                subDict = m_dict->AddSectionDictionary(tpl_INS_IN_FIELDS_BUFFERS);
-                break;
-            case sstUpdate:
-                subDict = m_dict->AddSectionDictionary(tpl_UPD_IN_FIELDS_BUFFERS);
-                break;
-            case sstDelete:
-                subDict = m_dict->AddSectionDictionary(tpl_DEL_IN_FIELDS_BUFFERS);
-                break;
-            default:
-                FATAL(__FILE__  << ':' << __LINE__ << ": Invalide statement type.");
-        };
-
-        subDict->SetValue(tpl_BUFFER_ALLOC, "XSQLDA* inBuffer = 0;" );
+        //subDict->SetValue(tpl_BUFFER_ALLOC, "XSQLDA* inBuffer = 0;" );
     }
     else
     {
         std::stringstream str;
 
-        if ( _index == 0 )
+        ListElements::const_iterator it = _elements->input.begin(), end = _elements->input.end();
+        for(; it != end; it++ )
         {
-            std::string type = getStmtType(_type);
+            if ( it->index == 0 )
+            {
+                std::string type = getStmtType(_type);
 
-            str << "const char* m_paramValues[s_" << type << "ParamCount];\n";
-            str << "int m_paramLengths[s_" << type << "ParamCount];\n";
-            str << "int m_paramFormats[s_" << type << "ParamCount];\n";
+                str << "const char* m_paramValues[s_" << type << "ParamCount];\n";
+                str << "int m_paramLengths[s_" << type << "ParamCount];\n";
+                str << "int m_paramFormats[s_" << type << "ParamCount];\n";
+            }
+
+            PGTypePair type = getPgTypes(it->type);
+
+            str << type.lang << " m_param" << it->name << ";\n";
         }
 
-        PGTypePair type = getPgTypes(_item->type);
 
-        str << type.lang << " m_param" << _item->name << ";\n";
-
-        return str.str();
+        subDict->SetValue(tpl_BUFFER_ALLOC, str.str() );
     }
 }
 
@@ -280,14 +421,12 @@ void PostgreSQLGenerator::addOutBuffers(SQLStatementTypes _type, const AbstractI
 
     bufFree << "if (m_selOutBuffer)\n{\n";
 
-    std::string fb, lang;
-
     char idx[9];
     idx[8] = 0;
     for(ListElements::const_iterator it = _elements->output.begin(); it != _elements->output.end(); ++it)
     {
         snprintf(idx, 8, "%d", it->index);
-        getFirebirdTypes( it->type, lang, fb );
+        PGTypePair types = getPgTypes( it->type );
 
         bufAlloc << "m_selOutBuffer->sqlvar[" << idx << "].sqldata = ";
         bufAlloc << "reinterpret_cast<ISC_SCHAR*>(malloc( ";
@@ -299,8 +438,8 @@ void PostgreSQLGenerator::addOutBuffers(SQLStatementTypes _type, const AbstractI
         }
         else
         {
-            bufAlloc << "sizeof(" << lang << ") ));\n";
-            bufAlloc << "m_selOutBuffer->sqlvar[" << idx << "].sqltype = " << fb << " + 1;";
+            bufAlloc << "sizeof(" << types.lang << ") ));\n";
+            bufAlloc << "m_selOutBuffer->sqlvar[" << idx << "].sqltype = " << types.pg << " + 1;";
         }
 
         bufAlloc << "m_selOutBuffer->sqlvar[" << idx << "].sqlind = reinterpret_cast<ISC_SHORT*>(malloc(sizeof(ISC_SHORT)));\n";
@@ -321,4 +460,3 @@ void PostgreSQLGenerator::addOutBuffers(SQLStatementTypes _type, const AbstractI
 }
 
 }
-

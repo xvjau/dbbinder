@@ -650,7 +650,7 @@ void AbstractGenerator::loadDatabase()
         }
     }
 
-    FATAL("dbengine: template file not found for current language.");
+    FATAL("dbengine: template file not found for current language or database.");
 
 LOADED:
     {}
