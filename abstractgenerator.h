@@ -91,12 +91,20 @@ struct AbstractElements
 
 struct AbstractIOElements: public AbstractElements
 {
-    ListElements	output;
+    ListElements        output;
 };
 
 struct SelectElements: public AbstractIOElements
 {
-    SelectElements(): AbstractIOElements() { type = sstSelect; }
+    SelectElements():
+        AbstractIOElements(),
+        keyField(0)
+    {
+        type = sstSelect;
+    }
+
+    std::string keyFieldName;
+    int         keyField;
 };
 
 struct UpdateElements: public AbstractElements
@@ -315,6 +323,8 @@ extern const char * const tpl_SEL_OUT_FIELD_GETVALUE;
 extern const char * const tpl_SEL_OUT_FIELD_ISNULL;
 extern const char * const tpl_SEL_OUT_FIELDS_BUFFERS;
 extern const char * const tpl_SEL_OUT_FIELD_COMMENT;
+extern const char * const tpl_SEL_OUT_KEY_FIELD_NAME;
+extern const char * const tpl_SEL_OUT_KEY_FIELD_TYPE;
 
 extern const char * const tpl_DBENGINE_STATEMENT_TYPE;
 extern const char * const tpl_DBENGINE_STATEMENT_NULL;

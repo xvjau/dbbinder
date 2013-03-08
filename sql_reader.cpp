@@ -206,6 +206,23 @@ void parseSQL(const std::string& _fileName)
                 line++;
                 switch( buffer[4] )
                 {
+                    case 'k':
+                        if ( strncmp(buffer, "--! key", 7 ) == 0 && isblank(buffer[7]) )
+                        {
+                            ListString list = stringTok( &buffer[8] );
+
+                            if (statementType != sstSelect)
+                                WARNING(fileName << ':' << line << ": ignoreing key param for non-select statement");
+
+                            if ( list.size() == 0 )
+                                FATAL(fileName << ':' << line << ": missing key name argument");
+
+                            if ( list.size() > 1 )
+                                WARNING(fileName << ':' << line << ": ignoreing extra params");
+
+                            static_cast<SelectElements*>( elements )->keyFieldName = list.front();
+                        }
+                        break;
                     case 'n':
                         if ( strncmp(buffer, "--! name", 8 ) == 0 && isblank(buffer[8]) )
                         {
@@ -223,7 +240,7 @@ void parseSQL(const std::string& _fileName)
                     case 'p':
                         if ( strncmp(buffer, "--! param", 9 ) == 0 && isblank(buffer[9]) )
                         {
-                            ListString list = stringTok( &buffer[9] );
+                            ListString list = stringTok( &buffer[10] );
 
                             if ( list.size() == 0 )
                                 FATAL(fileName << ':' << line << ": missing param arguments");

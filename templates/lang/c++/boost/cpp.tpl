@@ -138,7 +138,7 @@ const int {{CLASSNAME}}::s_deleteSQL_len = {{DELETE_SQL_LEN}};
 {{#SELECT}}
 const int {{CLASSNAME}}::s_selectFieldCount = {{SELECT_FIELD_COUNT}};
 const int {{CLASSNAME}}::s_selectParamCount = {{SELECT_PARAM_COUNT}};
-{{CLASSNAME}}::iterator {{CLASSNAME}}::s_endIterator(0);
+{{CLASSNAME}}::iterator {{CLASSNAME}}::s_endIterator;
 
 {{#SELECT_HAS_PARAMS}}
 {{CLASSNAME}}::{{CLASSNAME}}(

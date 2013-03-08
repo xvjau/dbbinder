@@ -18,6 +18,7 @@
 #include <iostream>
 #include <string.h>
 #include <libgen.h>
+#include <vector>
 
 {{#DBENGINE_INCLUDES}}{{DBENGINE_INCLUDE_NAME}}
 {{/DBENGINE_INCLUDES}}
@@ -81,13 +82,25 @@ class {{CLASSNAME}}
     public:
         {{CLASSNAME}}({{DBENGINE_CONNECTION_TYPE}} _conn);
         ~{{CLASSNAME}}();
+
+        // Shared pointer selector
+        template<typename T>
+        struct shared_pointer
+        {
+#if __cplusplus < 201103L
+            typedef boost::shared_ptr<T> type;
+#else
+            typedef std::shared_ptr<T> type;
+#endif
+        };
+
     private:
-        {{DBENGINE_CONNECTION_TYPE}}	m_conn;
+        {{DBENGINE_CONNECTION_TYPE}}                            m_conn;
         {{#EXTRA_HEADERS}}{{EXTRA_HEADERS_MEMBER}}
         {{/EXTRA_HEADERS}}
         {{#DBENGINE_EXTRAS}}{{DBENGINE_EXTRA_VAR}}
         {{/DBENGINE_EXTRAS}}
-        {{#DBENGINE_TRANSACTION}}{{DBENGINE_TRANSACTION_TYPE}} m_tr;
+        {{#DBENGINE_TRANSACTION}}{{DBENGINE_TRANSACTION_TYPE}}  m_tr;
         {{/DBENGINE_TRANSACTION}}
 {{#SELECT}}
     public:
@@ -151,62 +164,82 @@ class {{CLASSNAME}}
                 }
                 {{/SEL_OUT_FIELDS}}
         };
-#if __cplusplus < 201103L
-        typedef boost::shared_ptr<_row_type> row;
-#else
-        typedef std::shared_ptr<_row_type> row;
-#endif
+
+        typedef {{SEL_OUT_KEY_FIELD_TYPE}} key_type;
+        typedef shared_pointer<_row_type>::type row;
 
         class iterator
         {
-            friend class {{CLASSNAME}};
-
             public:
-                iterator({{CLASSNAME}}* _parent):
-                    m_parent( _parent )
+                iterator():
+                    m_parent(NULL)
                 {}
 
-                {{CLASSNAME}} *m_parent;
+                iterator({{CLASSNAME}}* _parent):
+                    m_parent( _parent ),
+                    m_row( _parent->m_currentRow )
+                {}
 
+                iterator(const iterator& other):
+                    m_parent( other.m_parent ),
+                    m_row( other.m_row )
+                {}
+
+                void operator=(const iterator& other)
+                {
+                    m_row = other.m_row;
+                    m_parent = other.m_parent;
+                }
+
+            protected:
+                {{CLASSNAME}}* m_parent;
+                {{CLASSNAME}}::row m_row;
+
+                void inc()
+                {
+                    m_parent->fetchRow();
+                    m_row = m_parent->m_currentRow;
+                }
             public:
                 const row& operator*() const
                 {
-                    ASSERT_MSG( m_parent, "Called operator* without parent/after end." );
-                    return m_parent->m_currentRow;
+                    ASSERT_MSG( m_row, "Called operator* without parent/after end." );
+                    return m_row;
                 }
 
                 const row& operator->() const
                 {
-                    ASSERT_MSG( m_parent, "Called operator-> without parent/after end." );
-                    return m_parent->m_currentRow;
+                    ASSERT_MSG( m_row, "Called operator-> without parent/after end." );
+                    return m_row;
                 }
 
-                void operator++()
+                iterator& operator++() // this++
                 {
-                    ASSERT_MSG( m_parent, "Called operator++ without parent/after end." );
-                    if ( !m_parent->fetchRow() )
-                        m_parent = 0;
+
+                    ASSERT_MSG( m_row, "Called operator++ without parent/after end." );
+                    inc();
+                    return *this;
                 }
 
-                void operator++(int count)
+                iterator operator++(int) // ++this
                 {
-                    while(count-- > 0)
-                    {
-                        operator++();
-                    }
+                    ASSERT_MSG( m_row, "Called ++operator without parent/after end." );
+                    iterator result(*this);
+                    inc();
+                    return result;
                 }
 
                 bool operator==(const iterator& _other) const
                 {
-                    return m_parent == _other.m_parent;
+                    return m_row == _other.m_row;
                 }
 
                 bool operator!=(const iterator& _other) const
                 {
-                    return m_parent != _other.m_parent;
+                    return m_row != _other.m_row;
                 }
 
-                typedef std::forward_iterator_tag iterator_category;
+                typedef std::input_iterator_tag iterator_category;
                 typedef row value_type;
                 typedef bool difference_type;
                 typedef _row_type* pointer;
@@ -219,6 +252,56 @@ class {{CLASSNAME}}
         {
             return s_endIterator;
         }
+
+        class map_iterator: public iterator
+        {
+        public:
+            map_iterator()
+            {}
+
+            map_iterator({{CLASSNAME}}* _parent):
+                iterator(_parent)
+            {}
+
+            map_iterator(const map_iterator& other):
+                iterator(other)
+            {}
+
+            map_iterator(const iterator& other):
+                iterator(other)
+            {}
+
+            void operator=(const map_iterator& other)
+            {
+                iterator::operator=(other);
+            }
+
+        public:
+            typedef {{SEL_OUT_KEY_FIELD_TYPE}} key_type;
+
+            const std::pair<key_type, row> operator*() const
+            {
+                ASSERT_MSG( m_row, "Called operator* without parent/after end." );
+                return std::make_pair(m_row->get{{SEL_OUT_KEY_FIELD_NAME}}(), m_row);
+            }
+
+            const std::pair<key_type, row> operator->() const
+            {
+                ASSERT_MSG( m_row, "Called operator-> without parent/after end." );
+                return std::make_pair(m_row->get{{SEL_OUT_KEY_FIELD_NAME}}(), m_row);
+            }
+        };
+
+        map_iterator map_begin()
+        {
+            return map_iterator(begin());
+        }
+
+        map_iterator map_end()
+        {
+            return map_iterator();
+        }
+
         bool empty()
         {
             return begin() == end();
@@ -226,41 +309,44 @@ class {{CLASSNAME}}
 
         std::vector<row> fetchAll()
         {
-            std::vector<row> result;
-            for(auto it : *this)
-                result.push_back(it);
-            return result;
+            return fetchAll< std::vector<row> >();
+        }
+
+        template<typename T>
+        T fetchAll()
+        {
+            return T(begin(), end());
         }
 
     private:
-        row         m_currentRow;
-        iterator    *m_iterator;
-        static iterator	s_endIterator;
+        row             m_currentRow;
+        iterator        *m_iterator;
+        static iterator s_endIterator;
 {{/SELECT}}
 {{#UPDATE}}
     private:
-        static const char* const s_updateSQL;
-        static const int s_updateSQL_len;
-        static const int s_updateParamCount;
-        {{DBENGINE_STATEMENT_TYPE}}	m_updateStmt;
+        static const char* const        s_updateSQL;
+        static const int                s_updateSQL_len;
+        static const int                s_updateParamCount;
+        {{DBENGINE_STATEMENT_TYPE}}     m_updateStmt;
     public:
         void update({{#UPD_IN_FIELDS}}{{UPD_IN_FIELD_TYPE}} _{{UPD_IN_FIELD_NAME}}{{UPD_IN_FIELD_COMMA}}{{/UPD_IN_FIELDS}});
 {{/UPDATE}}
 {{#INSERT}}
     private:
-        static const char* const s_insertSQL;
-        static const int s_insertSQL_len;
-        static const int s_insertParamCount;
-        {{DBENGINE_STATEMENT_TYPE}}	m_insertStmt;
+        static const char* const        s_insertSQL;
+        static const int                s_insertSQL_len;
+        static const int                s_insertParamCount;
+        {{DBENGINE_STATEMENT_TYPE}}     m_insertStmt;
     public:
         void insert({{#INS_IN_FIELDS}}{{INS_IN_FIELD_TYPE}} _{{INS_IN_FIELD_NAME}}{{INS_IN_FIELD_COMMA}}{{/INS_IN_FIELDS}});
 {{/INSERT}}
 {{#DELETE}}
     private:
-        static const char* const s_deleteSQL;
-        static const int s_deleteSQL_len;
-        static const int s_deleteParamCount;
-        {{DBENGINE_STATEMENT_TYPE}}	m_deleteStmt;
+        static const char* const        s_deleteSQL;
+        static const int                s_deleteSQL_len;
+        static const int                s_deleteParamCount;
+        {{DBENGINE_STATEMENT_TYPE}}     m_deleteStmt;
     public:
         void del({{#DEL_IN_FIELDS}}{{DEL_IN_FIELD_TYPE}} _{{DEL_IN_FIELD_NAME}}{{DEL_IN_FIELD_COMMA}}{{/DEL_IN_FIELDS}});
 {{/DELETE}}

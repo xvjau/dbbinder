@@ -98,6 +98,8 @@ const char * const tpl_SEL_OUT_FIELD_GETVALUE = "SEL_OUT_FIELD_GETVALUE";
 const char * const tpl_SEL_OUT_FIELD_ISNULL = "SEL_OUT_FIELD_ISNULL";
 const char * const tpl_SEL_OUT_FIELDS_BUFFERS = "SEL_OUT_FIELDS_BUFFERS";
 const char * const tpl_SEL_OUT_FIELD_COMMENT = "SEL_OUT_FIELD_COMMENT";
+const char * const tpl_SEL_OUT_KEY_FIELD_NAME = "SEL_OUT_KEY_FIELD_NAME";
+const char * const tpl_SEL_OUT_KEY_FIELD_TYPE = "SEL_OUT_KEY_FIELD_TYPE";
 
 const char * const tpl_DBENGINE_STATEMENT_TYPE = "DBENGINE_STATEMENT_TYPE";
 const char * const tpl_DBENGINE_STATEMENT_NULL = "DBENGINE_STATEMENT_NULL";
@@ -406,7 +408,7 @@ std::string AbstractGenerator::getType(SQLTypes _sqlType)
             }
             case stBlob:
             {
-                result = "std::shared_ptr< std::vector<char> >";
+                result = "shared_pointer< std::vector<char> >::type";
                 break;
             }
         }
@@ -463,6 +465,33 @@ std::string AbstractGenerator::getInit(SQLTypes _sqlType)
 void AbstractGenerator::addSelect(SelectElements _elements)
 {
     std::string name = stringToLower( _elements.name );
+
+    if (!_elements.keyFieldName.empty())
+    {
+        std::string key = _elements.keyFieldName;
+
+        // Check whether the key field's index was passed
+        char *endptr = NULL;
+        int index = strtol(key.c_str(), &endptr, 10);
+
+        if (endptr && (*endptr == '\0' || isblank(*endptr) || *endptr == '\n'))
+        {
+            _elements.keyField = index - 1;
+        }
+        else
+        {
+            // Assunme, that the key field's name was passed
+            ListElements::iterator it = _elements.output.begin(), end = _elements.output.end();
+            for(; it != end; it++)
+            {
+                if (strcasecmp(it->name.c_str(), key.c_str()) == 0)
+                {
+                    _elements.keyField = it->index;
+                    break;
+                }
+            }
+        }
+    }
 
     _classParamsPtr params = m_classParams[ name ];
 
@@ -1105,6 +1134,10 @@ void AbstractGenerator::loadDictionary()
             }
             if ( subDict )
                 subDict->SetValue( tpl_SEL_OUT_FIELD_COMMA, "" );
+
+            DBBinder::SQLElement &keyField = it->second->select.output.at(it->second->select.keyField);
+            classDict->SetValue( tpl_SEL_OUT_KEY_FIELD_NAME, keyField.name );
+            classDict->SetValue( tpl_SEL_OUT_KEY_FIELD_TYPE, getType( keyField.type ));
 
             if ( needIOBuffers() )
             {
