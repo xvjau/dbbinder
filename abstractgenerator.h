@@ -210,6 +210,8 @@ protected:
     virtual bool loadXMLTemplate(const std::string& _path);
     virtual bool loadYAMLTemplate(const std::string& _path);
 
+    virtual std::string parseStringVariables(std::string str);
+
     // <SUCKS>
     // TODO: There must be a better way to implement this.
     virtual bool needIOBuffers() const;

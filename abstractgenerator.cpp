@@ -689,20 +689,21 @@ bool AbstractGenerator::loadXMLDatabase(const std::string& _path)
 {
 #define GET_TEXT_OR_ATTR_SET_TMPL( str, elem, attr, tmpl, var ) \
     GET_TEXT_OR_ATTR( str, elem, attr ); \
-    if ( !str.empty() ) { result = true; tmpl->SetValue(var, str); }
+    if ( !str.empty() ) { result = true; tmpl->SetValue(var, parseStringVariables(str)); }
 
     ListString templates = stringTok(optTemplate, ',');
     ListString::iterator templ;
     TemplateDictionary *subDict;
 
     bool result = false;
+
+    std::string xmlFileName = _path + m_dbengine + ".xml";
     try
     {
-        std::string s = _path + m_dbengine + ".xml";
-        XMLDocument xmlFile( s );
+        XMLDocument xmlFile( xmlFileName );
         xmlFile.LoadFile();
 
-        DBBinder::optDepends.push_back( s );
+        DBBinder::optDepends.push_back( xmlFileName );
 
         XMLElementPtr xml = xmlFile.FirstChildElement("xml");
 
@@ -735,7 +736,7 @@ bool AbstractGenerator::loadXMLDatabase(const std::string& _path)
                             if ( !str.empty() )
                             {
                                 result = true;
-                                str = std::string("#include <") + str + ">";
+                                str = std::string("#include <") + parseStringVariables(str) + ">";
                                 subDict->SetValue(tpl_DBENGINE_INCLUDE_NAME, str);
                             }
                         }
@@ -817,9 +818,9 @@ bool AbstractGenerator::loadXMLDatabase(const std::string& _path)
                                 m_dict->ShowSection( tpl_DBENGINE_EXTRAS );
                                 subDict = m_dict->AddSectionDictionary( tpl_DBENGINE_EXTRAS );
                                 subDict->SetValue( tpl_DBENGINE_EXTRA_VAR,
-                                        elem->FirstChildElement("type")->GetAttributeOrDefault("value", "") + " " +
-                                        elem->FirstChildElement("name")->GetAttributeOrDefault("value", "") + ";"
-                                                );
+                                                    parseStringVariables(elem->FirstChildElement("type")->GetAttributeOrDefault("value", "")) + " " +
+                                                    parseStringVariables(elem->FirstChildElement("name")->GetAttributeOrDefault("value", "")) + ";"
+                                                    );
                             }
                         }
                     }
@@ -827,92 +828,92 @@ bool AbstractGenerator::loadXMLDatabase(const std::string& _path)
                     node = 0;
                     while( node = lang->IterateChildren( "connect", node ))
                     {
-                        m_dict->SetValue(tpl_DBENGINE_CONNECT, node->ToElement()->GetText());
+                        m_dict->SetValue(tpl_DBENGINE_CONNECT, parseStringVariables(node->ToElement()->GetText()));
                     }
 
                     node = 0;
                     while( node = lang->IterateChildren( "disconnect", node ))
                     {
-                        m_dict->SetValue(tpl_DBENGINE_DISCONNECT, node->ToElement()->GetText());
+                        m_dict->SetValue(tpl_DBENGINE_DISCONNECT, parseStringVariables(node->ToElement()->GetText()));
                     }
 
                     node = 0;
                     while( node = lang->IterateChildren( "select", node ))
                     {
                         elem = node->FirstChildElement("create", false);
-                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_CREATE_SELECT, elem->GetText(false));
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_CREATE_SELECT, parseStringVariables(elem->GetText(false)));
 
                         elem = node->FirstChildElement("destroy", false);
-                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_DESTROY_SELECT, elem->GetText(false));
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_DESTROY_SELECT, parseStringVariables(elem->GetText(false)));
 
                         elem = node->FirstChildElement("prepare", false);
-                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_PREPARE_SELECT, elem->GetText(false));
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_PREPARE_SELECT, parseStringVariables(elem->GetText(false)));
 
                         elem = node->FirstChildElement("execute", false);
-                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_EXECUTE_SELECT, elem->GetText(false));
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_EXECUTE_SELECT, parseStringVariables(elem->GetText(false)));
 
                         elem = node->FirstChildElement("fetch", false);
-                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_FETCH_SELECT, elem->GetText(false));
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_FETCH_SELECT, parseStringVariables(elem->GetText(false)));
 
                         elem = node->FirstChildElement("reset", false);
-                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_RESET_SELECT, elem->GetText(false));
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_RESET_SELECT, parseStringVariables(elem->GetText(false)));
                     }
 
                     node = 0;
                     while( node = lang->IterateChildren( "update", node ))
                     {
                         elem = node->FirstChildElement("create", false);
-                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_CREATE_UPDATE, elem->GetText(false));
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_CREATE_UPDATE, parseStringVariables(elem->GetText(false)));
 
                         elem = node->FirstChildElement("destroy", false);
-                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_DESTROY_UPDATE, elem->GetText(false));
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_DESTROY_UPDATE, parseStringVariables(elem->GetText(false)));
 
                         elem = node->FirstChildElement("prepare", false);
-                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_PREPARE_UPDATE, elem->GetText(false));
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_PREPARE_UPDATE, parseStringVariables(elem->GetText(false)));
 
                         elem = node->FirstChildElement("execute", false);
-                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_EXECUTE_UPDATE, elem->GetText(false));
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_EXECUTE_UPDATE, parseStringVariables(elem->GetText(false)));
 
                         elem = node->FirstChildElement("reset", false);
-                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_RESET_UPDATE, elem->GetText(false));
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_RESET_UPDATE, parseStringVariables(elem->GetText(false)));
                     }
 
                     node = 0;
                     while( node = lang->IterateChildren( "insert", node ))
                     {
                         elem = node->FirstChildElement("create", false);
-                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_CREATE_INSERT, elem->GetText(false));
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_CREATE_INSERT, parseStringVariables(elem->GetText(false)));
 
                         elem = node->FirstChildElement("destroy", false);
-                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_DESTROY_INSERT, elem->GetText(false));
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_DESTROY_INSERT, parseStringVariables(elem->GetText(false)));
 
                         elem = node->FirstChildElement("prepare", false);
-                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_PREPARE_INSERT, elem->GetText(false));
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_PREPARE_INSERT, parseStringVariables(elem->GetText(false)));
 
                         elem = node->FirstChildElement("execute", false);
-                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_EXECUTE_INSERT, elem->GetText(false));
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_EXECUTE_INSERT, parseStringVariables(elem->GetText(false)));
 
                         elem = node->FirstChildElement("reset", false);
-                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_RESET_INSERT, elem->GetText(false));
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_RESET_INSERT, parseStringVariables(elem->GetText(false)));
                     }
 
                     node = 0;
                     while( node = lang->IterateChildren( "delete", node ))
                     {
                         elem = node->FirstChildElement("create", false);
-                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_CREATE_DELETE, elem->GetText(false));
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_CREATE_DELETE, parseStringVariables(elem->GetText(false)));
 
                         elem = node->FirstChildElement("destroy", false);
-                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_DESTROY_DELETE, elem->GetText(false));
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_DESTROY_DELETE, parseStringVariables(elem->GetText(false)));
 
                         elem = node->FirstChildElement("prepare", false);
-                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_PREPARE_DELETE, elem->GetText(false));
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_PREPARE_DELETE, parseStringVariables(elem->GetText(false)));
 
                         elem = node->FirstChildElement("execute", false);
-                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_EXECUTE_DELETE, elem->GetText(false));
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_EXECUTE_DELETE, parseStringVariables(elem->GetText(false)));
 
                         elem = node->FirstChildElement("reset", false);
-                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_RESET_DELETE, elem->GetText(false));
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_RESET_DELETE, parseStringVariables(elem->GetText(false)));
                     }
                 }
             }
@@ -920,7 +921,7 @@ bool AbstractGenerator::loadXMLDatabase(const std::string& _path)
     }
     catch( ticpp::Exception &e )
     {
-        WARNING("XML: " << _path << ": " << e.what());
+        WARNING("XML: " << xmlFileName << ": " << e.what());
     }
     return result;
 }
@@ -974,6 +975,59 @@ void AbstractGenerator::loadTemplates()
 LOADED:
     if (!( fileExists(m_templ[ftIntf]) && fileExists(m_templ[ftImpl]) ))
         FATAL("template: template files not found.");
+}
+
+std::string AbstractGenerator::parseStringVariables(std::string str)
+{
+    const char* KEYWORDS[] = { "SELECT_NAME", 0 };
+    std::size_t KEYWORDS_LEN[] = { strlen(KEYWORDS[0]), 0 };
+
+    std::string::size_type i, len;
+
+    i = 0;
+    len = str.length();
+
+    while(i < len)
+    {
+        if (str[i] == '%')
+        {
+            for(int k = 0; KEYWORDS[k]; k++)
+            {
+                const size_t end = i + KEYWORDS_LEN[k];
+                if (str[end + 1] == '%')
+                {
+                    std::string val;
+
+                    switch(k)
+                    {
+                        case 0:
+                        {
+                            for(classParams::iterator it = m_classParams.begin(); it != m_classParams.end(); it++)
+                            {
+                                if ( !(it->second->select.sql.empty() ))
+                                {
+                                    val = it->first;
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
+
+                    // replace n char, n = delta(first %, second %) + (2x'%')
+                    str.replace(i, end - i + 2, val);
+                    i += val.length();
+                    goto FOUND_KEYWORD;
+                }
+            }
+        }
+        else
+            i++;
+
+        FOUND_KEYWORD: {}
+    }
+
+    return str;
 }
 
 void AbstractGenerator::readParam(void* xml, const char *xmlElem, _fileTypes fileType, std::string& outFile, std::string& str, const std::string & _path)
