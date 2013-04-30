@@ -1,9 +1,12 @@
 database:
   type: "PostgreSQL"
   host: localhost
+  #hostaddr: 127.0.0.1
   port: 5432
-  db: test
+  dbname: test
   user: postgres
   password: masterkey
   connect_timeout: 60
+  client_encoding: utf8
   application_name: dbbinder
+  keepalives: 1

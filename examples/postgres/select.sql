@@ -1,8 +1,10 @@
---! use blob_test.yaml
+--! use postgres.yaml
 --! name select_blob
 
 select
-    `id`,
-    `comment`
+    id,
+    name
 from
-    dbtest
+    testdata
+where
+    name != $1::varchar

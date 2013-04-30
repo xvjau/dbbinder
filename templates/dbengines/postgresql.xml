@@ -6,80 +6,43 @@
         <global_functions>
             <function>
                 <![CDATA[
-                #ifndef DBBINDERCONVERTTIME
-                #define DBBINDERCONVERTTIME
-                inline MYSQL_TIME dbbinderConvertTime(ptime v)
+                class PQResult
                 {
-                    MYSQL_TIME result;
+                private:
+                    PGresult    *m_res;
 
-                    if (v.is_not_a_date_time())
+                public:
+                    PQResult(): m_res(0) {}
+                    PQResult(PGresult *_res): m_res(_res) {}
+                    ~PQResult() { if (m_res) PQclear(m_res); }
+
+                    const PGresult* get() const { return m_res; }
+
+                    void operator=(PGresult *_res)
                     {
-                        memset(&result, 0, sizeof(MYSQL_TIME));
+                        if (m_res)
+                            PQclear(m_res);
+
+                        m_res = _res;
                     }
-                    else
+
+                    void checkError(PGconn *_conn, ExecStatusType _statusCheck
+                #ifndef NDEBUG
+                        , const char* _file, int _line
+                #endif
+                        )
                     {
-                        const boost::gregorian::date& d = v.date();
-                        result.year = d.year();
-                        result.month = d.month();
-                        result.day = d.day();
-
-                        const boost::posix_time::time_duration& t = v.time_of_day();
-                        result.hour = t.hours();
-                        result.minute = t.minutes();
-                        result.second = t.seconds();
-                        result.second_part = t.total_microseconds() % 1000000;
-
-                        result.neg = false;
-                        result.time_type = MYSQL_TIMESTAMP_DATETIME;
-                    }
-                    return result;
-                }
-
-                inline ptime dbbinderConvertTime(MYSQL_TIME v)
-                {
-                    if (v.year && v.month && v.day)
-                        return ptime(boost::gregorian::date(v.year, v.month, v.day),
-                                    boost::posix_time::time_duration(v.hour, v.minute, v.second, v.second_part));
-                    return ptime();
-                }
-                #endif // DBBINDER_CONVERT_TIME_MYSQL_TIME
-                ]]>
-            </function>
-            <function>
-                <![CDATA[
-                #ifndef MYSQLCHECKSTMTERR
-                #define MYSQLCHECKSTMTERR
-                inline void mysqlCheckStmtErr(MYSQL_STMT *_stmt, int _status)
-                {
-                    if (_status)
-                    {
-                        switch(_status)
+                        if (PQresultStatus(get()) != _statusCheck)
                         {
-                            case CR_COMMANDS_OUT_OF_SYNC:
-                                ASSERT_MSG(false, "Commands were executed in an improper order.");
-                                break;
-                            case CR_OUT_OF_MEMORY:
-                                ASSERT_MSG(false, "Out of memory.");
-                                break;
-                            case CR_SERVER_GONE_ERROR:
-                                ASSERT_MSG(false, "The MySQL server has gone away.");
-                                break;
-                            case CR_SERVER_LOST:
-                                ASSERT_MSG(false, "The m_connection to the server was lost during the query.");
-                                break;
-                            case CR_UNKNOWN_ERROR:
-                                ASSERT_MSG(false, "An unknown error occurred.");
-                                break;
-                            case CR_UNSUPPORTED_PARAM_TYPE:
-                                ASSERT_MSG(false, "The buffer type is MYSQL_TYPE_DATE, MYSQL_TYPE_TIME, MYSQL_TYPE_DATETIME, or MYSQL_TYPE_TIMESTAMP, but the data type is not DATE, TIME, DATETIME, or TIMESTAMP.");
-                                break;
+                #ifndef NDEBUG
+                            FATAL(_file << ':' << _line << " - PostgreSQL: " << PQerrorMessage(_conn));
+                #else
+                            ASSERT_MSG("PostgreSQL: " << PQerrorMessage(_conn));
+                #endif
+                            abort();
                         }
-
-                        ASSERT_MSG(false, "MySQL: " << mysql_stmt_error(_stmt));
-                        exit(-1);
                     }
-                }
-                #endif // MYSQLCHECKSTMTERR
+                };
                 ]]>
             </function>
         </global_functions>
@@ -89,11 +52,18 @@
                 <null value="NULL"/>
             </connection>
             <statement>
+                <type value="PQResult"/>
+                <null value="PQResult()"/>
             </statement>
         </types>
         <connect>
+            <![CDATA[
+            m_conn = PQconnectdbParams(keywords.data(), values.data(), 0);
+            ASSERT_MSG(PQstatus(result) == CONNECTION_OK, "PostgreSQL connect error: " << PQerrorMessage(m_conn));
+            ]]>
         </connect>
         <disconnect>
+            PQfinish(m_conn);
         </disconnect>
         <select>
             <create>
@@ -101,8 +71,10 @@
             <destroy>
             </destroy>
             <prepare>
-                res = PQprepare(m_conn, "", s_selectSQL, s_selectSQL_len, 0);
-                PGCommandCheck(m_conn, res);
+                <![CDATA[
+                m_stmt = PQprepare(m_conn, "%SELECT_NAME%", s_selectSQL, s_selectSQL_len, 0);
+                PGCommandCheck(m_conn, m_stmt);
+                ]]>
             </prepare>
             <fetch>
                 <![CDATA[
@@ -110,9 +82,12 @@
             </fetch>
             <execute>
                 <![CDATA[
+                m_stmt = PQexecPrepared(conn, "%SELECT_NAME%", 1, paramValues, paramLengths, paramFormats, pqrfBinary);
+                PGTuplesCheck(conn, m_stmt);
                 ]]>
             </execute>
             <reset>
+                m_stmt = PQResult();
             </reset>
         </select>
 
