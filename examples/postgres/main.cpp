@@ -4,38 +4,66 @@
 
 using namespace std;
 
+PGconn* connect()
+{
+    std::vector<const char*> keywords = {
+        "host",
+        "port",
+        "dbname",
+        "user",
+        "password",
+        "connect_timeout",
+        "client_encoding",
+        "application_name",
+        "keepalives",
+        nullptr
+    };
+    std::vector<const char*> values = {
+        "localhost",
+        "5432",
+        "test",
+        "postgres",
+        "masterkey",
+        "60",
+        "utf8",
+        "cppplay",
+        "1",
+        nullptr
+    };
+
+    auto result = PQconnectdbParams(keywords.data(), values.data(), 0);
+
+    ConnStatusType status = PQstatus(result);
+    if(status != CONNECTION_OK)
+    {
+        std::cerr << "PostgreSQL connect error: " << PQerrorMessage(result) << std::endl;
+        exit(1);
+    }
+    else
+    {
+        PQsetSingleRowMode(result);
+    }
+
+    return result;
+}
+
 int main()
 {
-    MYSQL *m_conn = nullptr;
+    PGconn *conn = connect();
 
+    select_blob sb(conn);
+
+    sb.open("World!!!");
+
+    for(auto i : sb)
     {
-        unsigned int arg = 1;
-        my_bool val = true;
+        std::string name;
+        if (!i->isNullname())
+            name = i->getname();
 
-        MYSQL *conn = mysql_init(nullptr);
-        mysql_options(conn, MYSQL_OPT_CONNECT_TIMEOUT, &arg);
-        mysql_options(conn, MYSQL_OPT_RECONNECT, &val);
-
-        m_conn = mysql_real_connect(conn, "localhost", "root", "masterkey", "test", 3306, NULL, 0);
+        cout << "Id: " << i->getid() << "\n";
+        cout << "Name: '" <<  name << "'\n";
+        cout << endl;
     }
 
-    {
-        select_blob sb(m_conn);
-
-        sb.open();
-
-        for(auto i : sb)
-        {
-            auto comment = i->getcomment();
-            string str;
-            if (comment->size())
-                str.assign(&((*comment)[0]), comment->size());
-
-            cout << "Id: " << i->getid() << "\n";
-            cout << "Comment: '" <<  str << "'\n";
-            cout << endl;
-        }
-    }
-
-    mysql_close(m_conn);
 }

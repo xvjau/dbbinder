@@ -303,12 +303,37 @@ std::string PostgreSQLGenerator::getBind(SQLStatementTypes _type, const ListElem
 
 std::string PostgreSQLGenerator::getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
 {
-    PGTypePair type = getPgTypes(_item->type);
-    std::string stmtType = getStmtType(_type);
     std::stringstream str;
+    str << "if (!m_isNull" << _item->name << ")\n{";
 
-    str << "if (!PQgetisnull(m_" << stmtType << "Res, m_row, " << _index << "))\n{";
-    str << type.lang << " m_param" << _item->name << " = PQgetvalue(m_res, m_row, " << _index << ");";
+    switch(_item->type)
+    {
+        case stInt:
+            str << "m_" << _item->name << " = *((int32_t*)PQgetvalue(_parent->m_" << getStmtType(_type) << "Stmt.get(), _parent->m_rowNum, " << _index << "));";
+            break;
+
+        case stInt64:
+        case stUInt:
+        case stUInt64:
+        case stFloat:
+        case stDouble:
+        case stUFloat:
+        case stUDouble:
+        case stTimeStamp:
+        case stTime:
+        case stDate:
+            FATAL(__FILE__  << ':' << __LINE__ << ": Invalid param type: '" << _item->name << "': " << _item->type);
+            break;
+
+        case stText:
+            str << "m_" << _item->name << " = PQgetvalue(_parent->m_" << getStmtType(_type) << "Stmt.get(), _parent->m_rowNum, " << _index << ");";
+            break;
+
+        case stBlob:
+        default:
+            FATAL(__FILE__  << ':' << __LINE__ << ": Invalid param type: '" << _item->name << "': " << _item->type);
+            break;
+    }
 
     str << "}\n";
     return str.str();
@@ -317,7 +342,7 @@ std::string PostgreSQLGenerator::getReadValue(SQLStatementTypes _type, const Lis
 std::string PostgreSQLGenerator::getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
 {
     std::stringstream str;
-    str << "(PQgetisnull(m_" << getStmtType(_type) << "Res, m_row, " << _index << "))";
+    str << "(PQgetisnull(_parent->m_" << getStmtType(_type) << "Stmt.get(), _parent->m_rowNum, " << _index << "))";
     return str.str();
 }
 
@@ -352,51 +377,36 @@ bool PostgreSQLGenerator::needIOBuffers() const
 
 void PostgreSQLGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements)
 {
-    TemplateDictionary *subDict;
+    if ( !_elements->input.empty() )
+    {
+        TemplateDictionary *subDict;
 
-    switch ( _type )
-    {
-        case sstSelect:
-            subDict = m_dict->AddSectionDictionary(tpl_SEL_IN_FIELDS_BUFFERS);
-            break;
-        case sstInsert:
-            subDict = m_dict->AddSectionDictionary(tpl_INS_IN_FIELDS_BUFFERS);
-            break;
-        case sstUpdate:
-            subDict = m_dict->AddSectionDictionary(tpl_UPD_IN_FIELDS_BUFFERS);
-            break;
-        case sstDelete:
-            subDict = m_dict->AddSectionDictionary(tpl_DEL_IN_FIELDS_BUFFERS);
-            break;
-        default:
-            FATAL(__FILE__  << ':' << __LINE__ << ": Invalide statement type.");
-    };
+        switch ( _type )
+        {
+            case sstSelect:
+                subDict = m_dict->AddSectionDictionary(tpl_SEL_IN_FIELDS_BUFFERS);
+                break;
+            case sstInsert:
+                subDict = m_dict->AddSectionDictionary(tpl_INS_IN_FIELDS_BUFFERS);
+                break;
+            case sstUpdate:
+                subDict = m_dict->AddSectionDictionary(tpl_UPD_IN_FIELDS_BUFFERS);
+                break;
+            case sstDelete:
+                subDict = m_dict->AddSectionDictionary(tpl_DEL_IN_FIELDS_BUFFERS);
+                break;
+            default:
+                FATAL(__FILE__  << ':' << __LINE__ << ": Invalid statement type.");
+        };
 
-    if ( _elements->input.empty() )
-    {
-        //subDict->SetValue(tpl_BUFFER_ALLOC, "XSQLDA* inBuffer = 0;" );
-    }
-    else
-    {
         std::stringstream str;
 
-        ListElements::const_iterator it = _elements->input.begin(), end = _elements->input.end();
-        for(; it != end; it++ )
-        {
-            if ( it->index == 0 )
-            {
-                std::string type = getStmtType(_type);
+        int count = _elements->input.size();
 
-                str << "const char* m_paramValues[s_" << type << "ParamCount];\n";
-                str << "int m_paramLengths[s_" << type << "ParamCount];\n";
-                str << "int m_paramFormats[s_" << type << "ParamCount];\n";
-            }
-
-            PGTypePair type = getPgTypes(it->type);
-
-            str << type.lang << " m_param" << it->name << ";\n";
-        }
-
+        str <<
+            "const char *paramValues[" << count << "];\n"
+            "int paramLengths[" << count << "];\n"
+            "int paramFormats[" << count <<  "];";
 
         subDict->SetValue(tpl_BUFFER_ALLOC, str.str() );
     }
@@ -406,57 +416,8 @@ void PostgreSQLGenerator::addOutBuffers(SQLStatementTypes _type, const AbstractI
 {
     TemplateDictionary *subDict;
     subDict = m_dict->AddSectionDictionary(tpl_SEL_OUT_FIELDS_BUFFERS);
-    subDict->SetValue(tpl_BUFFER_DECLARE, "XSQLDA *m_selOutBuffer;" );
-    subDict->SetValue(tpl_BUFFER_INITIALIZE,
-                                            "m_selOutBuffer = (XSQLDA *)malloc( XSQLDA_LENGTH( s_selectFieldCount ) );\n"
-                                            "memset(m_selOutBuffer, 0, XSQLDA_LENGTH( s_selectFieldCount ));\n"
-                                            "m_selOutBuffer->version = SQLDA_VERSION1;\n"
-                                            "m_selOutBuffer->sqln = s_selectFieldCount;\n\n"
-                                            );
-
-    std::stringstream bufAlloc, bufFree;
-
-    bufAlloc << "{\n";
-
-
-    bufFree << "if (m_selOutBuffer)\n{\n";
-
-    char idx[9];
-    idx[8] = 0;
-    for(ListElements::const_iterator it = _elements->output.begin(); it != _elements->output.end(); ++it)
-    {
-        snprintf(idx, 8, "%d", it->index);
-        PGTypePair types = getPgTypes( it->type );
-
-        bufAlloc << "m_selOutBuffer->sqlvar[" << idx << "].sqldata = ";
-        bufAlloc << "reinterpret_cast<ISC_SCHAR*>(malloc( ";
-
-        if ( it->type == stText )
-        {
-            bufAlloc << "m_selOutBuffer->sqlvar[" << idx << "].sqllen + 1 ));\n";
-            bufAlloc << "m_selOutBuffer->sqlvar[" << idx << "].sqltype = SQL_VARYING + 1;";
-        }
-        else
-        {
-            bufAlloc << "sizeof(" << types.lang << ") ));\n";
-            bufAlloc << "m_selOutBuffer->sqlvar[" << idx << "].sqltype = " << types.pg << " + 1;";
-        }
-
-        bufAlloc << "m_selOutBuffer->sqlvar[" << idx << "].sqlind = reinterpret_cast<ISC_SHORT*>(malloc(sizeof(ISC_SHORT)));\n";
-
-        bufFree << "free( m_selOutBuffer->sqlvar[" << idx << "].sqldata );";
-        bufFree << "free( m_selOutBuffer->sqlvar[" << idx << "].sqlind );";
-    }
-
-    bufAlloc << "}\n";
-
-    bufFree << "free(m_selOutBuffer);\n";
-    bufFree << "m_selOutBuffer = NULL;\n}";
-
-    subDict->SetValue(tpl_BUFFER_ALLOC, bufAlloc.str() );
-
-
-    subDict->SetValue(tpl_BUFFER_FREE, bufFree.str() );
+    subDict->SetValue(tpl_BUFFER_DECLARE, "int m_rowNum;");
+    subDict->SetValue(tpl_BUFFER_INITIALIZE, "m_rowNum = 0;");
 }
 
 }

@@ -139,9 +139,8 @@ class {{CLASSNAME}}
 
                 _row_type({{CLASSNAME}} *_parent)
                 {
-                    {{#SEL_OUT_FIELDS}}{{SEL_OUT_FIELD_GETVALUE}}
-                    m_isNull{{SEL_OUT_FIELD_NAME}} = {{SEL_OUT_FIELD_ISNULL}};
-                    {{/SEL_OUT_FIELDS}}
+                    {{#SEL_OUT_FIELDS}}m_isNull{{SEL_OUT_FIELD_NAME}} = {{SEL_OUT_FIELD_ISNULL}};
+                    {{SEL_OUT_FIELD_GETVALUE}}{{/SEL_OUT_FIELDS}}
                 }
 
                 {{#SEL_OUT_FIELDS}}{{SEL_OUT_FIELD_TYPE}} m_{{SEL_OUT_FIELD_NAME}};

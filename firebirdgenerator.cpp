@@ -395,7 +395,7 @@ void FirebirdGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElem
                 subDict = m_dict->AddSectionDictionary(tpl_DEL_IN_FIELDS_BUFFERS);
                 break;
             default:
-                FATAL(__FILE__  << ':' << __LINE__ << ": Invalide statement type.");
+                FATAL(__FILE__  << ':' << __LINE__ << ": Invalid statement type.");
         };
 
         subDict->SetValue(tpl_BUFFER_ALLOC, "XSQLDA* inBuffer = 0;" );

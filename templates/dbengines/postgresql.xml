@@ -6,6 +6,11 @@
         <global_functions>
             <function>
                 <![CDATA[
+                #if !defined(PQ_RESULT_FORMAT_TEXT) || !defined(PQ_RESULT_FORMAT_BINARY)
+                #define PQ_RESULT_FORMAT_TEXT 0
+                #define PQ_RESULT_FORMAT_BINARY 1
+                #endif
+
                 class PQResult
                 {
                 private:
@@ -25,24 +30,9 @@
 
                         m_res = _res;
                     }
-
-                    void checkError(PGconn *_conn, ExecStatusType _statusCheck
-                #ifndef NDEBUG
-                        , const char* _file, int _line
-                #endif
-                        )
-                    {
-                        if (PQresultStatus(get()) != _statusCheck)
-                        {
-                #ifndef NDEBUG
-                            FATAL(_file << ':' << _line << " - PostgreSQL: " << PQerrorMessage(_conn));
-                #else
-                            ASSERT_MSG("PostgreSQL: " << PQerrorMessage(_conn));
-                #endif
-                            abort();
-                        }
-                    }
                 };
+
+                #define CHECK_ERROR(PQRESULT, CONN, STATUS, STR) ASSERT_MSG(PQresultStatus(PQRESULT.get()) == STATUS, STR << PQerrorMessage(CONN));
                 ]]>
             </function>
         </global_functions>
@@ -59,7 +49,10 @@
         <connect>
             <![CDATA[
             m_conn = PQconnectdbParams(keywords.data(), values.data(), 0);
-            ASSERT_MSG(PQstatus(result) == CONNECTION_OK, "PostgreSQL connect error: " << PQerrorMessage(m_conn));
+            {
+                ConnStatusType status = PQstatus(m_conn);
+                ASSERT_MSG(status == CONNECTION_OK, "PostgreSQL: " << PQerrorMessage(m_conn));
+            }
             ]]>
         </connect>
         <disconnect>
@@ -72,8 +65,8 @@
             </destroy>
             <prepare>
                 <![CDATA[
-                m_stmt = PQprepare(m_conn, "%SELECT_NAME%", s_selectSQL, s_selectSQL_len, 0);
-                PGCommandCheck(m_conn, m_stmt);
+                m_selectStmt = PQprepare(m_conn, "%SELECT_NAME%", s_selectSQL, s_selectSQL_len, 0);
+                CHECK_ERROR(m_selectStmt, m_conn, PGRES_COMMAND_OK, "PostgreSQL: Error peraring:\n" << s_selectSQL << "\n" << PQerrorMessage(m_conn));
                 ]]>
             </prepare>
             <fetch>
@@ -82,12 +75,12 @@
             </fetch>
             <execute>
                 <![CDATA[
-                m_stmt = PQexecPrepared(conn, "%SELECT_NAME%", 1, paramValues, paramLengths, paramFormats, pqrfBinary);
-                PGTuplesCheck(conn, m_stmt);
+                m_selectStmt = PQexecPrepared(m_conn, "%SELECT_NAME%", 1, paramValues, paramLengths, paramFormats, PQ_RESULT_FORMAT_BINARY);
+                CHECK_ERROR(m_selectStmt, m_conn, PGRES_TUPLES_OK, "PostgreSQL: Error executing:\n" << s_selectSQL << "\n" << PQerrorMessage(m_conn));
                 ]]>
             </execute>
             <reset>
-                m_stmt = PQResult();
+                m_selectStmt = PQResult();
             </reset>
         </select>
 
