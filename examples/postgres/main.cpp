@@ -53,7 +53,7 @@ int main()
 
     select_blob sb(conn);
 
-    sb.open("World!!!");
+    sb.open("Hello");
 
     for(auto i : sb)
     {

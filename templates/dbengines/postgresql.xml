@@ -2,6 +2,7 @@
     <lang type="c++">
         <includes>
             <file name="libpq-fe.h" />
+            <file name="arpa/inet.h" />
         </includes>
         <global_functions>
             <function>
@@ -71,16 +72,29 @@
             </prepare>
             <fetch>
                 <![CDATA[
+                if(++m_rowNum < m_rowCount)
+                {
+                    m_currentRow.reset( new _row_type( this ));
+                    return true;
+                }
+                else
+                {
+                    m_currentRow.reset();
+                    return false;
+                }
                 ]]>
             </fetch>
             <execute>
                 <![CDATA[
                 m_selectStmt = PQexecPrepared(m_conn, "%SELECT_NAME%", 1, paramValues, paramLengths, paramFormats, PQ_RESULT_FORMAT_BINARY);
                 CHECK_ERROR(m_selectStmt, m_conn, PGRES_TUPLES_OK, "PostgreSQL: Error executing:\n" << s_selectSQL << "\n" << PQerrorMessage(m_conn));
+                m_rowCount = PQntuples(m_selectStmt.get());
                 ]]>
             </execute>
             <reset>
                 m_selectStmt = PQResult();
+                m_rowNum = -1;
+                m_rowCount = -1;
             </reset>
         </select>
 

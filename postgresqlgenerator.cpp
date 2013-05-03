@@ -298,7 +298,42 @@ bool PostgreSQLGenerator::checkConnection()
 
 std::string PostgreSQLGenerator::getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
 {
-    return std::string();
+    std::stringstream str;
+
+        switch(_item->type)
+    {
+        case stInt:
+        case stInt64:
+        case stUInt:
+        case stUInt64:
+        case stFloat:
+        case stDouble:
+        case stUFloat:
+        case stUDouble:
+        case stTimeStamp:
+        case stTime:
+        case stDate:
+            FATAL(__FILE__  << ':' << __LINE__ << ": Invalid param type: '" << _item->name << "': " << _item->type);
+            break;
+
+        case stText:
+        {
+            str <<
+                "paramValues[" << _index << "] = _" << _item->name << ";\n"
+                "paramLengths[" << _index << "] = strlen(_" << _item->name << ");\n"
+                "paramFormats[" << _index << "] = PQ_RESULT_FORMAT_TEXT;";
+            break;
+        }
+
+        case stBlob:
+        default:
+            FATAL(__FILE__  << ':' << __LINE__ << ": Invalid param type: '" << _item->name << "': " << _item->type);
+            break;
+    }
+
+
+
+    return str.str();
 }
 
 std::string PostgreSQLGenerator::getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
@@ -309,11 +344,11 @@ std::string PostgreSQLGenerator::getReadValue(SQLStatementTypes _type, const Lis
     switch(_item->type)
     {
         case stInt:
-            str << "m_" << _item->name << " = *((int32_t*)PQgetvalue(_parent->m_" << getStmtType(_type) << "Stmt.get(), _parent->m_rowNum, " << _index << "));";
+        case stUInt:
+            str << "m_" << _item->name << " = ntohl(*((int32_t*)PQgetvalue(_parent->m_" << getStmtType(_type) << "Stmt.get(), _parent->m_rowNum, " << _index << ")));";
             break;
 
         case stInt64:
-        case stUInt:
         case stUInt64:
         case stFloat:
         case stDouble:
@@ -416,8 +451,8 @@ void PostgreSQLGenerator::addOutBuffers(SQLStatementTypes _type, const AbstractI
 {
     TemplateDictionary *subDict;
     subDict = m_dict->AddSectionDictionary(tpl_SEL_OUT_FIELDS_BUFFERS);
-    subDict->SetValue(tpl_BUFFER_DECLARE, "int m_rowNum;");
-    subDict->SetValue(tpl_BUFFER_INITIALIZE, "m_rowNum = 0;");
+    subDict->SetValue(tpl_BUFFER_DECLARE, "int m_rowNum;\nint m_rowCount;");
+    subDict->SetValue(tpl_BUFFER_INITIALIZE, "m_rowNum = -1;\nm_rowCount = -1;");
 }
 
 }
