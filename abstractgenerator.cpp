@@ -260,6 +260,29 @@ SQLTypes typeNameToSQLType(std::string _name)
     return stUnknown;
 }
 
+std::string sqlTypeToName(SQLTypes _type)
+{
+#define __typeToString(TYPE) case TYPE: return # TYPE ;
+    switch(_type)
+    {
+        __typeToString(stUnknown);
+        __typeToString(stInt);
+        __typeToString(stInt64);
+        __typeToString(stUInt);
+        __typeToString(stUInt64);
+        __typeToString(stFloat);
+        __typeToString(stDouble);
+        __typeToString(stUFloat);
+        __typeToString(stUDouble);
+        __typeToString(stTimeStamp);
+        __typeToString(stTime);
+        __typeToString(stDate);
+        __typeToString(stText);
+        __typeToString(stBlob);
+    }
+#undef __typeToString(TYPE)
+}
+
 AbstractGenerator* AbstractGenerator::s_generator = 0;
 AbstractGenerator* AbstractGenerator::getGenerator(const std::string & _type)
 {
@@ -1021,8 +1044,8 @@ std::string AbstractGenerator::parseStringVariables(std::string str)
                 }
             }
         }
-        else
-            i++;
+
+        i++;
 
         FOUND_KEYWORD: {}
     }
