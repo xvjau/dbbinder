@@ -126,6 +126,8 @@ void parseSQL(const std::string& _fileName)
             file.seekg(0);
 
             line = 0;
+            
+            bool inComments = false;
 
             while ( file.good() )
             {
@@ -133,7 +135,7 @@ void parseSQL(const std::string& _fileName)
                 line++;
 
                 #warning This should be sent to generator->db server to determine the 'correct' statement type.
-                if ( strncmp(buffer, "--", 2 ) != 0 )
+                if (strncmp(buffer, "--", 2 ) != 0)
                 {
                     char *c = buffer;
                     while( *c )
@@ -162,7 +164,7 @@ void parseSQL(const std::string& _fileName)
                             }
                             else
                             {
-                                FATAL(fileName << ':' << line << ": unknown statement type: '" << c << "'");
+                                goto NEXT_LINE;
                             }
 
                             file.seekg(file.gcount() * -1, std::ios_base::cur);
@@ -183,11 +185,18 @@ void parseSQL(const std::string& _fileName)
                             c++;
                     }
                 }
+                
+                NEXT_LINE: {}
             }
         }
 
         END_READ_SQL:
 
+        if (statementType == sstUnknown)
+        {
+            FATAL(fileName << ": unknown statement type.");
+        }
+        
         file.clear();
         file.seekg(0);
         line = 0;
