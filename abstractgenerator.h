@@ -45,6 +45,7 @@ enum SQLTypes
     stBlob
 };
 SQLTypes typeNameToSQLType(std::string _name);
+std::string sqlTypeToName(SQLTypes _type);
 
 enum SQLStatementTypes
 {

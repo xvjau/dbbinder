@@ -220,8 +220,10 @@ SQLTypes getSQLTypes(Oid _pgType)
         case FLOAT8OID:
             return stDouble;
         case TIMESTAMPTZOID:
+        case TIMESTAMPOID:
             return stTimeStamp;
         case TIMEOID:
+        case TIMETZOID:
             return stTime;
         case DATEOID:
             return stDate;
@@ -357,7 +359,7 @@ std::string PostgreSQLGenerator::getReadValue(SQLStatementTypes _type, const Lis
         case stTimeStamp:
         case stTime:
         case stDate:
-            FATAL(__FILE__  << ':' << __LINE__ << ": Invalid param type: '" << _item->name << "': " << _item->type);
+            FATAL(__FILE__  << ':' << __LINE__ << ": Invalid param type: '" << _item->name << "': " << sqlTypeToName(_item->type));
             break;
 
         case stText:
@@ -366,7 +368,7 @@ std::string PostgreSQLGenerator::getReadValue(SQLStatementTypes _type, const Lis
 
         case stBlob:
         default:
-            FATAL(__FILE__  << ':' << __LINE__ << ": Invalid param type: '" << _item->name << "': " << _item->type);
+            FATAL(__FILE__  << ':' << __LINE__ << ": Invalid param type: '" << _item->name << "': " << sqlTypeToName(_item->type));
             break;
     }
 
@@ -396,9 +398,14 @@ void PostgreSQLGenerator::addSelect(SelectElements _elements)
     int fields = PQnfields(res);
     for(int i = 0; i != fields; i++)
     {
-        std::cout << "Field(" << i << "): '" << PQfname(res, i) << "' = " << PQftype(res, i) << std::endl;
-
+#ifndef NDEBUG
+        std::cerr << "Field(" << i << "): '" << PQfname(res, i) << "' = " << PQftype(res, i) << std::flush;
+#endif
         SQLTypes type = getSQLTypes(PQftype(res, i));
+#ifndef NDEBUG
+        std::cerr << " - " << sqlTypeToName(type) << std::endl;
+#endif
+
         _elements.output.push_back( SQLElement( PQfname(res, i), type, i, PQfsize(res, i) ));
     }
 

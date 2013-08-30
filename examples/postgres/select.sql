@@ -3,9 +3,15 @@
 --! param name string
 
 select
-    id,
-    name
+  "id",
+  "name",
+  "DateTest",
+  "TimeZTest",
+  "TimeTest",
+  "TimestampZTest",
+  "TimestampTest",
+  "TextTest"
 from
-    testdata
+  "testdata"
 where
-    name != $1::varchar
+    "name" != $1::varchar
