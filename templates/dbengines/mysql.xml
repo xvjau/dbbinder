@@ -9,7 +9,7 @@
                 <![CDATA[
                 #ifndef DBBINDERCONVERTTIME
                 #define DBBINDERCONVERTTIME
-                inline MYSQL_TIME dbbinderConvertTime(ptime v)
+                inline MYSQL_TIME dbbinderConvertTime(const ptime &v)
                 {
                     MYSQL_TIME result;
 
@@ -36,7 +36,7 @@
                     return result;
                 }
 
-                inline ptime dbbinderConvertTime(MYSQL_TIME v)
+                inline ptime dbbinderConvertTime(const MYSQL_TIME &v)
                 {
                     if (v.year && v.month && v.day)
                         return ptime(boost::gregorian::date(v.year, v.month, v.day),

@@ -109,6 +109,13 @@ std::string MySQLGenerator::getReadValue(SQLStatementTypes _type, const ListElem
     {
         case stTimeStamp:
             return std::string("m_") + _item->name + " = dbbinderConvertTime(_parent->m_buff" + _item->name + ");";
+        case stText:
+        {
+            std::stringstream str;
+            str << "m_" << _item->name << " = _parent->m_buff" << _item->name + ";\n";
+            str << "_parent->m_buff" << _item->name + "[" << _item->length << "] = 0;";
+            return str.str();
+        }
         case stBlob:
         {
             std::stringstream str;
