@@ -24,20 +24,20 @@
 {{#CLASS}}
 
 {{#SELECT}}
-const char * const {{CLASSNAME}}::s_selectSQL = {{SELECT_SQL}};
-const int {{CLASSNAME}}::s_selectSQL_len = {{SELECT_SQL_LEN}};
+const char * const {{CLASSNAME}}::s_selectSQL = {{STMT_SQL}};
+const int {{CLASSNAME}}::s_selectSQL_len = {{STMT_SQL_LEN}};
 {{/SELECT}}
 {{#UPDATE}}
-const char * const {{CLASSNAME}}::s_updateSQL = {{UPDATE_SQL}};
-const int {{CLASSNAME}}::s_updateSQL_len = {{UPDATE_SQL_LEN}};
+const char * const {{CLASSNAME}}::s_updateSQL = {{STMT_SQL}};
+const int {{CLASSNAME}}::s_updateSQL_len = {{STMT_SQL_LEN}};
 {{/UPDATE}}
 {{#INSERT}}
-const char * const {{CLASSNAME}}::s_insertSQL = {{INSERT_SQL}};
-const int {{CLASSNAME}}::s_insertSQL_len = {{INSERT_SQL_LEN}};
+const char * const {{CLASSNAME}}::s_insertSQL = {{STMT_SQL}};
+const int {{CLASSNAME}}::s_insertSQL_len = {{STMT_SQL_LEN}};
 {{/INSERT}}
 {{#DELETE}}
-const char * const {{CLASSNAME}}::s_deleteSQL = {{DELETE_SQL}};
-const int {{CLASSNAME}}::s_deleteSQL_len = {{DELETE_SQL_LEN}};
+const char * const {{CLASSNAME}}::s_deleteSQL = {{STMT_SQL}};
+const int {{CLASSNAME}}::s_deleteSQL_len = {{STMT_SQL_LEN}};
 {{/DELETE}}
 
 {{CLASSNAME}}::{{CLASSNAME}}({{DBENGINE_CONNECTION_TYPE}} _conn):
@@ -68,32 +68,32 @@ const int {{CLASSNAME}}::s_deleteSQL_len = {{DELETE_SQL_LEN}};
     {{/DBENGINE_TRANSACTION}}
 
 {{#SELECT}}
-    {{#SEL_IN_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
-    {{/SEL_IN_FIELDS_BUFFERS}}
+    {{#STMT_IN_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
+    {{/STMT_IN_FIELDS_BUFFERS}}
 
-    {{#SEL_OUT_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
-    {{/SEL_OUT_FIELDS_BUFFERS}}
+    {{#STMT_OUT_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
+    {{/STMT_OUT_FIELDS_BUFFERS}}
 
     {{DBENGINE_CREATE_SELECT}}
     {{DBENGINE_PREPARE_SELECT}}
 {{/SELECT}}
 {{#UPDATE}}
-    {{#UPD_IN_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
-    {{/UPD_IN_FIELDS_BUFFERS}}
+    {{#STMT_IN_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
+    {{/STMT_IN_FIELDS_BUFFERS}}
 
     {{DBENGINE_CREATE_UPDATE}}
     {{DBENGINE_PREPARE_UPDATE}}
 {{/UPDATE}}
 {{#INSERT}}
-    {{#INS_IN_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
-    {{/INS_IN_FIELDS_BUFFERS}}
+    {{#STMT_IN_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
+    {{/STMT_IN_FIELDS_BUFFERS}}
 
     {{DBENGINE_CREATE_INSERT}}
     {{DBENGINE_PREPARE_INSERT}}
 {{/INSERT}}
 {{#DELETE}}
-    {{#DEL_IN_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
-    {{/DEL_IN_FIELDS_BUFFERS}}
+    {{#STMT_IN_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
+    {{/STMT_IN_FIELDS_BUFFERS}}
 
     {{DBENGINE_CREATE_DELETE}}
     {{DBENGINE_PREPARE_DELETE}}
@@ -115,35 +115,35 @@ const int {{CLASSNAME}}::s_deleteSQL_len = {{DELETE_SQL_LEN}};
 
     {{#UPDATE}}
     {{DBENGINE_DESTROY_UPDATE}}
-    {{#UPD_IN_FIELDS_BUFFERS}}{{BUFFER_FREE}}
-    {{/UPD_IN_FIELDS_BUFFERS}}
+    {{#STMT_IN_FIELDS_BUFFERS}}{{BUFFER_FREE}}
+    {{/STMT_IN_FIELDS_BUFFERS}}
 
-    {{#UPD_OUT_FIELDS_BUFFERS}}{{BUFFER_FREE}}
-    {{/UPD_OUT_FIELDS_BUFFERS}}
+    {{#STMT_OUT_FIELDS_BUFFERS}}{{BUFFER_FREE}}
+    {{/STMT_OUT_FIELDS_BUFFERS}}
     {{/UPDATE}}
 
     {{#INSERT}}
     {{DBENGINE_DESTROY_INSERT}}
-    {{#INS_IN_FIELDS_BUFFERS}}{{BUFFER_FREE}}
-    {{/INS_IN_FIELDS_BUFFERS}}
+    {{#STMT_IN_FIELDS_BUFFERS}}{{BUFFER_FREE}}
+    {{/STMT_IN_FIELDS_BUFFERS}}
     {{/INSERT}}
 
     {{#DELETE}}
     {{DBENGINE_DESTROY_DELETE}}
-    {{#DEL_IN_FIELDS_BUFFERS}}{{BUFFER_FREE}}
-    {{/DEL_IN_FIELDS_BUFFERS}}
+    {{#STMT_IN_FIELDS_BUFFERS}}{{BUFFER_FREE}}
+    {{/STMT_IN_FIELDS_BUFFERS}}
     {{/DELETE}}
 }
 
 {{#SELECT}}
-const int {{CLASSNAME}}::s_selectFieldCount = {{SELECT_FIELD_COUNT}};
-const int {{CLASSNAME}}::s_selectParamCount = {{SELECT_PARAM_COUNT}};
+const int {{CLASSNAME}}::s_selectFieldCount = {{STMT_FIELD_COUNT}};
+const int {{CLASSNAME}}::s_selectParamCount = {{STMT_PARAM_COUNT}};
 {{CLASSNAME}}::iterator {{CLASSNAME}}::s_endIterator;
 
-{{#SELECT_HAS_PARAMS}}
+{{#STMT_HAS_PARAMS}}
 {{CLASSNAME}}::{{CLASSNAME}}(
-                            {{#SEL_IN_FIELDS}}{{SEL_IN_FIELD_TYPE}} _{{SEL_IN_FIELD_NAME}},
-                            {{/SEL_IN_FIELDS}}
+                            {{#STMT_IN_FIELDS}}{{STMT_IN_FIELD_TYPE}} _{{STMT_IN_FIELD_NAME}},
+                            {{/STMT_IN_FIELDS}}
                             {{DBENGINE_CONNECTION_TYPE}} _conn
                             ):
         m_conn( _conn ),
@@ -161,25 +161,25 @@ const int {{CLASSNAME}}::s_selectParamCount = {{SELECT_PARAM_COUNT}};
     {{#DBENGINE_TRANSACTION}}{{DBENGINE_TRANSACTION_INIT}}
     {{/DBENGINE_TRANSACTION}}
 
-    {{#SEL_IN_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
-    {{/SEL_IN_FIELDS_BUFFERS}}
+    {{#STMT_IN_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
+    {{/STMT_IN_FIELDS_BUFFERS}}
 
-    {{#SEL_OUT_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
-    {{/SEL_OUT_FIELDS_BUFFERS}}
+    {{#STMT_OUT_FIELDS_BUFFERS}}{{BUFFER_INITIALIZE}}
+    {{/STMT_OUT_FIELDS_BUFFERS}}
 
     {{DBENGINE_CREATE_SELECT}}
     {{DBENGINE_PREPARE_SELECT}}
 
     open(
-        {{#SEL_IN_FIELDS}}_{{SEL_IN_FIELD_NAME}}{{SEL_IN_FIELD_COMMA}}
-        {{/SEL_IN_FIELDS}}
+        {{#STMT_IN_FIELDS}}_{{STMT_IN_FIELD_NAME}}{{STMT_IN_FIELD_COMMA}}
+        {{/STMT_IN_FIELDS}}
         );
 }
-{{/SELECT_HAS_PARAMS}}
+{{/STMT_HAS_PARAMS}}
 
 void {{CLASSNAME}}::open(
-                        {{#SEL_IN_FIELDS}}{{SEL_IN_FIELD_TYPE}} _{{SEL_IN_FIELD_NAME}}{{SEL_IN_FIELD_COMMA}}
-                        {{/SEL_IN_FIELDS}}
+                        {{#STMT_IN_FIELDS}}{{STMT_IN_FIELD_TYPE}} _{{STMT_IN_FIELD_NAME}}{{STMT_IN_FIELD_COMMA}}
+                        {{/STMT_IN_FIELDS}}
                         )
 {
     if ( m_selectIsActive )
@@ -187,21 +187,20 @@ void {{CLASSNAME}}::open(
         {{DBENGINE_RESET_SELECT}}
     }
 
-    {{#SEL_IN_FIELDS_BUFFERS}}{{BUFFER_ALLOC}}
-    {{/SEL_IN_FIELDS_BUFFERS}}
+    {{#STMT_IN_FIELDS_BUFFERS}}{{BUFFER_ALLOC}}
+    {{/STMT_IN_FIELDS_BUFFERS}}
 
-    {{#SEL_OUT_FIELDS_BUFFERS}}{{BUFFER_ALLOC}}
-    {{/SEL_OUT_FIELDS_BUFFERS}}
+    {{#STMT_OUT_FIELDS_BUFFERS}}{{BUFFER_ALLOC}}
+    {{/STMT_OUT_FIELDS_BUFFERS}}
 
-    {{#SEL_IN_FIELDS}}{{SEL_IN_FIELD_BIND}}
-    {{/SEL_IN_FIELDS}}
+    {{#STMT_IN_FIELDS}}{{STMT_IN_FIELD_BIND}}
+    {{/STMT_IN_FIELDS}}
 
     {{DBENGINE_EXECUTE_SELECT}}
 
     m_selectIsActive = true;
 }
 
-{{#SELECT}}
 void {{CLASSNAME}}::close()
 {
     if ( m_selectIsActive )
@@ -209,21 +208,20 @@ void {{CLASSNAME}}::close()
         m_selectIsActive = false;
 
         {{#DBENGINE_TRANSACTION}}
-        {{#SELECT}}{{DBENGINE_TRANSACTION_ROLLBACK}}{{/SELECT}}
+        {{DBENGINE_TRANSACTION_ROLLBACK}}
         {{DBENGINE_TRANSACTION_COMMIT}}
         {{/DBENGINE_TRANSACTION}}
 
         {{DBENGINE_DESTROY_SELECT}}
-        {{#SEL_IN_FIELDS_BUFFERS}}{{BUFFER_FREE}}
-        {{/SEL_IN_FIELDS_BUFFERS}}
-        {{#SEL_OUT_FIELDS_BUFFERS}}{{BUFFER_FREE}}
-        {{/SEL_OUT_FIELDS_BUFFERS}}
+        {{#STMT_IN_FIELDS_BUFFERS}}{{BUFFER_FREE}}
+        {{/STMT_IN_FIELDS_BUFFERS}}
+        {{#STMT_OUT_FIELDS_BUFFERS}}{{BUFFER_FREE}}
+        {{/STMT_OUT_FIELDS_BUFFERS}}
 
         delete m_iterator;
         m_iterator = NULL;
     }
 }
-{{/SELECT}}
 
 bool {{CLASSNAME}}::fetchRow()
 {
@@ -247,58 +245,58 @@ bool {{CLASSNAME}}::fetchRow()
 }
 {{/SELECT}}
 {{#UPDATE}}
-const int {{CLASSNAME}}::s_updateParamCount = {{UPDATE_PARAM_COUNT}};
+const int {{CLASSNAME}}::s_updateParamCount = {{STMT_PARAM_COUNT}};
 
 void {{CLASSNAME}}::update(
-            {{#UPD_IN_FIELDS}}{{UPD_IN_FIELD_TYPE}} _{{UPD_IN_FIELD_NAME}}{{UPD_IN_FIELD_COMMA}}
-            {{/UPD_IN_FIELDS}})
+            {{#STMT_IN_FIELDS}}{{STMT_IN_FIELD_TYPE}} _{{STMT_IN_FIELD_NAME}}{{STMT_IN_FIELD_COMMA}}
+            {{/STMT_IN_FIELDS}})
 
 {
-    {{#UPD_IN_FIELDS_BUFFERS}}{{BUFFER_DECLARE}}
+    {{#STMT_IN_FIELDS_BUFFERS}}{{BUFFER_DECLARE}}
     {{BUFFER_ALLOC}}
-    {{/UPD_IN_FIELDS_BUFFERS}}
+    {{/STMT_IN_FIELDS_BUFFERS}}
 
-    {{#UPD_OUT_FIELDS_BUFFERS}}{{BUFFER_ALLOC}}
-    {{/UPD_OUT_FIELDS_BUFFERS}}
+    {{#STMT_OUT_FIELDS_BUFFERS}}{{BUFFER_ALLOC}}
+    {{/STMT_OUT_FIELDS_BUFFERS}}
 
-    {{#UPD_IN_FIELDS}}{{UPD_IN_FIELD_BIND}}
-    {{/UPD_IN_FIELDS}}
+    {{#STMT_IN_FIELDS}}{{STMT_IN_FIELD_BIND}}
+    {{/STMT_IN_FIELDS}}
 
     {{DBENGINE_EXECUTE_UPDATE}}
     {{DBENGINE_RESET_UPDATE}}
 }
 {{/UPDATE}}
 {{#INSERT}}
-const int {{CLASSNAME}}::s_insertParamCount = {{INSERT_PARAM_COUNT}};
+const int {{CLASSNAME}}::s_insertParamCount = {{STMT_PARAM_COUNT}};
 
 void {{CLASSNAME}}::insert(
-            {{#INS_IN_FIELDS}}{{INS_IN_FIELD_TYPE}} _{{INS_IN_FIELD_NAME}}{{INS_IN_FIELD_COMMA}}
-            {{/INS_IN_FIELDS}})
+            {{#STMT_IN_FIELDS}}{{STMT_IN_FIELD_TYPE}} _{{STMT_IN_FIELD_NAME}}{{STMT_IN_FIELD_COMMA}}
+            {{/STMT_IN_FIELDS}})
 {
-    {{#INS_IN_FIELDS_BUFFERS}}{{BUFFER_DECLARE}}
+    {{#STMT_IN_FIELDS_BUFFERS}}{{BUFFER_DECLARE}}
     {{BUFFER_ALLOC}}
-    {{/INS_IN_FIELDS_BUFFERS}}
+    {{/STMT_IN_FIELDS_BUFFERS}}
 
-    {{#INS_IN_FIELDS}}{{INS_IN_FIELD_BIND}}
-    {{/INS_IN_FIELDS}}
+    {{#STMT_IN_FIELDS}}{{STMT_IN_FIELD_BIND}}
+    {{/STMT_IN_FIELDS}}
 
     {{DBENGINE_EXECUTE_INSERT}}
     {{DBENGINE_RESET_INSERT}}
 }
 {{/INSERT}}
 {{#DELETE}}
-const int {{CLASSNAME}}::s_deleteParamCount = {{DELETE_PARAM_COUNT}};
+const int {{CLASSNAME}}::s_deleteParamCount = {{STMT_PARAM_COUNT}};
 
 void {{CLASSNAME}}::del(
-            {{#DEL_IN_FIELDS}}{{DEL_IN_FIELD_TYPE}} _{{DEL_IN_FIELD_NAME}}{{DEL_IN_FIELD_COMMA}}
-            {{/DEL_IN_FIELDS}})
+            {{#STMT_IN_FIELDS}}{{STMT_IN_FIELD_TYPE}} _{{STMT_IN_FIELD_NAME}}{{STMT_IN_FIELD_COMMA}}
+            {{/STMT_IN_FIELDS}})
 {
-    {{#DEL_IN_FIELDS_BUFFERS}}{{BUFFER_DECLARE}}
+    {{#STMT_IN_FIELDS_BUFFERS}}{{BUFFER_DECLARE}}
     {{BUFFER_ALLOC}}
-    {{/DEL_IN_FIELDS_BUFFERS}}
+    {{/STMT_IN_FIELDS_BUFFERS}}
 
-    {{#DEL_IN_FIELDS}}{{DEL_IN_FIELD_BIND}}
-    {{/DEL_IN_FIELDS}}
+    {{#STMT_IN_FIELDS}}{{STMT_IN_FIELD_BIND}}
+    {{/STMT_IN_FIELDS}}
 
     {{DBENGINE_EXECUTE_DELETE}}
     {{DBENGINE_RESET_DELETE}}

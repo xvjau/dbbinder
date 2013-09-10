@@ -470,30 +470,15 @@ void getMySQLTypes(SQLTypes _type, std::string& _lang, std::string& _mysql)
     }
 }
 
-ctemplate::TemplateDictionary* MySQLGenerator::getSubDict(SQLStatementTypes _type)
-{
-    switch ( _type )
-    {
-        case sstSelect: 
-        case sstStoredProcedure:
-            return m_dict->AddSectionDictionary(tpl_SEL_IN_FIELDS_BUFFERS);
-        case sstInsert: return m_dict->AddSectionDictionary(tpl_INS_IN_FIELDS_BUFFERS);
-        case sstUpdate: return m_dict->AddSectionDictionary(tpl_UPD_IN_FIELDS_BUFFERS);
-        case sstDelete: return m_dict->AddSectionDictionary(tpl_DEL_IN_FIELDS_BUFFERS);
-        default:
-            FATAL(__FILE__  << ':' << __LINE__ << ": Invalide statement type.");
-    };
-}
-
-void MySQLGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements)
+void MySQLGenerator::addInBuffers(SQLStatementTypes _type, TemplateDictionary *_subDict, const AbstractElements *_elements)
 {
     std::string langType, myType;
     int index = 0;
 
     if (_elements->input.empty() || _elements->input.size() == 0)
     {
-        ctemplate::TemplateDictionary *subDict = getSubDict(_type);
-        subDict->SetValue(tpl_BUFFER_DECLARE, "MYSQL_BIND inBuffer[0];\n\n" );
+        TemplateDictionary *buffDict = _subDict->AddSectionDictionary(tpl_STMT_IN_FIELDS_BUFFERS);
+        buffDict->SetValue(tpl_BUFFER_DECLARE, "MYSQL_BIND inBuffer[0];\n\n" );
     }
     else
     {
@@ -563,20 +548,19 @@ void MySQLGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElement
                     << "inBuffer[" << index << "].length = &m_param" << field.name << "Length;\n"
                     << "\n";
 
-            ctemplate::TemplateDictionary *subDict = getSubDict(_type);
-            subDict->SetValue(tpl_BUFFER_DECLARE, decl.str() );
-            subDict->SetValue(tpl_BUFFER_ALLOC, init.str() );
+            TemplateDictionary *buffDict = _subDict->AddSectionDictionary(tpl_STMT_IN_FIELDS_BUFFERS);
+            buffDict->SetValue(tpl_BUFFER_DECLARE, decl.str() );
+            buffDict->SetValue(tpl_BUFFER_ALLOC, init.str() );
 
             ++index;
         }
     }
 }
 
-void MySQLGenerator::addOutBuffers(SQLStatementTypes /*_type*/, const AbstractElements* _elements)
+void MySQLGenerator::addOutBuffers(SQLStatementTypes /*_type*/, TemplateDictionary *_subDict, const AbstractElements *_elements)
 {
     std::string langType, myType;
     int index = 0;
-    ctemplate::TemplateDictionary *subDict;
 
     foreach(SQLElement field, _elements->output)
     {
@@ -590,7 +574,7 @@ void MySQLGenerator::addOutBuffers(SQLStatementTypes /*_type*/, const AbstractEl
             init << "memset(selOutBuffer, 0, sizeof(selOutBuffer));\n\n";
         }
 
-        decl << "my_bool	m_" << field.name << "IsNull;\n"
+        decl << "my_bool m_" << field.name << "IsNull;\n"
                 << "long unsigned m_" << field.name << "Length;\n";
 
         switch(field.type)
@@ -621,10 +605,9 @@ void MySQLGenerator::addOutBuffers(SQLStatementTypes /*_type*/, const AbstractEl
                 << "selOutBuffer[" << index << "].length = &m_" << field.name << "Length;\n"
                 << "\n";
 
-
-        subDict = m_dict->AddSectionDictionary(tpl_SEL_OUT_FIELDS_BUFFERS);
-        subDict->SetValue(tpl_BUFFER_DECLARE, decl.str() );
-        subDict->SetValue(tpl_BUFFER_ALLOC, init.str() );
+        TemplateDictionary *buffDict = _subDict->AddSectionDictionary(tpl_STMT_OUT_FIELDS_BUFFERS);
+        buffDict->SetValue(tpl_BUFFER_DECLARE, decl.str() );
+        buffDict->SetValue(tpl_BUFFER_ALLOC, init.str() );
 
         ++index;
     }

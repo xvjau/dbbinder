@@ -20,6 +20,8 @@
 #ifndef __DBBINDER_MAIN_H
 #define __DBBINDER_MAIN_H
 
+#include <template.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -29,8 +31,6 @@
 #include <string>
 #include <vector>
 #include <map>
-
-#include <template.h>
 
 namespace DBBinder
 {
@@ -60,16 +60,16 @@ enum FileType
 };
 
 // Options set by command line
-extern std::string	appName;
-extern std::string	optOutput;
-extern std::string	optTemplate;
-extern ListString	optTemplateDirs;
-extern const char*	optVersionMajor;
-extern const char*	optVersionMinor;
-extern bool			optListDepends;
-extern ListString	optDepends;
-extern bool			optExtras;
-extern ListString	optIncludeFiles;
+extern std::string  appName;
+extern std::string  optOutput;
+extern std::string  optTemplate;
+extern ListString   optTemplateDirs;
+extern const char*  optVersionMajor;
+extern const char*  optVersionMinor;
+extern bool         optListDepends;
+extern ListString   optDepends;
+extern bool         optExtras;
+extern ListString   optIncludeFiles;
 
 // Utility funcs and defines
 inline std::string stringToLower(const std::string& _string)

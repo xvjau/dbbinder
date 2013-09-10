@@ -417,29 +417,11 @@ bool PostgreSQLGenerator::needIOBuffers() const
     return true;
 }
 
-void PostgreSQLGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements)
+void PostgreSQLGenerator::addInBuffers(SQLStatementTypes /*_type*/, TemplateDictionary *_subDict, const AbstractElements* _elements)
 {
     if ( !_elements->input.empty() )
     {
-        TemplateDictionary *subDict;
-
-        switch ( _type )
-        {
-            case sstSelect:
-                subDict = m_dict->AddSectionDictionary(tpl_SEL_IN_FIELDS_BUFFERS);
-                break;
-            case sstInsert:
-                subDict = m_dict->AddSectionDictionary(tpl_INS_IN_FIELDS_BUFFERS);
-                break;
-            case sstUpdate:
-                subDict = m_dict->AddSectionDictionary(tpl_UPD_IN_FIELDS_BUFFERS);
-                break;
-            case sstDelete:
-                subDict = m_dict->AddSectionDictionary(tpl_DEL_IN_FIELDS_BUFFERS);
-                break;
-            default:
-                FATAL(__FILE__  << ':' << __LINE__ << ": Invalid statement type.");
-        };
+        TemplateDictionary *buffDict= _subDict->AddSectionDictionary(tpl_STMT_IN_FIELDS_BUFFERS);
 
         std::stringstream str;
 
@@ -450,16 +432,15 @@ void PostgreSQLGenerator::addInBuffers(SQLStatementTypes _type, const AbstractEl
             "int paramLengths[" << count << "];\n"
             "int paramFormats[" << count <<  "];";
 
-        subDict->SetValue(tpl_BUFFER_ALLOC, str.str() );
+        buffDict->SetValue(tpl_BUFFER_ALLOC, str.str() );
     }
 }
 
-void PostgreSQLGenerator::addOutBuffers(SQLStatementTypes /*_type*/, const AbstractElements* /*_elements*/)
+void PostgreSQLGenerator::addOutBuffers(SQLStatementTypes /*_type*/, TemplateDictionary *_subDict, const AbstractElements* /*_elements*/)
 {
-    TemplateDictionary *subDict;
-    subDict = m_dict->AddSectionDictionary(tpl_SEL_OUT_FIELDS_BUFFERS);
-    subDict->SetValue(tpl_BUFFER_DECLARE, "int m_rowNum;\nint m_rowCount;");
-    subDict->SetValue(tpl_BUFFER_INITIALIZE, "m_rowNum = -1;\nm_rowCount = -1;");
+    TemplateDictionary *buffDict = _subDict->AddSectionDictionary(tpl_STMT_OUT_FIELDS_BUFFERS);
+    buffDict->SetValue(tpl_BUFFER_DECLARE, "int m_rowNum;\nint m_rowCount;");
+    buffDict->SetValue(tpl_BUFFER_INITIALIZE, "m_rowNum = -1;\nm_rowCount = -1;");
 }
 
 }

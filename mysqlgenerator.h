@@ -28,32 +28,32 @@ namespace DBBinder
 
 class MySQLGenerator : public AbstractGenerator
 {
-    friend class AbstractGenerator; //wtf??
+friend class AbstractGenerator; //wtf??
 
-    private:
-        ctemplate::TemplateDictionary *getSubDict(SQLStatementTypes _type);
+private:
+    ctemplate::TemplateDictionary *getSubDict(SQLStatementTypes _type);
 
-    protected:
-        MySQLGenerator();
-        virtual ~MySQLGenerator();
+protected:
+    MySQLGenerator();
+    virtual ~MySQLGenerator();
 
-        MYSQL *m_conn;
+    MYSQL *m_conn;
 
-        virtual bool checkConnection();
-        virtual std::string getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
-        virtual std::string getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
-        virtual std::string getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+    virtual bool checkConnection() __C11_OVERRIDE;
+    virtual std::string getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) __C11_OVERRIDE;
+    virtual std::string getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) __C11_OVERRIDE;
+    virtual std::string getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) __C11_OVERRIDE;
 
-        virtual bool   needIOBuffers() const;
+    virtual bool   needIOBuffers() const __C11_OVERRIDE;
 
-        virtual void addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements);
-        virtual void addOutBuffers(SQLStatementTypes _type, const AbstractElements* _elements);
+    virtual void addInBuffers(SQLStatementTypes _type, TemplateDictionary *_subDict, const AbstractElements* _elements) __C11_OVERRIDE;
+    virtual void addOutBuffers(SQLStatementTypes _type, TemplateDictionary *_subDict, const AbstractElements* _elements) __C11_OVERRIDE;
 
-    public:
-        virtual void addInsert(InsertElements _elements);
-        virtual void addSelect(SelectElements _elements);
-        virtual void addUpdate(UpdateElements _elements);
-        virtual void addStoredProcedure(StoredProcedureElements _elements);
+public:
+    virtual void addInsert(InsertElements _elements) __C11_OVERRIDE;
+    virtual void addSelect(SelectElements _elements) __C11_OVERRIDE;
+    virtual void addUpdate(UpdateElements _elements) __C11_OVERRIDE;
+    virtual void addStoredProcedure(StoredProcedureElements _elements) __C11_OVERRIDE;
 };
 
 }

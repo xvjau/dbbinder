@@ -22,10 +22,28 @@
 
 #include "main.h"
 #include <sstream>
-#include <boost/smart_ptr.hpp>
+
+#if __cplusplus < 201103L
+#include <boost/shared_ptr.hpp>
+#define __C11_OVERRIDE
+#else
+#include <memory>
+#define __C11_OVERRIDE override
+#endif
 
 namespace DBBinder
 {
+
+// Shared pointer selector
+template<typename T>
+struct shared_pointer
+{
+#if __cplusplus < 201103L
+    typedef boost::shared_ptr<T> type;
+#else
+    typedef std::shared_ptr<T> type;
+#endif
+};
 
 enum SQLTypes
 {
@@ -124,8 +142,6 @@ struct DeleteElements: public AbstractElements
     DeleteElements(): AbstractElements() { type = sstDelete; }
 };
 
-struct TemplateFieldMap;
-
 // Main class
 class AbstractGenerator
 {
@@ -175,7 +191,7 @@ protected:
         DeleteElements          del;
         StoredProcedureElements stoProc;
     };
-    typedef boost::shared_ptr<_classParams> _classParamsPtr;
+    typedef shared_pointer<_classParams>::type _classParamsPtr;
     typedef std::map<std::string, _classParamsPtr> classParams;
 
     typedef std::map<SQLTypes, std::string> mapTypes;
@@ -202,7 +218,10 @@ protected:
     std::string     m_outIntFile;
     std::string     m_outImplFile;
 
+private:
     TemplateDictionary      *m_dict;
+    
+protected:
     std::string             m_templ[ftMAX];
 
     virtual void loadDictionary();
@@ -221,8 +240,8 @@ protected:
     // TODO: There must be a better way to implement this.
     virtual bool needIOBuffers() const;
 
-    virtual void addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements);
-    virtual void addOutBuffers(SQLStatementTypes _type, const AbstractElements* _elements);
+    virtual void addInBuffers(SQLStatementTypes _type, TemplateDictionary *_subDict, const AbstractElements* _elements);
+    virtual void addOutBuffers(SQLStatementTypes _type, TemplateDictionary *_subDict, const AbstractElements* _elements);
 
     virtual std::string getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) = 0;
     virtual std::string getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) = 0;
@@ -234,7 +253,7 @@ protected:
     static AbstractGenerator* s_generator;
 
 private:
-    void setDictionaryElements(const TemplateFieldMap *_map, TemplateDictionary *_classDict, AbstractElements *_elements, SQLElement *_keyField);
+    TemplateDictionary * setDictionaryElements(const char *_section, TemplateDictionary *_classDict, AbstractElements *_elements, SQLElement *_keyField);
     void readParam(void* xml, const char *xmlElem, _fileTypes fileType, std::string& outFile, std::string& str, const std::string & _path);
 
 public:
@@ -305,77 +324,43 @@ extern const char * const tpl_DBENGINE_CONNECTION_TYPE;
 extern const char * const tpl_DBENGINE_CONNECTION_NULL;
 
 extern const char * const tpl_SELECT;
-extern const char * const tpl_SELECT_SQL;
-extern const char * const tpl_SELECT_SQL_LEN;
-extern const char * const tpl_SELECT_FIELD_COUNT;
-extern const char * const tpl_SELECT_PARAM_COUNT;
+extern const char * const tpl_UPDATE;
+extern const char * const tpl_INSERT;
+extern const char * const tpl_DELETE;
+extern const char * const tpl_SPROC;
 
-extern const char * const tpl_SEL_IN_FIELDS;
-extern const char * const tpl_SEL_IN_FIELD_TYPE;
-extern const char * const tpl_SEL_IN_FIELD_NAME;
-extern const char * const tpl_SEL_IN_FIELD_COMMA;
-extern const char * const tpl_SEL_IN_FIELD_INIT;
-extern const char * const tpl_SEL_IN_FIELD_BIND;
-extern const char * const tpl_SEL_IN_FIELDS_BUFFERS;
+extern const char * const tpl_STMT_SQL;
+extern const char * const tpl_STMT_SQL_LEN;
+extern const char * const tpl_STMT_FIELD_COUNT;
+extern const char * const tpl_STMT_PARAM_COUNT;
+
+extern const char * const tpl_STMT_IN_FIELDS;
+extern const char * const tpl_STMT_IN_FIELD_TYPE;
+extern const char * const tpl_STMT_IN_FIELD_NAME;
+extern const char * const tpl_STMT_IN_FIELD_COMMA;
+extern const char * const tpl_STMT_IN_FIELD_INIT;
+extern const char * const tpl_STMT_IN_FIELD_BIND;
+extern const char * const tpl_STMT_IN_FIELDS_BUFFERS;
+
+extern const char * const tpl_STMT_OUT_FIELDS;
+extern const char * const tpl_STMT_OUT_FIELD_TYPE;
+extern const char * const tpl_STMT_OUT_FIELD_NAME;
+extern const char * const tpl_STMT_OUT_FIELD_COMMA;
+extern const char * const tpl_STMT_OUT_FIELD_INIT;
+extern const char * const tpl_STMT_OUT_FIELD_GETVALUE;
+extern const char * const tpl_STMT_OUT_FIELD_ISNULL;
+extern const char * const tpl_STMT_OUT_FIELDS_BUFFERS;
+extern const char * const tpl_STMT_OUT_FIELD_COMMENT;
+extern const char * const tpl_STMT_OUT_KEY_FIELD_NAME;
+extern const char * const tpl_STMT_OUT_KEY_FIELD_TYPE;
 
 extern const char * const tpl_BUFFER_DECLARE;
 extern const char * const tpl_BUFFER_ALLOC;
 extern const char * const tpl_BUFFER_FREE;
 extern const char * const tpl_BUFFER_INITIALIZE;
 
-extern const char * const tpl_SEL_OUT_FIELDS;
-extern const char * const tpl_SEL_OUT_FIELD_TYPE;
-extern const char * const tpl_SEL_OUT_FIELD_NAME;
-extern const char * const tpl_SEL_OUT_FIELD_COMMA;
-extern const char * const tpl_SEL_OUT_FIELD_INIT;
-extern const char * const tpl_SEL_OUT_FIELD_GETVALUE;
-extern const char * const tpl_SEL_OUT_FIELD_ISNULL;
-extern const char * const tpl_SEL_OUT_FIELDS_BUFFERS;
-extern const char * const tpl_SEL_OUT_FIELD_COMMENT;
-extern const char * const tpl_SEL_OUT_KEY_FIELD_NAME;
-extern const char * const tpl_SEL_OUT_KEY_FIELD_TYPE;
-
 extern const char * const tpl_DBENGINE_STATEMENT_TYPE;
 extern const char * const tpl_DBENGINE_STATEMENT_NULL;
-
-extern const char * const tpl_UPDATE;
-extern const char * const tpl_UPDATE_SQL;
-extern const char * const tpl_UPDATE_SQL_LEN;
-extern const char * const tpl_UPDATE_FIELD_COUNT;
-extern const char * const tpl_UPDATE_PARAM_COUNT;
-extern const char * const tpl_UPD_IN_FIELDS;
-extern const char * const tpl_UPD_IN_FIELD_TYPE;
-extern const char * const tpl_UPD_IN_FIELD_NAME;
-extern const char * const tpl_UPD_IN_FIELD_COMMA;
-extern const char * const tpl_UPD_IN_FIELD_INIT;
-extern const char * const tpl_UPD_IN_FIELD_BIND;
-extern const char * const tpl_UPD_IN_FIELDS_BUFFERS;
-
-extern const char * const tpl_INSERT;
-extern const char * const tpl_INSERT_SQL;
-extern const char * const tpl_INSERT_SQL_LEN;
-extern const char * const tpl_INSERT_FIELD_COUNT;
-extern const char * const tpl_INSERT_PARAM_COUNT;
-extern const char * const tpl_INS_IN_FIELDS;
-extern const char * const tpl_INS_IN_FIELD_TYPE;
-extern const char * const tpl_INS_IN_FIELD_NAME;
-extern const char * const tpl_INS_IN_FIELD_COMMA;
-extern const char * const tpl_INS_IN_FIELD_INIT;
-extern const char * const tpl_INS_IN_FIELD_BIND;
-extern const char * const tpl_INS_IN_FIELDS_BUFFERS;
-
-extern const char * const tpl_DELETE;
-extern const char * const tpl_DELETE_SQL;
-extern const char * const tpl_DELETE_SQL_LEN;
-extern const char * const tpl_DELETE_FIELD_COUNT;
-extern const char * const tpl_DELETE_PARAM_COUNT;
-extern const char * const tpl_DEL_IN_FIELDS;
-extern const char * const tpl_DEL_IN_FIELD_TYPE;
-extern const char * const tpl_DEL_IN_FIELD_NAME;
-extern const char * const tpl_DEL_IN_FIELD_COMMA;
-extern const char * const tpl_DEL_IN_FIELD_INIT;
-extern const char * const tpl_DEL_IN_FIELD_BIND;
-extern const char * const tpl_DEL_IN_FIELDS_BUFFERS;
 
 extern const char * const tpl_DBENGINE_CONNECT_PARAMS;
 extern const char * const tpl_DBENGINE_CONNECT_PARAM_TYPE;
@@ -392,33 +377,6 @@ extern const char * const tpl_DBENGINE_DISCONNECT;
 extern const char * const tpl_DBENGINE_RESET_SELECT;
 extern const char * const tpl_DBENGINE_EXECUTE_SELECT;
 extern const char * const tpl_DBENGINE_FETCH_SELECT;
-
-extern const char * const tpl_SPROC;
-extern const char * const tpl_SPROC_SQL;
-extern const char * const tpl_SPROC_SQL_UNESCAPED;
-extern const char * const tpl_SPROC_SQL_LEN;
-extern const char * const tpl_SPROC_FIELD_COUNT;
-extern const char * const tpl_SPROC_PARAM_COUNT;
-
-extern const char * const tpl_SPROC_HAS_PARAMS;
-
-extern const char * const tpl_SP_IN_FIELDS;
-extern const char * const tpl_SP_IN_FIELD_TYPE;
-extern const char * const tpl_SP_IN_FIELD_NAME;
-extern const char * const tpl_SP_IN_FIELD_COMMA;
-extern const char * const tpl_SP_IN_FIELD_INIT;
-extern const char * const tpl_SP_IN_FIELD_BIND;
-extern const char * const tpl_SP_IN_FIELDS_BUFFERS;
-
-extern const char * const tpl_SP_OUT_FIELDS;
-extern const char * const tpl_SP_OUT_FIELD_TYPE;
-extern const char * const tpl_SP_OUT_FIELD_NAME;
-extern const char * const tpl_SP_OUT_FIELD_COMMA;
-extern const char * const tpl_SP_OUT_FIELD_INIT;
-extern const char * const tpl_SP_OUT_FIELD_GETVALUE;
-extern const char * const tpl_SP_OUT_FIELD_ISNULL;
-extern const char * const tpl_SP_OUT_FIELDS_BUFFERS;
-extern const char * const tpl_SP_OUT_FIELD_COMMENT;
 
 }
 

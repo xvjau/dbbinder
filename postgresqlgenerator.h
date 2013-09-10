@@ -40,15 +40,15 @@ private:
     PGconn      *m_conn;
 
 protected:
-    virtual bool checkConnection();
-    virtual std::string getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
-    virtual std::string getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
-    virtual std::string getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+    virtual bool checkConnection() __C11_OVERRIDE;
+    virtual std::string getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) __C11_OVERRIDE;
+    virtual std::string getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) __C11_OVERRIDE;
+    virtual std::string getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) __C11_OVERRIDE;
 
-    virtual bool   needIOBuffers() const;
+    virtual bool needIOBuffers() const __C11_OVERRIDE;
 
-    virtual void addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements);
-    virtual void addOutBuffers(SQLStatementTypes _type, const AbstractElements* _elements);
+    virtual void addInBuffers(SQLStatementTypes _type, TemplateDictionary *_subDict, const AbstractElements* _elements) __C11_OVERRIDE;
+    virtual void addOutBuffers(SQLStatementTypes _type, TemplateDictionary *_subDict, const AbstractElements* _elements) __C11_OVERRIDE;
 };
 
 }

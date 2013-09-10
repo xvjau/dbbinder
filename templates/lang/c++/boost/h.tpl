@@ -104,10 +104,10 @@ class {{CLASSNAME}}
         {{/DBENGINE_TRANSACTION}}
 {{#SELECT}}
     public:
-        {{#SELECT_HAS_PARAMS}}
-        {{CLASSNAME}}({{#SEL_IN_FIELDS}}{{SEL_IN_FIELD_TYPE}} _{{SEL_IN_FIELD_NAME}},{{/SEL_IN_FIELDS}}
+        {{#STMT_HAS_PARAMS}}
+        {{CLASSNAME}}({{#STMT_IN_FIELDS}}{{STMT_IN_FIELD_TYPE}} _{{STMT_IN_FIELD_NAME}},{{/STMT_IN_FIELDS}}
                         {{DBENGINE_CONNECTION_TYPE}} _conn);
-        {{/SELECT_HAS_PARAMS}}
+        {{/STMT_HAS_PARAMS}}
 
     private:
         static const char* const s_selectSQL;
@@ -120,12 +120,12 @@ class {{CLASSNAME}}
 
         bool fetchRow();
 
-        {{#SEL_IN_FIELDS_BUFFERS}}{{BUFFER_DECLARE}}
-        {{/SEL_IN_FIELDS_BUFFERS}}
-        {{#SEL_OUT_FIELDS_BUFFERS}}{{BUFFER_DECLARE}}
-        {{/SEL_OUT_FIELDS_BUFFERS}}
+        {{#STMT_IN_FIELDS_BUFFERS}}{{BUFFER_DECLARE}}
+        {{/STMT_IN_FIELDS_BUFFERS}}
+        {{#STMT_OUT_FIELDS_BUFFERS}}{{BUFFER_DECLARE}}
+        {{/STMT_OUT_FIELDS_BUFFERS}}
     public:
-        void open( {{#SEL_IN_FIELDS}}{{SEL_IN_FIELD_TYPE}} _{{SEL_IN_FIELD_NAME}}{{SEL_IN_FIELD_COMMA}}{{/SEL_IN_FIELDS}} );
+        void open( {{#STMT_IN_FIELDS}}{{STMT_IN_FIELD_TYPE}} _{{STMT_IN_FIELD_NAME}}{{STMT_IN_FIELD_COMMA}}{{/STMT_IN_FIELDS}} );
         void close();
 
         class _row_type
@@ -134,37 +134,37 @@ class {{CLASSNAME}}
 
             private:
                 _row_type():
-                {{#SEL_OUT_FIELDS}}m_{{SEL_OUT_FIELD_NAME}}({{SEL_OUT_FIELD_INIT}}){{SEL_OUT_FIELD_COMMA}}{{/SEL_OUT_FIELDS}}
+                {{#STMT_OUT_FIELDS}}m_{{STMT_OUT_FIELD_NAME}}({{STMT_OUT_FIELD_INIT}}){{STMT_OUT_FIELD_COMMA}}{{/STMT_OUT_FIELDS}}
                 {}
 
                 _row_type({{CLASSNAME}} *_parent)
                 {
-                    {{#SEL_OUT_FIELDS}}m_isNull{{SEL_OUT_FIELD_NAME}} = {{SEL_OUT_FIELD_ISNULL}};
-                    {{SEL_OUT_FIELD_GETVALUE}}{{/SEL_OUT_FIELDS}}
+                    {{#STMT_OUT_FIELDS}}m_isNull{{STMT_OUT_FIELD_NAME}} = {{STMT_OUT_FIELD_ISNULL}};
+                    {{STMT_OUT_FIELD_GETVALUE}}{{/STMT_OUT_FIELDS}}
                 }
 
-                {{#SEL_OUT_FIELDS}}{{SEL_OUT_FIELD_TYPE}} m_{{SEL_OUT_FIELD_NAME}};
-                bool m_isNull{{SEL_OUT_FIELD_NAME}};
-                {{/SEL_OUT_FIELDS}}
+                {{#STMT_OUT_FIELDS}}{{STMT_OUT_FIELD_TYPE}} m_{{STMT_OUT_FIELD_NAME}};
+                bool m_isNull{{STMT_OUT_FIELD_NAME}};
+                {{/STMT_OUT_FIELDS}}
             public:
-                {{#SEL_OUT_FIELDS}}
+                {{#STMT_OUT_FIELDS}}
                 /**
-                * {{SEL_OUT_FIELD_COMMENT}}
-                * @return {{SEL_OUT_FIELD_TYPE}}
+                * {{STMT_OUT_FIELD_COMMENT}}
+                * @return {{STMT_OUT_FIELD_TYPE}}
                 */
-                {{SEL_OUT_FIELD_TYPE}} get{{SEL_OUT_FIELD_NAME}}() const
+                {{STMT_OUT_FIELD_TYPE}} get{{STMT_OUT_FIELD_NAME}}() const
                 {
-                    return m_{{SEL_OUT_FIELD_NAME}};
+                    return m_{{STMT_OUT_FIELD_NAME}};
                 }
 
-                bool isNull{{SEL_OUT_FIELD_NAME}}() const
+                bool isNull{{STMT_OUT_FIELD_NAME}}() const
                 {
-                    return m_isNull{{SEL_OUT_FIELD_NAME}};
+                    return m_isNull{{STMT_OUT_FIELD_NAME}};
                 }
-                {{/SEL_OUT_FIELDS}}
+                {{/STMT_OUT_FIELDS}}
         };
 
-        typedef {{SEL_OUT_KEY_FIELD_TYPE}} key_type;
+        typedef {{STMT_OUT_KEY_FIELD_TYPE}} key_type;
         typedef shared_pointer<_row_type>::type row;
 
         class iterator
@@ -276,18 +276,18 @@ class {{CLASSNAME}}
             }
 
         public:
-            typedef {{SEL_OUT_KEY_FIELD_TYPE}} key_type;
+            typedef {{STMT_OUT_KEY_FIELD_TYPE}} key_type;
 
             const std::pair<key_type, row> operator*() const
             {
                 ASSERT_MSG( m_row, "Called operator* without parent/after end." );
-                return std::make_pair(m_row->get{{SEL_OUT_KEY_FIELD_NAME}}(), m_row);
+                return std::make_pair(m_row->get{{STMT_OUT_KEY_FIELD_NAME}}(), m_row);
             }
 
             const std::pair<key_type, row> operator->() const
             {
                 ASSERT_MSG( m_row, "Called operator-> without parent/after end." );
-                return std::make_pair(m_row->get{{SEL_OUT_KEY_FIELD_NAME}}(), m_row);
+                return std::make_pair(m_row->get{{STMT_OUT_KEY_FIELD_NAME}}(), m_row);
             }
         };
 
@@ -329,7 +329,7 @@ class {{CLASSNAME}}
         static const int                s_updateParamCount;
         {{DBENGINE_STATEMENT_TYPE}}     m_updateStmt;
     public:
-        void update({{#UPD_IN_FIELDS}}{{UPD_IN_FIELD_TYPE}} _{{UPD_IN_FIELD_NAME}}{{UPD_IN_FIELD_COMMA}}{{/UPD_IN_FIELDS}});
+        void update({{#STMT_IN_FIELDS}}{{STMT_IN_FIELD_TYPE}} _{{STMT_IN_FIELD_NAME}}{{STMT_IN_FIELD_COMMA}}{{/STMT_IN_FIELDS}});
 {{/UPDATE}}
 {{#INSERT}}
     private:
@@ -338,7 +338,7 @@ class {{CLASSNAME}}
         static const int                s_insertParamCount;
         {{DBENGINE_STATEMENT_TYPE}}     m_insertStmt;
     public:
-        void insert({{#INS_IN_FIELDS}}{{INS_IN_FIELD_TYPE}} _{{INS_IN_FIELD_NAME}}{{INS_IN_FIELD_COMMA}}{{/INS_IN_FIELDS}});
+        void insert({{#STMT_IN_FIELDS}}{{STMT_IN_FIELD_TYPE}} _{{STMT_IN_FIELD_NAME}}{{STMT_IN_FIELD_COMMA}}{{/STMT_IN_FIELDS}});
 {{/INSERT}}
 {{#DELETE}}
     private:
@@ -347,14 +347,14 @@ class {{CLASSNAME}}
         static const int                s_deleteParamCount;
         {{DBENGINE_STATEMENT_TYPE}}     m_deleteStmt;
     public:
-        void del({{#DEL_IN_FIELDS}}{{DEL_IN_FIELD_TYPE}} _{{DEL_IN_FIELD_NAME}}{{DEL_IN_FIELD_COMMA}}{{/DEL_IN_FIELDS}});
+        void del({{#STMT_IN_FIELDS}}{{STMT_IN_FIELD_TYPE}} _{{STMT_IN_FIELD_NAME}}{{STMT_IN_FIELD_COMMA}}{{/STMT_IN_FIELDS}});
 {{/DELETE}}
 {{#SPROC}}
     public:
-        {{#SPROC_HAS_PARAMS}}
-        {{CLASSNAME}}({{#SP_IN_FIELDS}}{{SP_IN_FIELD_TYPE}} _{{SP_IN_FIELD_NAME}},{{/SP_IN_FIELDS}}
+        {{#STMT_HAS_PARAMS}}
+        {{CLASSNAME}}({{#STMT_IN_FIELDS}}{{STMT_IN_FIELD_TYPE}} _{{STMT_IN_FIELD_NAME}},{{/STMT_IN_FIELDS}}
                         {{DBENGINE_CONNECTION_TYPE}} _conn);
-        {{/SPROC_HAS_PARAMS}}
+        {{/STMT_HAS_PARAMS}}
 
     private:
         static const char* const s_sprocSQL;
@@ -367,12 +367,12 @@ class {{CLASSNAME}}
 
         bool fetchRow();
 
-        {{#SP_IN_FIELDS_BUFFERS}}{{BUFFER_DECLARE}}
-        {{/SP_IN_FIELDS_BUFFERS}}
-        {{#SP_OUT_FIELDS_BUFFERS}}{{BUFFER_DECLARE}}
-        {{/SP_OUT_FIELDS_BUFFERS}}
+        {{#STMT_IN_FIELDS_BUFFERS}}{{BUFFER_DECLARE}}
+        {{/STMT_IN_FIELDS_BUFFERS}}
+        {{#STMT_OUT_FIELDS_BUFFERS}}{{BUFFER_DECLARE}}
+        {{/STMT_OUT_FIELDS_BUFFERS}}
     public:
-        void execute( {{#SP_IN_FIELDS}}{{SP_IN_FIELD_TYPE}} _{{SP_IN_FIELD_NAME}}{{SP_IN_FIELD_COMMA}}{{/SP_IN_FIELDS}} );
+        void execute( {{#STMT_IN_FIELDS}}{{STMT_IN_FIELD_TYPE}} _{{STMT_IN_FIELD_NAME}}{{STMT_IN_FIELD_COMMA}}{{/STMT_IN_FIELDS}} );
         void close();
 
         class _row_type
@@ -381,34 +381,34 @@ class {{CLASSNAME}}
 
             private:
                 _row_type():
-                {{#SP_OUT_FIELDS}}m_{{SP_OUT_FIELD_NAME}}({{SP_OUT_FIELD_INIT}}){{SP_OUT_FIELD_COMMA}}{{/SP_OUT_FIELDS}}
+                {{#STMT_OUT_FIELDS}}m_{{STMT_OUT_FIELD_NAME}}({{STMT_OUT_FIELD_INIT}}){{STMT_OUT_FIELD_COMMA}}{{/STMT_OUT_FIELDS}}
                 {}
 
                 _row_type({{CLASSNAME}} *_parent)
                 {
-                    {{#SP_OUT_FIELDS}}m_isNull{{SP_OUT_FIELD_NAME}} = {{SP_OUT_FIELD_ISNULL}};
-                    {{SP_OUT_FIELD_GETVALUE}}{{/SP_OUT_FIELDS}}
+                    {{#STMT_OUT_FIELDS}}m_isNull{{STMT_OUT_FIELD_NAME}} = {{STMT_OUT_FIELD_ISNULL}};
+                    {{STMT_OUT_FIELD_GETVALUE}}{{/STMT_OUT_FIELDS}}
                 }
 
-                {{#SP_OUT_FIELDS}}{{SP_OUT_FIELD_TYPE}} m_{{SP_OUT_FIELD_NAME}};
-                bool m_isNull{{SP_OUT_FIELD_NAME}};
-                {{/SP_OUT_FIELDS}}
+                {{#STMT_OUT_FIELDS}}{{STMT_OUT_FIELD_TYPE}} m_{{STMT_OUT_FIELD_NAME}};
+                bool m_isNull{{STMT_OUT_FIELD_NAME}};
+                {{/STMT_OUT_FIELDS}}
             public:
-                {{#SP_OUT_FIELDS}}
+                {{#STMT_OUT_FIELDS}}
                 /**
-                * {{SP_OUT_FIELD_COMMENT}}
-                * @return {{SP_OUT_FIELD_TYPE}}
+                * {{STMT_OUT_FIELD_COMMENT}}
+                * @return {{STMT_OUT_FIELD_TYPE}}
                 */
-                {{SP_OUT_FIELD_TYPE}} get{{SP_OUT_FIELD_NAME}}() const
+                {{STMT_OUT_FIELD_TYPE}} get{{STMT_OUT_FIELD_NAME}}() const
                 {
-                    return m_{{SP_OUT_FIELD_NAME}};
+                    return m_{{STMT_OUT_FIELD_NAME}};
                 }
 
-                bool isNull{{SP_OUT_FIELD_NAME}}() const
+                bool isNull{{STMT_OUT_FIELD_NAME}}() const
                 {
-                    return m_isNull{{SP_OUT_FIELD_NAME}};
+                    return m_isNull{{STMT_OUT_FIELD_NAME}};
                 }
-                {{/SP_OUT_FIELDS}}
+                {{/STMT_OUT_FIELDS}}
         };
 
         typedef shared_pointer<_row_type>::type row;
