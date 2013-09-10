@@ -47,13 +47,13 @@ class MySQLGenerator : public AbstractGenerator
         virtual bool   needIOBuffers() const;
 
         virtual void addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements);
-        virtual void addOutBuffers(SQLStatementTypes _type, const AbstractIOElements* _elements);
+        virtual void addOutBuffers(SQLStatementTypes _type, const AbstractElements* _elements);
 
     public:
         virtual void addInsert(InsertElements _elements);
         virtual void addSelect(SelectElements _elements);
         virtual void addUpdate(UpdateElements _elements);
-
+        virtual void addStoredProcedure(StoredProcedureElements _elements);
 };
 
 }

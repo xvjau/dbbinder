@@ -40,6 +40,7 @@
 #include "TinyXML/nvXML.h"
 
 #include <ctype.h>
+#include <apr-1/apr_poll.h>
 
 namespace DBBinder
 {
@@ -190,6 +191,33 @@ const char * const tpl_DBENGINE_DESTROY_DELETE = "DBENGINE_DESTROY_DELETE";
 const char * const tpl_DBENGINE_RESET_DELETE = "DBENGINE_RESET_DELETE";
 const char * const tpl_DBENGINE_EXECUTE_DELETE = "DBENGINE_EXECUTE_DELETE";
 
+const char * const tpl_SPROC = "SPROC";
+const char * const tpl_SPROC_SQL = "SPROC_SQL";
+const char * const tpl_SPROC_SQL_UNESCAPED = "SPROC_SQL_UNESCAPED";
+const char * const tpl_SPROC_SQL_LEN = "SPROC_SQL_LEN";
+const char * const tpl_SPROC_FIELD_COUNT = "SPROC_FIELD_COUNT";
+const char * const tpl_SPROC_PARAM_COUNT = "SPROC_PARAM_COUNT";
+
+const char * const tpl_SPROC_HAS_PARAMS = "SPROC_HAS_PARAMS";
+
+const char * const tpl_SP_IN_FIELDS = "SP_IN_FIELDS";
+const char * const tpl_SP_IN_FIELD_TYPE = "SP_IN_FIELD_TYPE";
+const char * const tpl_SP_IN_FIELD_NAME = "SP_IN_FIELD_NAME";
+const char * const tpl_SP_IN_FIELD_COMMA = "SP_IN_FIELD_COMMA";
+const char * const tpl_SP_IN_FIELD_INIT = "SP_IN_FIELD_INIT";
+const char * const tpl_SP_IN_FIELD_BIND = "SP_IN_FIELD_BIND";
+const char * const tpl_SP_IN_FIELDS_BUFFERS = "SP_IN_FIELDS_BUFFERS";
+
+const char * const tpl_SP_OUT_FIELDS = "SP_OUT_FIELDS";
+const char * const tpl_SP_OUT_FIELD_TYPE = "SP_OUT_FIELD_TYPE";
+const char * const tpl_SP_OUT_FIELD_NAME = "SP_OUT_FIELD_NAME";
+const char * const tpl_SP_OUT_FIELD_COMMA = "SP_OUT_FIELD_COMMA";
+const char * const tpl_SP_OUT_FIELD_INIT = "SP_OUT_FIELD_INIT";
+const char * const tpl_SP_OUT_FIELD_GETVALUE = "SP_OUT_FIELD_GETVALUE";
+const char * const tpl_SP_OUT_FIELD_ISNULL = "SP_OUT_FIELD_ISNULL";
+const char * const tpl_SP_OUT_FIELDS_BUFFERS = "SP_OUT_FIELDS_BUFFERS";
+const char * const tpl_SP_OUT_FIELD_COMMENT = "SP_OUT_FIELD_COMMENT";
+
 SQLTypes typeNameToSQLType(std::string _name)
 {
     if ( _name.length() )
@@ -265,7 +293,7 @@ std::string sqlTypeToName(SQLTypes _type)
 #define __typeToString(TYPE) case TYPE: return # TYPE ;
     switch(_type)
     {
-        __typeToString(stUnknown);
+        __typeToString(stUnknown);       
         __typeToString(stInt);
         __typeToString(stInt64);
         __typeToString(stUInt);
@@ -280,7 +308,10 @@ std::string sqlTypeToName(SQLTypes _type)
         __typeToString(stText);
         __typeToString(stBlob);
     }
-#undef __typeToString(TYPE)
+#undef __typeToString
+
+    WARNING("unknown param type: " << _type);
+    return std::string("stUnknown");
 }
 
 AbstractGenerator* AbstractGenerator::s_generator = 0;
@@ -561,6 +592,19 @@ void AbstractGenerator::addDelete(DeleteElements _elements)
         params.reset( new _classParams );
 
     params->del = _elements;
+    m_classParams[ name ] = params;
+}
+
+void AbstractGenerator::addStoredProcedure(StoredProcedureElements _elements)
+{
+    std::string name = stringToLower( _elements.name );
+
+    _classParamsPtr params = m_classParams[ name ];
+
+    if ( !params )
+        params.reset( new _classParams );
+
+    params->stoProc = _elements;
     m_classParams[ name ] = params;
 }
 
@@ -1132,6 +1176,153 @@ bool AbstractGenerator::loadYAMLTemplate(const std::string & _path)
     DBBinder::optDepends.push_back( _path );
 }
 
+// Helper just so we don't have to put a * on each invididual case.
+typedef const char* CCPtr;
+
+struct TemplateFieldMap
+{
+    CCPtr
+        section,
+        sql, sqlLen, sqlUnescaped,
+        paramCount, fieldCount,
+        hasParams,
+        inFields, inFieldsType, inFieldsName, inFieldsComma, inFieldsInit, inFieldsBind,
+        outFields, outFieldsType, outFieldsName, outFieldsComma, outFieldsInit, outFieldsGetValue, outFieldsIsNull, outFieldsComment,
+        outFieldsKeyName, outFieldsKeyType
+    ;
+};
+
+static CCPtr
+    tpl_INSERT_HAS_PARAMS = NULL,
+    tpl_INS_OUT_FIELDS = NULL, tpl_INS_OUT_FIELD_TYPE = NULL, tpl_INS_OUT_FIELD_NAME = NULL, tpl_INS_OUT_FIELD_COMMA = NULL, tpl_INS_OUT_FIELD_INIT = NULL, tpl_INS_OUT_FIELD_GETVALUE = NULL, tpl_INS_OUT_FIELD_ISNULL = NULL, tpl_INS_OUT_FIELD_COMMENT = NULL,
+    tpl_INS_OUT_KEY_FIELD_NAME = NULL, tpl_INS_OUT_KEY_FIELD_TYPE = NULL,
+    tpl_UPDATE_HAS_PARAMS = NULL,
+    tpl_UPD_OUT_FIELDS = NULL, tpl_UPD_OUT_FIELD_TYPE = NULL, tpl_UPD_OUT_FIELD_NAME = NULL, tpl_UPD_OUT_FIELD_COMMA = NULL, tpl_UPD_OUT_FIELD_INIT = NULL, tpl_UPD_OUT_FIELD_GETVALUE = NULL, tpl_UPD_OUT_FIELD_ISNULL = NULL, tpl_UPD_OUT_FIELD_COMMENT = NULL,
+    tpl_UPD_OUT_KEY_FIELD_NAME = NULL, tpl_UPD_OUT_KEY_FIELD_TYPE = NULL,
+    tpl_DELETE_HAS_PARAMS = NULL,
+    tpl_DEL_OUT_FIELDS = NULL, tpl_DEL_OUT_FIELD_TYPE = NULL, tpl_DEL_OUT_FIELD_NAME = NULL, tpl_DEL_OUT_FIELD_COMMA = NULL, tpl_DEL_OUT_FIELD_INIT = NULL, tpl_DEL_OUT_FIELD_GETVALUE = NULL, tpl_DEL_OUT_FIELD_ISNULL = NULL, tpl_DEL_OUT_FIELD_COMMENT = NULL,
+    tpl_DEL_OUT_KEY_FIELD_NAME = NULL, tpl_DEL_OUT_KEY_FIELD_TYPE = NULL,
+    tpl_SP_OUT_KEY_FIELD_NAME = NULL, tpl_SP_OUT_KEY_FIELD_TYPE = NULL;
+
+static TemplateFieldMap 
+    selectFieldMap = 
+    {
+        tpl_SELECT, 
+        tpl_SELECT_SQL, tpl_SELECT_SQL_LEN, tpl_SELECT_SQL_UNESCAPED,
+        tpl_SELECT_PARAM_COUNT, tpl_SELECT_FIELD_COUNT,
+        tpl_SELECT_HAS_PARAMS,
+        tpl_SEL_IN_FIELDS, tpl_SEL_IN_FIELD_TYPE, tpl_SEL_IN_FIELD_NAME, tpl_SEL_IN_FIELD_COMMA, tpl_SEL_IN_FIELD_INIT, tpl_SEL_IN_FIELD_BIND,
+        tpl_SEL_OUT_FIELDS, tpl_SEL_OUT_FIELD_TYPE, tpl_SEL_OUT_FIELD_NAME, tpl_SEL_OUT_FIELD_COMMA, tpl_SEL_OUT_FIELD_INIT, tpl_SEL_OUT_FIELD_GETVALUE, tpl_SEL_OUT_FIELD_ISNULL, tpl_SEL_OUT_FIELD_COMMENT,
+        tpl_SEL_OUT_KEY_FIELD_NAME, tpl_SEL_OUT_KEY_FIELD_TYPE
+    },
+    insertFieldMap = 
+    {
+        tpl_INSERT, 
+        tpl_INSERT_SQL, tpl_INSERT_SQL_LEN, tpl_INSERT_SQL_UNESCAPED,
+        tpl_INSERT_PARAM_COUNT, tpl_INSERT_FIELD_COUNT,
+        tpl_INSERT_HAS_PARAMS,
+        tpl_INS_IN_FIELDS, tpl_INS_IN_FIELD_TYPE, tpl_INS_IN_FIELD_NAME, tpl_INS_IN_FIELD_COMMA, tpl_INS_IN_FIELD_INIT, tpl_INS_IN_FIELD_BIND,
+        tpl_INS_OUT_FIELDS, tpl_INS_OUT_FIELD_TYPE, tpl_INS_OUT_FIELD_NAME, tpl_INS_OUT_FIELD_COMMA, tpl_INS_OUT_FIELD_INIT, tpl_INS_OUT_FIELD_GETVALUE, tpl_INS_OUT_FIELD_ISNULL, tpl_INS_OUT_FIELD_COMMENT,
+        tpl_INS_OUT_KEY_FIELD_NAME, tpl_INS_OUT_KEY_FIELD_TYPE
+    },
+    updateFieldMap = 
+    {
+        tpl_UPDATE, 
+        tpl_UPDATE_SQL, tpl_UPDATE_SQL_LEN, tpl_UPDATE_SQL_UNESCAPED,
+        tpl_UPDATE_PARAM_COUNT, tpl_UPDATE_FIELD_COUNT,
+        tpl_UPDATE_HAS_PARAMS,
+        tpl_UPD_IN_FIELDS, tpl_UPD_IN_FIELD_TYPE, tpl_UPD_IN_FIELD_NAME, tpl_UPD_IN_FIELD_COMMA, tpl_UPD_IN_FIELD_INIT, tpl_UPD_IN_FIELD_BIND,
+        tpl_UPD_OUT_FIELDS, tpl_UPD_OUT_FIELD_TYPE, tpl_UPD_OUT_FIELD_NAME, tpl_UPD_OUT_FIELD_COMMA, tpl_UPD_OUT_FIELD_INIT, tpl_UPD_OUT_FIELD_GETVALUE, tpl_UPD_OUT_FIELD_ISNULL, tpl_UPD_OUT_FIELD_COMMENT,
+        tpl_UPD_OUT_KEY_FIELD_NAME, tpl_UPD_OUT_KEY_FIELD_TYPE
+    },
+    deleteFieldMap = 
+    {
+        tpl_DELETE, 
+        tpl_DELETE_SQL, tpl_DELETE_SQL_LEN, tpl_DELETE_SQL_UNESCAPED,
+        tpl_DELETE_PARAM_COUNT, tpl_DELETE_FIELD_COUNT,
+        tpl_DELETE_HAS_PARAMS,
+        tpl_DEL_IN_FIELDS, tpl_DEL_IN_FIELD_TYPE, tpl_DEL_IN_FIELD_NAME, tpl_DEL_IN_FIELD_COMMA, tpl_DEL_IN_FIELD_INIT, tpl_DEL_IN_FIELD_BIND,
+        tpl_DEL_OUT_FIELDS, tpl_DEL_OUT_FIELD_TYPE, tpl_DEL_OUT_FIELD_NAME, tpl_DEL_OUT_FIELD_COMMA, tpl_DEL_OUT_FIELD_INIT, tpl_DEL_OUT_FIELD_GETVALUE, tpl_DEL_OUT_FIELD_ISNULL, tpl_DEL_OUT_FIELD_COMMENT,
+        tpl_DEL_OUT_KEY_FIELD_NAME, tpl_DEL_OUT_KEY_FIELD_TYPE
+    },
+    storedProcedureFieldMap = 
+    {
+        tpl_SPROC, 
+        tpl_SPROC_SQL, tpl_SPROC_SQL_LEN, tpl_SPROC_SQL_UNESCAPED,
+        tpl_SPROC_PARAM_COUNT, tpl_SPROC_FIELD_COUNT,
+        tpl_SPROC_HAS_PARAMS,
+        tpl_SP_IN_FIELDS, tpl_SP_IN_FIELD_TYPE, tpl_SP_IN_FIELD_NAME, tpl_SP_IN_FIELD_COMMA, tpl_SP_IN_FIELD_INIT, tpl_SP_IN_FIELD_BIND,
+        tpl_SP_OUT_FIELDS, tpl_SP_OUT_FIELD_TYPE, tpl_SP_OUT_FIELD_NAME, tpl_SP_OUT_FIELD_COMMA, tpl_SP_OUT_FIELD_INIT, tpl_SP_OUT_FIELD_GETVALUE, tpl_SP_OUT_FIELD_ISNULL, tpl_SP_OUT_FIELD_COMMENT,
+        tpl_SP_OUT_KEY_FIELD_NAME, tpl_SP_OUT_KEY_FIELD_TYPE
+    };
+
+void AbstractGenerator::setDictionaryElements(const TemplateFieldMap *_map, TemplateDictionary *_classDict, AbstractElements *_elements, SQLElement *_keyField)
+{
+    TemplateDictionary *subDict;
+    std::string str;
+
+    _classDict->SetValue(tpl_CLASSNAME, _elements->name);
+    _classDict->ShowSection(_map->section);
+
+    str = std::string("\"") + cescape(_elements->sql) + std::string("\"");
+    _classDict->SetValue(_map->sql, str);
+    _classDict->SetIntValue(_map->sqlLen, _elements->sql.length());
+    _classDict->SetIntValue(_map->paramCount, _elements->input.size());
+    _classDict->SetIntValue(_map->fieldCount, _elements->output.size());
+    _classDict->SetValue(_map->sqlUnescaped, _elements->sql);
+
+    int index = 0;
+    subDict = 0;
+    ListElements::iterator elit;
+
+    if (_elements->input.size())
+    {
+        if (_map->hasParams)
+            _classDict->ShowSection(_map->hasParams);
+
+        for (elit = _elements->input.begin(); elit != _elements->input.end(); ++elit, ++index)
+        {
+            subDict = _classDict->AddSectionDictionary(_map->inFields);
+            subDict->SetValue(_map->inFieldsType, getType(elit->type));
+            subDict->SetValue(_map->inFieldsName, elit->name);
+            subDict->SetValue(_map->inFieldsComma, ",");
+            subDict->SetValue(_map->inFieldsInit, getInit(elit->type));
+            subDict->SetValue(_map->inFieldsBind, getBind(sstSelect, elit, index));
+        }
+
+        if (subDict)
+            subDict->SetValue(_map->inFieldsComma, "");
+    }
+
+    index = 0;
+    subDict = 0;
+
+    if (_elements->output.size())
+    {
+        for (elit = _elements->output.begin(); elit != _elements->output.end(); ++elit, ++index)
+        {
+            subDict = _classDict->AddSectionDictionary(_map->outFields);
+            subDict->SetValue(_map->outFieldsType, getType(elit->type));
+            subDict->SetValue(_map->outFieldsName, elit->name);
+            subDict->SetValue(_map->outFieldsComma, ",");
+            subDict->SetValue(_map->outFieldsInit, getInit(elit->type));
+            subDict->SetValue(_map->outFieldsGetValue, getReadValue(sstSelect, elit, index));
+            subDict->SetValue(_map->outFieldsIsNull, getIsNull(sstSelect, elit, index));
+            subDict->SetValue(_map->outFieldsComment, elit->comment);
+        }
+
+        if (subDict)
+            subDict->SetValue(_map->outFieldsComma, "");
+    }
+
+    if (_keyField)
+    {
+        _classDict->SetValue(_map->outFieldsKeyName, _keyField->name);
+        _classDict->SetValue(_map->outFieldsKeyType, getType(_keyField->type));
+    }
+}
+
+
 void AbstractGenerator::loadDictionary()
 {
     std::string str;
@@ -1156,7 +1347,7 @@ void AbstractGenerator::loadDictionary()
     foreach(str, m_headers)
         m_dict->SetValueAndShowSection(tpl_EXTRA_HEADERS_HEADER, str, tpl_EXTRA_HEADERS);
 
-    TemplateDictionary *classDict, *subDict;
+    TemplateDictionary *classDict;
     classParams::iterator it;
     for(it = m_classParams.begin(); it != m_classParams.end(); ++it)
     {
@@ -1165,160 +1356,57 @@ void AbstractGenerator::loadDictionary()
         // ----- SELECT -----
         if ( !(it->second->select.sql.empty() ))
         {
-            classDict->SetValue(tpl_CLASSNAME, it->second->select.name);
-            classDict->ShowSection(tpl_SELECT);
-
-            str = std::string("\"") + cescape(it->second->select.sql) + std::string("\"");
-            classDict->SetValue( tpl_SELECT_SQL, str );
-            classDict->SetIntValue( tpl_SELECT_SQL_LEN, it->second->select.sql.length() );
-            classDict->SetIntValue( tpl_SELECT_PARAM_COUNT, it->second->select.input.size() );
-            classDict->SetIntValue( tpl_SELECT_FIELD_COUNT, it->second->select.output.size() );
-            classDict->SetValue( tpl_SELECT_SQL_UNESCAPED, it->second->select.sql );
-
-            int index = 0;
-            subDict = 0;
-            ListElements::iterator elit;
-
-            if ( it->second->select.input.size() )
+            SelectElements *elements = &it->second->select;
+            SQLElement *keyField = &elements->output.at(elements->keyField);
+            setDictionaryElements(&selectFieldMap, classDict, elements, keyField);
+            
+            if (needIOBuffers())
             {
-                classDict->ShowSection( tpl_SELECT_HAS_PARAMS );
-
-                for(elit = it->second->select.input.begin(); elit != it->second->select.input.end(); ++elit, ++index)
-                {
-                    subDict = classDict->AddSectionDictionary(tpl_SEL_IN_FIELDS);
-                    subDict->SetValue( tpl_SEL_IN_FIELD_TYPE, getType( elit->type ));
-                    subDict->SetValue( tpl_SEL_IN_FIELD_NAME, elit->name );
-                    subDict->SetValue( tpl_SEL_IN_FIELD_COMMA, "," );
-                    subDict->SetValue( tpl_SEL_IN_FIELD_INIT, getInit( elit->type ));
-                    subDict->SetValue( tpl_SEL_IN_FIELD_BIND, getBind( sstSelect, elit, index ));
-                }
-                if ( subDict )
-                    subDict->SetValue( tpl_SEL_IN_FIELD_COMMA, "" );
-            }
-
-            index = 0;
-            subDict = 0;
-            for(elit = it->second->select.output.begin(); elit != it->second->select.output.end(); ++elit, ++index)
-            {
-                subDict = classDict->AddSectionDictionary(tpl_SEL_OUT_FIELDS);
-                subDict->SetValue( tpl_SEL_OUT_FIELD_TYPE, getType( elit->type ));
-                subDict->SetValue( tpl_SEL_OUT_FIELD_NAME, elit->name );
-                subDict->SetValue( tpl_SEL_OUT_FIELD_COMMA, "," );
-                subDict->SetValue( tpl_SEL_OUT_FIELD_INIT, getInit( elit->type ));
-                subDict->SetValue( tpl_SEL_OUT_FIELD_GETVALUE, getReadValue( sstSelect, elit, index ));
-                subDict->SetValue( tpl_SEL_OUT_FIELD_ISNULL, getIsNull( sstSelect, elit, index ));
-                subDict->SetValue( tpl_SEL_OUT_FIELD_COMMENT, elit->comment );
-            }
-            if ( subDict )
-                subDict->SetValue( tpl_SEL_OUT_FIELD_COMMA, "" );
-
-            DBBinder::SQLElement &keyField = it->second->select.output.at(it->second->select.keyField);
-            classDict->SetValue( tpl_SEL_OUT_KEY_FIELD_NAME, keyField.name );
-            classDict->SetValue( tpl_SEL_OUT_KEY_FIELD_TYPE, getType( keyField.type ));
-
-            if ( needIOBuffers() )
-            {
-                addInBuffers( sstSelect, &it->second->select );
-                addOutBuffers( sstSelect, &it->second->select );
+                addInBuffers(sstSelect, elements);
+                addOutBuffers(sstSelect, elements);
             }
         }
-
-        // ----- UPDATE -----
-        if ( !(it->second->update.sql.empty() ))
-        {
-            classDict->SetValue(tpl_CLASSNAME, it->second->update.name);
-            classDict->ShowSection(tpl_UPDATE);
-
-            str = std::string("\"") + cescape(it->second->update.sql) + std::string("\"");
-            classDict->SetValue( tpl_UPDATE_SQL, str );
-            classDict->SetIntValue( tpl_UPDATE_SQL_LEN, it->second->update.sql.length() );
-            classDict->SetIntValue( tpl_UPDATE_PARAM_COUNT, it->second->update.input.size() );
-            classDict->SetValue( tpl_UPDATE_SQL_UNESCAPED, it->second->update.sql );
-
-            int index = 0;
-            subDict = 0;
-            ListElements::iterator elit;
-            for(elit = it->second->update.input.begin(); elit != it->second->update.input.end(); ++elit, ++index)
-            {
-                subDict = classDict->AddSectionDictionary(tpl_UPD_IN_FIELDS);
-                subDict->SetValue( tpl_UPD_IN_FIELD_TYPE, getType( elit->type ));
-                subDict->SetValue( tpl_UPD_IN_FIELD_NAME, elit->name );
-                subDict->SetValue( tpl_UPD_IN_FIELD_COMMA, "," );
-                subDict->SetValue( tpl_UPD_IN_FIELD_INIT, getInit( elit->type ));
-                subDict->SetValue( tpl_UPD_IN_FIELD_BIND, getBind( sstUpdate, elit, index ));
-            }
-            if ( subDict )
-                subDict->SetValue( tpl_UPD_IN_FIELD_COMMA, "" );
-
-            if ( needIOBuffers() )
-            {
-                addInBuffers( sstUpdate, &it->second->update );
-            }
-        }
-
+        
         // ----- INSERT -----
         if ( !(it->second->insert.sql.empty() ))
         {
-            classDict->SetValue(tpl_CLASSNAME, it->second->insert.name);
-            classDict->ShowSection(tpl_INSERT);
-
-            str = std::string("\"") + cescape(it->second->insert.sql) + std::string("\"");
-            classDict->SetValue( tpl_INSERT_SQL, str );
-            classDict->SetIntValue( tpl_INSERT_SQL_LEN, it->second->insert.sql.length() );
-            classDict->SetIntValue( tpl_INSERT_PARAM_COUNT, it->second->insert.input.size() );
-            classDict->SetValue( tpl_INSERT_SQL_UNESCAPED, it->second->insert.sql );
-
-            int index = 0;
-            subDict = 0;
-            ListElements::iterator elit;
-            for(elit = it->second->insert.input.begin(); elit != it->second->insert.input.end(); ++elit, ++index)
-            {
-                subDict = classDict->AddSectionDictionary(tpl_INS_IN_FIELDS);
-                subDict->SetValue( tpl_INS_IN_FIELD_TYPE, getType( elit->type ));
-                subDict->SetValue( tpl_INS_IN_FIELD_NAME, elit->name );
-                subDict->SetValue( tpl_INS_IN_FIELD_COMMA, "," );
-                subDict->SetValue( tpl_INS_IN_FIELD_INIT, getInit( elit->type ));
-                subDict->SetValue( tpl_INS_IN_FIELD_BIND, getBind( sstInsert, elit, index ));
-            }
-            if ( subDict )
-                subDict->SetValue( tpl_INS_IN_FIELD_COMMA, "" );
-
-            if ( needIOBuffers() )
-            {
-                addInBuffers( sstInsert, &it->second->insert );
-            }
+            AbstractElements *elements = &it->second->insert;
+            setDictionaryElements(&insertFieldMap, classDict, elements, NULL);
+            
+            if (needIOBuffers())
+                addInBuffers(sstInsert, elements);
         }
-
+        
+        // ----- UPDATE -----
+        if ( !(it->second->update.sql.empty() ))
+        {
+            AbstractElements *elements = &it->second->update;
+            setDictionaryElements(&updateFieldMap, classDict, elements, NULL);
+            
+            if (needIOBuffers())
+                addInBuffers(sstUpdate, elements);
+        }
+        
         // ----- DELETE -----
         if ( !(it->second->del.sql.empty() ))
         {
-            classDict->SetValue(tpl_CLASSNAME, it->second->del.name);
-            classDict->ShowSection(tpl_DELETE);
-
-            str = std::string("\"") + cescape(it->second->del.sql) + std::string("\"");
-            classDict->SetValue( tpl_DELETE_SQL, str );
-            classDict->SetIntValue( tpl_DELETE_SQL_LEN, it->second->del.sql.length() );
-            classDict->SetIntValue( tpl_DELETE_PARAM_COUNT, it->second->del.input.size() );
-            classDict->SetValue( tpl_DELETE_SQL_UNESCAPED, it->second->del.sql );
-
-            int index = 0;
-            subDict = 0;
-            ListElements::iterator elit;
-            for(elit = it->second->del.input.begin(); elit != it->second->del.input.end(); ++elit, ++index)
+            AbstractElements *elements = &it->second->del;
+            setDictionaryElements(&deleteFieldMap, classDict, elements, NULL);
+            
+            if (needIOBuffers())
+                addInBuffers(sstDelete, elements);
+        }
+        
+        // ----- STORED PROCEDURE -----
+        if ( !(it->second->stoProc.sql.empty() ))
+        {
+            SelectElements *elements = &it->second->stoProc;
+            setDictionaryElements(&storedProcedureFieldMap, classDict, elements, NULL);
+            
+            if (needIOBuffers())
             {
-                subDict = classDict->AddSectionDictionary(tpl_DEL_IN_FIELDS);
-                subDict->SetValue( tpl_DEL_IN_FIELD_TYPE, getType( elit->type ));
-                subDict->SetValue( tpl_DEL_IN_FIELD_NAME, elit->name );
-                subDict->SetValue( tpl_DEL_IN_FIELD_COMMA, "," );
-                subDict->SetValue( tpl_DEL_IN_FIELD_INIT, getInit( elit->type ));
-                subDict->SetValue( tpl_DEL_IN_FIELD_BIND, getBind( sstDelete, elit, index ));
-            }
-            if ( subDict )
-                subDict->SetValue( tpl_DEL_IN_FIELD_COMMA, "" );
-
-            if ( needIOBuffers() )
-            {
-                addInBuffers( sstDelete, &it->second->del );
+                addInBuffers(sstStoredProcedure, elements);
+                addOutBuffers(sstStoredProcedure, elements);
             }
         }
     }
@@ -1329,11 +1417,11 @@ bool AbstractGenerator::needIOBuffers() const
     return false;
 }
 
-void AbstractGenerator::addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements)
+void AbstractGenerator::addInBuffers(SQLStatementTypes /*_type*/, const AbstractElements* /*_elements*/)
 {
 }
 
-void AbstractGenerator::addOutBuffers(SQLStatementTypes _type, const AbstractIOElements* _elements)
+void AbstractGenerator::addOutBuffers(SQLStatementTypes /*_type*/, const AbstractElements* /*_elements*/)
 {
 }
 

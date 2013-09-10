@@ -127,8 +127,6 @@ void parseSQL(const std::string& _fileName)
 
             line = 0;
             
-            bool inComments = false;
-
             while ( file.good() )
             {
                 file.getline(buffer, 4096);
@@ -161,6 +159,11 @@ void parseSQL(const std::string& _fileName)
                             {
                                 elements = new DeleteElements;
                                 statementType = sstDelete;
+                            }
+                            else if ( strncasecmp( c, "call", 4 ) == 0 && ( !c[4] || isspace( c[4] )))
+                            {
+                                elements = new StoredProcedureElements;
+                                statementType = sstStoredProcedure;
                             }
                             else
                             {
@@ -289,6 +292,7 @@ void parseSQL(const std::string& _fileName)
             case sstSelect:
                 generator->addSelect( *static_cast<SelectElements*>( elements ));
                 break;
+                break;
             case sstInsert:
                 generator->addInsert( *static_cast<InsertElements*>( elements ));
                 break;
@@ -297,6 +301,9 @@ void parseSQL(const std::string& _fileName)
                 break;
             case sstDelete:
                 generator->addDelete( *static_cast<DeleteElements*>( elements ));
+                break;
+            case sstStoredProcedure:
+                generator->addStoredProcedure( *static_cast<StoredProcedureElements*>( elements ));
                 break;
             default:
                 FATAL("Unknwon statement type.");

@@ -298,7 +298,7 @@ bool PostgreSQLGenerator::checkConnection()
     return m_connected;
 }
 
-std::string PostgreSQLGenerator::getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
+std::string PostgreSQLGenerator::getBind(SQLStatementTypes /*_type*/, const ListElements::iterator& _item, int _index)
 {
     std::stringstream str;
 
@@ -376,7 +376,7 @@ std::string PostgreSQLGenerator::getReadValue(SQLStatementTypes _type, const Lis
     return str.str();
 }
 
-std::string PostgreSQLGenerator::getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
+std::string PostgreSQLGenerator::getIsNull(SQLStatementTypes _type, const ListElements::iterator& /*_item*/, int _index)
 {
     std::stringstream str;
     str << "(PQgetisnull(_parent->m_" << getStmtType(_type) << "Stmt.get(), _parent->m_rowNum, " << _index << "))";
@@ -454,7 +454,7 @@ void PostgreSQLGenerator::addInBuffers(SQLStatementTypes _type, const AbstractEl
     }
 }
 
-void PostgreSQLGenerator::addOutBuffers(SQLStatementTypes _type, const AbstractIOElements* _elements)
+void PostgreSQLGenerator::addOutBuffers(SQLStatementTypes /*_type*/, const AbstractElements* /*_elements*/)
 {
     TemplateDictionary *subDict;
     subDict = m_dict->AddSectionDictionary(tpl_SEL_OUT_FIELDS_BUFFERS);

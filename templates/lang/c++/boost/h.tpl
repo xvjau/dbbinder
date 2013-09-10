@@ -349,6 +349,176 @@ class {{CLASSNAME}}
     public:
         void del({{#DEL_IN_FIELDS}}{{DEL_IN_FIELD_TYPE}} _{{DEL_IN_FIELD_NAME}}{{DEL_IN_FIELD_COMMA}}{{/DEL_IN_FIELDS}});
 {{/DELETE}}
+{{#SPROC}}
+    public:
+        {{#SPROC_HAS_PARAMS}}
+        {{CLASSNAME}}({{#SP_IN_FIELDS}}{{SP_IN_FIELD_TYPE}} _{{SP_IN_FIELD_NAME}},{{/SP_IN_FIELDS}}
+                        {{DBENGINE_CONNECTION_TYPE}} _conn);
+        {{/SPROC_HAS_PARAMS}}
+
+    private:
+        static const char* const s_sprocSQL;
+        static const int         s_sprocSQL_len;
+        static const int         s_sprocFieldCount;
+        static const int         s_sprocParamCount;
+
+        {{DBENGINE_STATEMENT_TYPE}} m_sprocStmt;
+        bool                        m_sprocIsActive;
+
+        bool fetchRow();
+
+        {{#SP_IN_FIELDS_BUFFERS}}{{BUFFER_DECLARE}}
+        {{/SP_IN_FIELDS_BUFFERS}}
+        {{#SP_OUT_FIELDS_BUFFERS}}{{BUFFER_DECLARE}}
+        {{/SP_OUT_FIELDS_BUFFERS}}
+    public:
+        void execute( {{#SP_IN_FIELDS}}{{SP_IN_FIELD_TYPE}} _{{SP_IN_FIELD_NAME}}{{SP_IN_FIELD_COMMA}}{{/SP_IN_FIELDS}} );
+        void close();
+
+        class _row_type
+        {
+            friend class {{CLASSNAME}};
+
+            private:
+                _row_type():
+                {{#SP_OUT_FIELDS}}m_{{SP_OUT_FIELD_NAME}}({{SP_OUT_FIELD_INIT}}){{SP_OUT_FIELD_COMMA}}{{/SP_OUT_FIELDS}}
+                {}
+
+                _row_type({{CLASSNAME}} *_parent)
+                {
+                    {{#SP_OUT_FIELDS}}m_isNull{{SP_OUT_FIELD_NAME}} = {{SP_OUT_FIELD_ISNULL}};
+                    {{SP_OUT_FIELD_GETVALUE}}{{/SP_OUT_FIELDS}}
+                }
+
+                {{#SP_OUT_FIELDS}}{{SP_OUT_FIELD_TYPE}} m_{{SP_OUT_FIELD_NAME}};
+                bool m_isNull{{SP_OUT_FIELD_NAME}};
+                {{/SP_OUT_FIELDS}}
+            public:
+                {{#SP_OUT_FIELDS}}
+                /**
+                * {{SP_OUT_FIELD_COMMENT}}
+                * @return {{SP_OUT_FIELD_TYPE}}
+                */
+                {{SP_OUT_FIELD_TYPE}} get{{SP_OUT_FIELD_NAME}}() const
+                {
+                    return m_{{SP_OUT_FIELD_NAME}};
+                }
+
+                bool isNull{{SP_OUT_FIELD_NAME}}() const
+                {
+                    return m_isNull{{SP_OUT_FIELD_NAME}};
+                }
+                {{/SP_OUT_FIELDS}}
+        };
+
+        typedef shared_pointer<_row_type>::type row;
+
+        class iterator
+        {
+            public:
+                iterator():
+                    m_parent(NULL)
+                {}
+
+                iterator({{CLASSNAME}}* _parent):
+                    m_parent( _parent ),
+                    m_row( _parent->m_currentRow )
+                {}
+
+                iterator(const iterator& other):
+                    m_parent( other.m_parent ),
+                    m_row( other.m_row )
+                {}
+
+                void operator=(const iterator& other)
+                {
+                    m_row = other.m_row;
+                    m_parent = other.m_parent;
+                }
+
+            protected:
+                {{CLASSNAME}}* m_parent;
+                {{CLASSNAME}}::row m_row;
+
+                void inc()
+                {
+                    m_parent->fetchRow();
+                    m_row = m_parent->m_currentRow;
+                }
+            public:
+                const row& operator*() const
+                {
+                    ASSERT_MSG( m_row, "Called operator* without parent/after end." );
+                    return m_row;
+                }
+
+                const row& operator->() const
+                {
+                    ASSERT_MSG( m_row, "Called operator-> without parent/after end." );
+                    return m_row;
+                }
+
+                iterator& operator++() // this++
+                {
+
+                    ASSERT_MSG( m_row, "Called operator++ without parent/after end." );
+                    inc();
+                    return *this;
+                }
+
+                iterator operator++(int) // ++this
+                {
+                    ASSERT_MSG( m_row, "Called ++operator without parent/after end." );
+                    iterator result(*this);
+                    inc();
+                    return result;
+                }
+
+                bool operator==(const iterator& _other) const
+                {
+                    return m_row == _other.m_row;
+                }
+
+                bool operator!=(const iterator& _other) const
+                {
+                    return m_row != _other.m_row;
+                }
+
+                typedef std::input_iterator_tag iterator_category;
+                typedef row value_type;
+                typedef bool difference_type;
+                typedef _row_type* pointer;
+                typedef row reference;
+        };
+        typedef iterator const_iterator;
+
+        iterator& begin();
+        iterator& end()
+        {
+            return s_endIterator;
+        }
+
+        bool empty()
+        {
+            return begin() == end();
+        }
+
+        std::vector<row> fetchAll()
+        {
+            return fetchAll< std::vector<row> >();
+        }
+
+        template<typename T>
+        T fetchAll()
+        {
+            return T(begin(), end());
+        }
+
+    private:
+        row             m_currentRow;
+        iterator        *m_iterator;
+        static iterator s_endIterator;
+{{/SPROC}}
 };
 {{/CLASS}}
 

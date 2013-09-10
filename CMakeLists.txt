@@ -12,7 +12,7 @@ endif()
 
 project(dbbinder)
 
-add_definitions(-fvisibility=hidden -Wall -Wno-parentheses)
+add_definitions(-fvisibility=hidden -Wall -Wextra -Wno-parentheses)
 
 if(APPLE)
     add_definitions(-m64)

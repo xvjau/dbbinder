@@ -197,7 +197,7 @@ std::string SQLiteGenerator::getReadValue( SQLStatementTypes _type, const ListEl
     return str.str();
 }
 
-std::string SQLiteGenerator::getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index)
+std::string SQLiteGenerator::getIsNull(SQLStatementTypes /*_type*/, const ListElements::iterator& /*_item*/, int _index)
 {
     // TODO Abstract this
     std::stringstream str;

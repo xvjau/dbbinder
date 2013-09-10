@@ -48,7 +48,7 @@ protected:
     virtual bool   needIOBuffers() const;
 
     virtual void addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements);
-    virtual void addOutBuffers(SQLStatementTypes _type, const AbstractIOElements* _elements);
+    virtual void addOutBuffers(SQLStatementTypes _type, const AbstractElements* _elements);
 };
 
 }

@@ -54,6 +54,7 @@ enum SQLStatementTypes
     sstInsert,
     sstUpdate,
     sstDelete,
+    sstStoredProcedure,
 };
 
 struct SQLElement
@@ -87,18 +88,14 @@ struct AbstractElements
     std::string         sql;
     Location            sql_location;
     ListElements        input;
+    ListElements        output;
     SQLStatementTypes   type;
 };
 
-struct AbstractIOElements: public AbstractElements
-{
-    ListElements        output;
-};
-
-struct SelectElements: public AbstractIOElements
+struct SelectElements: public AbstractElements
 {
     SelectElements():
-        AbstractIOElements(),
+        AbstractElements(),
         keyField(0)
     {
         type = sstSelect;
@@ -106,6 +103,10 @@ struct SelectElements: public AbstractIOElements
 
     std::string keyFieldName;
     int         keyField;
+};
+
+struct StoredProcedureElements: public SelectElements
+{
 };
 
 struct UpdateElements: public AbstractElements
@@ -122,6 +123,8 @@ struct DeleteElements: public AbstractElements
 {
     DeleteElements(): AbstractElements() { type = sstDelete; }
 };
+
+struct TemplateFieldMap;
 
 // Main class
 class AbstractGenerator
@@ -166,10 +169,11 @@ protected:
     };
     struct _classParams
     {
-        SelectElements      select;
-        UpdateElements      update;
-        InsertElements      insert;
-        DeleteElements      del;
+        SelectElements          select;
+        UpdateElements          update;
+        InsertElements          insert;
+        DeleteElements          del;
+        StoredProcedureElements stoProc;
     };
     typedef boost::shared_ptr<_classParams> _classParamsPtr;
     typedef std::map<std::string, _classParamsPtr> classParams;
@@ -218,7 +222,7 @@ protected:
     virtual bool needIOBuffers() const;
 
     virtual void addInBuffers(SQLStatementTypes _type, const AbstractElements* _elements);
-    virtual void addOutBuffers(SQLStatementTypes _type, const AbstractIOElements* _elements);
+    virtual void addOutBuffers(SQLStatementTypes _type, const AbstractElements* _elements);
 
     virtual std::string getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) = 0;
     virtual std::string getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) = 0;
@@ -230,6 +234,7 @@ protected:
     static AbstractGenerator* s_generator;
 
 private:
+    void setDictionaryElements(const TemplateFieldMap *_map, TemplateDictionary *_classDict, AbstractElements *_elements, SQLElement *_keyField);
     void readParam(void* xml, const char *xmlElem, _fileTypes fileType, std::string& outFile, std::string& str, const std::string & _path);
 
 public:
@@ -275,6 +280,7 @@ public:
     virtual void addUpdate(UpdateElements _elements);
     virtual void addInsert(InsertElements _elements);
     virtual void addDelete(DeleteElements _elements);
+    virtual void addStoredProcedure(StoredProcedureElements _elements);
 };
 typedef AbstractGenerator* AbstractGeneratorPtr;
 
@@ -386,6 +392,33 @@ extern const char * const tpl_DBENGINE_DISCONNECT;
 extern const char * const tpl_DBENGINE_RESET_SELECT;
 extern const char * const tpl_DBENGINE_EXECUTE_SELECT;
 extern const char * const tpl_DBENGINE_FETCH_SELECT;
+
+extern const char * const tpl_SPROC;
+extern const char * const tpl_SPROC_SQL;
+extern const char * const tpl_SPROC_SQL_UNESCAPED;
+extern const char * const tpl_SPROC_SQL_LEN;
+extern const char * const tpl_SPROC_FIELD_COUNT;
+extern const char * const tpl_SPROC_PARAM_COUNT;
+
+extern const char * const tpl_SPROC_HAS_PARAMS;
+
+extern const char * const tpl_SP_IN_FIELDS;
+extern const char * const tpl_SP_IN_FIELD_TYPE;
+extern const char * const tpl_SP_IN_FIELD_NAME;
+extern const char * const tpl_SP_IN_FIELD_COMMA;
+extern const char * const tpl_SP_IN_FIELD_INIT;
+extern const char * const tpl_SP_IN_FIELD_BIND;
+extern const char * const tpl_SP_IN_FIELDS_BUFFERS;
+
+extern const char * const tpl_SP_OUT_FIELDS;
+extern const char * const tpl_SP_OUT_FIELD_TYPE;
+extern const char * const tpl_SP_OUT_FIELD_NAME;
+extern const char * const tpl_SP_OUT_FIELD_COMMA;
+extern const char * const tpl_SP_OUT_FIELD_INIT;
+extern const char * const tpl_SP_OUT_FIELD_GETVALUE;
+extern const char * const tpl_SP_OUT_FIELD_ISNULL;
+extern const char * const tpl_SP_OUT_FIELDS_BUFFERS;
+extern const char * const tpl_SP_OUT_FIELD_COMMENT;
 
 }
 
