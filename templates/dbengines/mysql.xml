@@ -124,6 +124,12 @@
                     {
                     #ifndef NDEBUG
                         LOG_MSG("MySQL data truncated!");
+                        
+                        for(int i = 0; i < s_selectFieldCount; i++)
+                        {
+                            if (selOutBuffer[i].error)
+                                LOG_MSG("Field: " << i);
+                        }
                     #endif
                     }
                     case 0:
@@ -236,6 +242,12 @@
                     {
                     #ifndef NDEBUG
                         LOG_MSG("MySQL data truncated!");
+                        
+                        for(int i = 0; i < s_sprocFieldCount; i++)
+                        {
+                            if (selOutBuffer[i].error)
+                                LOG_MSG("Field: " << i);
+                        }
                     #endif
                     }
                     case 0:
