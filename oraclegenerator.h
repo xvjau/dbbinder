@@ -31,31 +31,31 @@ namespace DBBinder
 */
 class OracleGenerator : public AbstractGenerator
 {
-    friend class AbstractGenerator; //wtf??
+friend class AbstractGenerator; //wtf??
 
-    protected:
-        OracleGenerator();
-        virtual ~OracleGenerator();
+protected:
+    OracleGenerator();
+    virtual ~OracleGenerator();
 
-        OCIEnv		*m_env;
-        OCIError	*m_err;
-        OCIServer	*m_srv;
-        OCISvcCtx	*m_svc;
-        OCISession	*m_auth;
+    OCIEnv		*m_env;
+    OCIError	*m_err;
+    OCIServer	*m_srv;
+    OCISvcCtx	*m_svc;
+    OCISession	*m_auth;
 
-        virtual bool checkConnection();
+    virtual bool checkConnection() __C11_OVERRIDE;
 
-        virtual String getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
-        virtual String getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
-        virtual String getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index);
+    virtual String getBind(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) __C11_OVERRIDE;
+    virtual String getReadValue(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) __C11_OVERRIDE;
+    virtual String getIsNull(SQLStatementTypes _type, const ListElements::iterator& _item, int _index) __C11_OVERRIDE;
 
-        virtual bool   needIOBuffers() const;
+    virtual bool needIOBuffers() const __C11_OVERRIDE;
 
-        virtual void addSelInBuffers(const SelectElements* _select);
-        virtual void addSelOutBuffers(const SelectElements* _select);
+    virtual void addSelInBuffers(const SelectElements* _select) __C11_OVERRIDE;
+    virtual void addSelOutBuffers(const SelectElements* _select) __C11_OVERRIDE;
 
-    public:
-        virtual void addSelect(SelectElements _elements);
+public:
+    virtual void addSelect(SelectElements _elements) __C11_OVERRIDE;
 };
 
 }
