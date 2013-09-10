@@ -369,7 +369,7 @@ extern const char * const tpl_DBENGINE_CONNECT_PARAM_VALUE;
 extern const char * const tpl_DBENGINE_CONNECT_PARAM_COMMA;
 
 extern const char * const tpl_DBENGINE_CONNECT;
-extern const char * const tpl_DBENGINE_PREPARE;
+
 extern const char * const tpl_DBENGINE_CREATE_SELECT;
 extern const char * const tpl_DBENGINE_PREPARE_SELECT;
 extern const char * const tpl_DBENGINE_DESTROY_SELECT;
@@ -377,6 +377,13 @@ extern const char * const tpl_DBENGINE_DISCONNECT;
 extern const char * const tpl_DBENGINE_RESET_SELECT;
 extern const char * const tpl_DBENGINE_EXECUTE_SELECT;
 extern const char * const tpl_DBENGINE_FETCH_SELECT;
+
+extern const char * const tpl_DBENGINE_CREATE_SPROC;
+extern const char * const tpl_DBENGINE_PREPARE_SPROC;
+extern const char * const tpl_DBENGINE_DESTROY_SPROC;
+extern const char * const tpl_DBENGINE_RESET_SPROC;
+extern const char * const tpl_DBENGINE_EXECUTE_SPROC;
+extern const char * const tpl_DBENGINE_FETCH_SPROC;
 
 }
 

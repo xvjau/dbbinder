@@ -125,7 +125,7 @@ const char * const tpl_DBENGINE_CONNECT_PARAM_VALUE = "DBENGINE_CONNECT_PARAM_VA
 const char * const tpl_DBENGINE_CONNECT_PARAM_COMMA = "DBENGINE_CONNECT_PARAM_COMMA";
 
 const char * const tpl_DBENGINE_CONNECT = "DBENGINE_CONNECT";
-const char * const tpl_DBENGINE_PREPARE = "DBENGINE_PREPARE";
+
 const char * const tpl_DBENGINE_EXTRAS = "DBENGINE_EXTRAS";
 const char * const tpl_DBENGINE_EXTRA_VAR = "DBENGINE_EXTRA_VAR";
 const char * const tpl_DBENGINE_DISCONNECT = "DBENGINE_DISCONNECT";
@@ -155,7 +155,12 @@ const char * const tpl_DBENGINE_DESTROY_DELETE = "DBENGINE_DESTROY_DELETE";
 const char * const tpl_DBENGINE_RESET_DELETE = "DBENGINE_RESET_DELETE";
 const char * const tpl_DBENGINE_EXECUTE_DELETE = "DBENGINE_EXECUTE_DELETE";
 
-
+const char * const tpl_DBENGINE_CREATE_SPROC = "DBENGINE_CREATE_SPROC";
+const char * const tpl_DBENGINE_PREPARE_SPROC = "DBENGINE_PREPARE_SPROC";
+const char * const tpl_DBENGINE_DESTROY_SPROC = "DBENGINE_DESTROY_SPROC";
+const char * const tpl_DBENGINE_RESET_SPROC = "DBENGINE_RESET_SPROC";
+const char * const tpl_DBENGINE_EXECUTE_SPROC = "DBENGINE_EXECUTE_SPROC";
+const char * const tpl_DBENGINE_FETCH_SPROC = "DBENGINE_FETCH_SPROC";
 
 SQLTypes typeNameToSQLType(std::string _name)
 {
@@ -920,6 +925,28 @@ bool AbstractGenerator::loadXMLDatabase(const std::string& _path)
 
                         elem = node->FirstChildElement("reset", false);
                         if ( elem ) m_dict->SetValue(tpl_DBENGINE_RESET_DELETE, parseStringVariables(elem->GetText(false)));
+                    }
+                    
+                    node = 0;
+                    while( node = lang->IterateChildren( "sproc", node ))
+                    {
+                        elem = node->FirstChildElement("create", false);
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_CREATE_SPROC, parseStringVariables(elem->GetText(false)));
+
+                        elem = node->FirstChildElement("destroy", false);
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_DESTROY_SPROC, parseStringVariables(elem->GetText(false)));
+
+                        elem = node->FirstChildElement("prepare", false);
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_PREPARE_SPROC, parseStringVariables(elem->GetText(false)));
+
+                        elem = node->FirstChildElement("execute", false);
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_EXECUTE_SPROC, parseStringVariables(elem->GetText(false)));
+
+                        elem = node->FirstChildElement("fetch", false);
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_FETCH_SPROC, parseStringVariables(elem->GetText(false)));
+
+                        elem = node->FirstChildElement("reset", false);
+                        if ( elem ) m_dict->SetValue(tpl_DBENGINE_RESET_SPROC, parseStringVariables(elem->GetText(false)));
                     }
                 }
             }

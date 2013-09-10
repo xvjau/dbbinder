@@ -215,6 +215,61 @@
                 mysqlCheckStmtErr(m_deleteStmt, mysql_stmt_reset(m_deleteStmt));
             </reset>
         </delete>
+        
+        <sproc>
+            <create>
+                m_sprocStmt = mysql_stmt_init(m_conn);
+            </create>
+            <destroy>
+                if (m_sprocStmt) { mysql_stmt_close(m_sprocStmt); m_sprocStmt = 0; }
+            </destroy>
+            <prepare>
+                mysqlCheckStmtErr(m_sprocStmt, mysql_stmt_prepare(m_sprocStmt, s_sprocSQL, s_sprocSQL_len));
+            </prepare>
+            <fetch>
+                <![CDATA[
+                int ret = mysql_stmt_fetch(m_sprocStmt);
+
+                switch( ret )
+                {
+                    case MYSQL_DATA_TRUNCATED:
+                    {
+                    #ifndef NDEBUG
+                        LOG_MSG("MySQL data truncated!");
+                    #endif
+                    }
+                    case 0:
+                    {
+                        m_currentRow.reset( new _row_type( this ));
+                        return true;
+                    }
+                    case MYSQL_NO_DATA:
+                    {
+                        m_currentRow.reset();
+                        mysql_stmt_reset(m_sprocStmt);
+                        break;
+                    }
+                    default:
+                    {
+                        mysqlCheckStmtErr( m_sprocStmt, ret );
+                        break;
+                    }
+                }
+
+                return false;
+                ]]>
+            </fetch>
+            <execute>
+                <![CDATA[
+                mysqlCheckStmtErr(m_sprocStmt, mysql_stmt_bind_param(m_sprocStmt, inBuffer));
+                mysqlCheckStmtErr(m_sprocStmt, mysql_stmt_execute(m_sprocStmt));
+                mysqlCheckStmtErr(m_sprocStmt, mysql_stmt_bind_result(m_sprocStmt, selOutBuffer));
+                ]]>
+            </execute>
+            <reset>
+                mysqlCheckStmtErr(m_sprocStmt, mysql_stmt_reset(m_sprocStmt));
+            </reset>
+        </sproc>
 
     </lang>
 </xml>
