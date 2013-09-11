@@ -181,8 +181,6 @@ const int {{CLASSNAME}}::s_selectParamCount = {{STMT_PARAM_COUNT}};
 {
     ASSERT_MSG(m_conn, "Connection must not be null!");
 
-    {{DBENGINE_PREPARE_SELECT}}
-
     {{#DBENGINE_TRANSACTION}}{{DBENGINE_TRANSACTION_INIT}}
     {{/DBENGINE_TRANSACTION}}
 
@@ -356,8 +354,6 @@ const int {{CLASSNAME}}::s_sprocParamCount = {{STMT_PARAM_COUNT}};
         m_iterator( NULL )
 {
     ASSERT_MSG(m_conn, "Connection must not be null!");
-
-    {{DBENGINE_PREPARE_SPROC}}
 
     {{#DBENGINE_TRANSACTION}}{{DBENGINE_TRANSACTION_INIT}}
     {{/DBENGINE_TRANSACTION}}
