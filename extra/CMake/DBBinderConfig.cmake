@@ -9,7 +9,8 @@ if (NOT DBBINDER_EXECUTABLE)
     set(DBBINDER_EXECUTABLE ${DBBINDER_EXECUTABLE} CACHE PATH "Path to the DBBinder executable for this project")
 
     set(DBBINDER_TEMPLATES "" CACHE PATH "Path to the DBBinder templates for this project")
-
+else()
+    message(STATUS "Using ${DBBINDER_EXECUTABLE}")
 endif()
 
 #Need to add these:
