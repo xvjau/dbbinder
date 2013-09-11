@@ -122,7 +122,7 @@
                 {
                     case MYSQL_DATA_TRUNCATED:
                     {
-                    #ifndef NDEBUG
+                    #ifdef DEBUG_EXTRA
                         LOG_MSG("MySQL data truncated!");
                         
                         for(int i = 0; i < s_selectFieldCount; i++)
@@ -227,7 +227,22 @@
                 m_sprocStmt = mysql_stmt_init(m_conn);
             </create>
             <destroy>
-                if (m_sprocStmt) { mysql_stmt_close(m_sprocStmt); m_sprocStmt = 0; }
+                <![CDATA[
+                {
+                    /* Clean up possible excessive result sets from SP */
+                    int status;
+                    do
+                    {
+                        MYSQL_RES *result = mysql_store_result(m_conn);
+                        if (result) 
+                            mysql_free_result(result);
+                        status = mysql_next_result(m_conn);
+                    }
+                    while(status == 0);
+                    
+                    if (m_sprocStmt) { mysql_stmt_close(m_sprocStmt); m_sprocStmt = 0; }
+                }
+                ]]>
             </destroy>
             <prepare>
                 mysqlCheckStmtErr(m_sprocStmt, mysql_stmt_prepare(m_sprocStmt, s_sprocSQL, s_sprocSQL_len));
@@ -240,7 +255,7 @@
                 {
                     case MYSQL_DATA_TRUNCATED:
                     {
-                    #ifndef NDEBUG
+                    #ifdef DEBUG_EXTRA
                         LOG_MSG("MySQL data truncated!");
                         
                         for(int i = 0; i < s_sprocFieldCount; i++)
