@@ -75,6 +75,39 @@ std::string cescape(const std::string & _string)
     return result;
 }
 
+ListString stringTok(const char* _str)
+{
+    ListString result;
+    const char *c = _str, *start = NULL, *end = _str + strlen(_str);
+    
+    while(c < end)
+    {
+        for(;c < end; c++)
+        {
+            if (!isblank(*c))
+            {
+                start = c;
+                break;
+            }
+        }
+        
+        for(;c < end; c++)
+        {
+            if (isblank(*c))
+            {
+                result.push_back(std::string(start, c - start));
+                start = NULL;
+                break;
+            }
+        }
+    }
+    
+    if (start != NULL)
+        result.push_back(std::string(start, c - start));
+    
+    return result;
+}
+
 }
 
 #define FATAL_EXIT(S) do {FATAL(S); return 1;} while (false)

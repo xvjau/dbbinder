@@ -25,6 +25,9 @@
 #include "xml_reader.h"
 #include "yaml_reader.h"
 
+#include <vector>
+#include <string>
+
 namespace DBBinder
 {
 
@@ -47,59 +50,43 @@ void parseSQL(const std::string& _fileName)
         while ( file.good() )
         {
             file.getline(buffer, 4096);
+            std::vector<std::string> tokens(stringTok(buffer));
             line++;
 
-            if ( strncmp(buffer, "--! use", 7 ) == 0 && isblank(buffer[7]) )
+            if (tokens.size() > 2 && tokens[0] == "--!")
             {
-                char *start = &buffer[8];
-                char *end = start + strlen(start);
-                char *c, *ext;
-
-                if ( end <= start)
-                    FATAL(fileName << ':' << line << ": missing file name");
-
-                c = end - 1;
-
-                while( isblank(*c) )
-                    c--;
-
-                if ( c <= start )
-                    FATAL(fileName << ':' << line << ": missing file name");
-
-                if ( isblank(*(c + 1)) )
-                    *(c + 1) = '\0';
-
-                end = c;
-                c = start;
-
-                while( isblank(*c) )
-                    c++;
-
-                start = c;
-
-                ext = end;
-                while( ext > start && *(ext - 1) != '.')
-                    ext--;
-
-                std::string path( getFilenameRelativeTo(fileName, start) );
-
-                if ( strcasecmp(ext, "yaml") == 0 )
+                
+                if (tokens[1] == "use")
                 {
-                    #ifdef WITH_YAML
-                    parseYAML(path);
-                    #else
-                    FATAL(fileName << ':' << line << ": yaml support was not included");
-                    #endif
-                    break;
-                }
-                else if ( strcasecmp(ext, "xml") == 0 )
-                {
-                    parseXML(path);
-                    break;
-                }
-                else
-                {
-                    FATAL(fileName << ':' << line << ": unknown file extension: " << ext);
+                    if (tokens.size() < 3)
+                        FATAL(fileName << ':' << line << ": missing file name");
+                    
+                    std::string useFileName = tokens[2], ext;
+
+                    std::string::size_type pos = useFileName.find(".");
+                    
+                    ext = useFileName.substr(pos + 1);
+
+                    std::string path(getFilenameRelativeTo(fileName, useFileName));
+
+                    if (ext == "yaml")
+                    {
+                        #ifdef WITH_YAML
+                        parseYAML(path);
+                        #else
+                        FATAL(fileName << ':' << line << ": yaml support was not included");
+                        #endif
+                        break;
+                    }
+                    else if (ext == "xml")
+                    {
+                        parseXML(path);
+                        break;
+                    }
+                    else
+                    {
+                        FATAL(fileName << ':' << line << ": unknown file extension: " << ext);
+                    }
                 }
             }
         }
@@ -113,7 +100,7 @@ void parseSQL(const std::string& _fileName)
         }
 
         //TODO: Determine if this is a select, insert or update statement
-        AbstractElements *elements = 0;
+        AbstractElements *elements = NULL;
         SQLStatementTypes statementType = sstUnknown;
 
         // Load the SQL statement
@@ -130,70 +117,79 @@ void parseSQL(const std::string& _fileName)
             while ( file.good() )
             {
                 file.getline(buffer, 4096);
+                std::vector<std::string> tokens(stringTok(buffer));
                 line++;
 
                 #warning This should be sent to generator->db server to determine the 'correct' statement type.
-                if (strncmp(buffer, "--", 2 ) != 0)
+                if (tokens.size())
                 {
-                    char *c = buffer;
-                    while( *c )
+                    std::string firstToken = tokens[0];
+                    
+                    if (firstToken.size() == 0)
+                        continue;
+                    
+                    switch(tolower(firstToken[0]))
                     {
-                        if ( !isblank( *c ) )
-                        {
-                            if ( strncasecmp( c, "select", 6 ) == 0 && ( !c[6] || isspace( c[6] )))
+                        case 's':
+                            if (strcasecmp(firstToken.c_str(), "select") == 0)
                             {
                                 elements = new SelectElements;
                                 statementType = sstSelect;
+                                break;
                             }
-                            else if ( strncasecmp( c, "update", 6 ) == 0 && ( !c[6] || isspace( c[6] )))
+                            continue;
+                        case 'u':
+                            if (strcasecmp(firstToken.c_str(), "update") == 0)
                             {
                                 elements = new UpdateElements;
                                 statementType = sstUpdate;
+                                break;
                             }
-                            else if ( strncasecmp( c, "insert", 6 ) == 0 && ( !c[6] || isspace( c[6] )))
+                            continue;
+                        case 'i':
+                            if (strcasecmp(firstToken.c_str(), "insert") == 0)
                             {
                                 elements = new InsertElements;
                                 statementType = sstInsert;
+                                break;
                             }
-                            else if ( strncasecmp( c, "delete", 6 ) == 0 && ( !c[6] || isspace( c[6] )))
+                            continue;
+                        case 'd':
+                            if (strcasecmp(firstToken.c_str(), "delete") == 0)
                             {
                                 elements = new DeleteElements;
                                 statementType = sstDelete;
+                                break;
                             }
-                            else if ( strncasecmp( c, "call", 4 ) == 0 && ( !c[4] || isspace( c[4] )))
+                            continue;
+                        case 'c':
+                            if (strcasecmp(firstToken.c_str(), "call") == 0)
                             {
                                 elements = new StoredProcedureElements;
                                 statementType = sstStoredProcedure;
+                                break;
                             }
-                            else
-                            {
-                                goto NEXT_LINE;
-                            }
-
-                            file.seekg(file.gcount() * -1, std::ios_base::cur);
-                            size -= file.tellg();
-
-                            char* str = static_cast<char*>(alloca(size+1));
-                            file.read( str, size );
-                            str[size] = '\0';
-
-                            elements->sql = str;
-                            elements->sql_location.file = _fileName;
-                            elements->sql_location.line = line;
-                            elements->sql_location.col = c - &buffer[0];
-
-                            goto END_READ_SQL;
-                        }
-                        else
-                            c++;
+                            continue;
+                        default:
+                            continue;
                     }
+
+                    file.seekg(file.gcount() * -1, std::ios_base::cur);
+                    size -= file.tellg();
+
+                    char* str = static_cast<char*>(alloca(size+1));
+                    file.read( str, size );
+                    str[size] = '\0';
+
+                    elements->sql = str;
+                    elements->sql_location.file = _fileName;
+                    elements->sql_location.line = line;
+                    elements->sql_location.col = strstr(buffer, firstToken.c_str()) - &buffer[0];
+                    
+                    break;
                 }
-                
-                NEXT_LINE: {}
             }
         }
-
-        END_READ_SQL:
 
         if (statementType == sstUnknown)
         {
@@ -212,52 +208,53 @@ void parseSQL(const std::string& _fileName)
         while ( file.good() )
         {
             file.getline(buffer, 4096);
-
-            if ( file.good() )
+            std::vector<std::string> tokens(stringTok(buffer));
+            line++;
+            
+            if (tokens.size() > 1 && tokens[0] == "--!" && tokens[1].size() > 1)
             {
-                line++;
-                switch( buffer[4] )
+                switch(tokens[1][0])
                 {
                     case 'k':
-                        if ( strncmp(buffer, "--! key", 7 ) == 0 && isblank(buffer[7]) )
+                        if (tokens[1] == "key")
                         {
-                            ListString list = stringTok( &buffer[8] );
+                            ListString params(tokens.begin() + 2, tokens.end());
 
                             if (statementType != sstSelect && statementType != sstStoredProcedure)
                                 WARNING(fileName << ':' << line << ": ignoreing key param for non-select statement");
 
-                            if ( list.size() == 0 )
+                            if ( params.size() == 0 )
                                 FATAL(fileName << ':' << line << ": missing key name argument");
 
-                            if ( list.size() > 1 )
+                            if ( params.size() > 1 )
                                 WARNING(fileName << ':' << line << ": ignoreing extra params");
 
-                            static_cast<SelectElements*>( elements )->keyFieldName = list.front();
+                            static_cast<SelectElements*>( elements )->keyFieldName = params.front();
                         }
                         break;
                     case 'n':
-                        if ( strncmp(buffer, "--! name", 8 ) == 0 && isblank(buffer[8]) )
+                        if (tokens[1] == "name")
                         {
-                            ListString list = stringTok( &buffer[9] );
+                            ListString params(tokens.begin() + 2, tokens.end());
 
-                            if ( list.size() == 0 )
+                            if ( params.size() == 0 )
                                 FATAL(fileName << ':' << line << ": missing name argument");
 
-                            if ( list.size() > 1 )
+                            if ( params.size() > 1 )
                                 WARNING(fileName << ':' << line << ": ignoreing extra params");
 
-                            elements->name = list.front();
+                            elements->name = params.front();
                         }
                         break;
                     case 'p':
-                        if ( strncmp(buffer, "--! param", 9 ) == 0 && isblank(buffer[9]) )
+                        if (tokens[1] == "param")
                         {
-                            ListString list = stringTok( &buffer[10] );
+                            ListString params(tokens.begin() + 2, tokens.end());
 
-                            if ( list.size() == 0 )
+                            if ( params.size() == 0 )
                                 FATAL(fileName << ':' << line << ": missing param arguments");
 
-                            if ( list.size() == 1 )
+                            if ( params.size() == 1 )
                                 FATAL(fileName << ':' << line << ": missing param type");
 
                             name.clear();
@@ -266,7 +263,7 @@ void parseSQL(const std::string& _fileName)
                             type = stUnknown;
 
                             int i = 0;
-                            for(ListString::const_iterator it = list.begin(); it != list.end(); it++, i++)
+                            for(ListString::const_iterator it = params.begin(); it != params.end(); it++, i++)
                             {
                                 switch( i )
                                 {
@@ -307,7 +304,6 @@ void parseSQL(const std::string& _fileName)
             default:
                 FATAL("Unknwon statement type.");
         }
-
     }
     else
     {

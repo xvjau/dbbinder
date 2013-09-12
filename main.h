@@ -131,32 +131,7 @@ inline ListString stringTok(const std::string &_string, const char _sep)
     return result;
 }
 
-
-inline ListString stringTok(const std::string &_string)
-{
-    ListString result;
-
-    const char *p = _string.c_str();
-    const char *s;
-
-    while ( *p )
-    {
-        if ( !isspace( *p ))
-        {
-            s = p;
-            while( *s && !isspace( *s ))
-                ++s;
-
-            result.push_back( std::string( p, s - p ));
-
-            p = s;
-        }
-        else
-            p++;
-    }
-
-    return result;
-}
+ListString stringTok(const char* _str);
 
 inline std::string getFilenameRelativeTo(const std::string& _relFileName, const std::string& _fileName)
 {
