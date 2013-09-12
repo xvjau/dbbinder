@@ -223,7 +223,7 @@ void parseSQL(const std::string& _fileName)
                         {
                             ListString list = stringTok( &buffer[8] );
 
-                            if (statementType != sstSelect)
+                            if (statementType != sstSelect && statementType != sstStoredProcedure)
                                 WARNING(fileName << ':' << line << ": ignoreing key param for non-select statement");
 
                             if ( list.size() == 0 )
@@ -291,7 +291,6 @@ void parseSQL(const std::string& _fileName)
         {
             case sstSelect:
                 generator->addSelect( *static_cast<SelectElements*>( elements ));
-                break;
                 break;
             case sstInsert:
                 generator->addInsert( *static_cast<InsertElements*>( elements ));
