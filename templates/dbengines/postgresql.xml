@@ -3,6 +3,7 @@
         <includes>
             <file name="libpq-fe.h" />
             <file name="arpa/inet.h" />
+            <file name="endian.h" />
         </includes>
         <global_functions>
             <function>

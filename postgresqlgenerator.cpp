@@ -305,21 +305,45 @@ std::string PostgreSQLGenerator::getBind(SQLStatementTypes /*_type*/, const List
     switch(_item->type)
     {
         case stInt:
-        case stUInt:
-        case stInt64:
-        case stUInt64:
-        case stFloat:
-        case stDouble:
-        case stUFloat:
-        case stUDouble:
         {
             str <<
-                "m_buff" << _item->name << " = htonl(_" << _item->name << ");\n"
-                "paramValues[" << _index << "] = reinterpret_cast<const char*>(&m_buff" << _item->name << ");\n"
+                "m_buff" << _item->name << " = (int32_t)(htonl(_" << _item->name << "));\n"
+                "paramValues[" << _index << "] = (const char*)(&m_buff" << _item->name << ");\n"
                 "paramLengths[" << _index << "] = sizeof(m_buff" << _item->name << ");\n"
                 "paramFormats[" << _index << "] = PQ_RESULT_FORMAT_BINARY;";
             break;
         }
+        case stUInt:
+        {
+            str <<
+                "m_buff" << _item->name << " = htonl(_" << _item->name << ");\n"
+                "paramValues[" << _index << "] = (const char*)(&m_buff" << _item->name << ");\n"
+                "paramLengths[" << _index << "] = sizeof(m_buff" << _item->name << ");\n"
+                "paramFormats[" << _index << "] = PQ_RESULT_FORMAT_BINARY;";
+            break;
+        }
+        case stInt64:
+        {
+            str <<
+                "m_buff" << _item->name << " = (int32_t)(htobe64(_" << _item->name << "));\n"
+                "paramValues[" << _index << "] = (const char*)(&m_buff" << _item->name << ");\n"
+                "paramLengths[" << _index << "] = sizeof(m_buff" << _item->name << ");\n"
+                "paramFormats[" << _index << "] = PQ_RESULT_FORMAT_BINARY;";
+            break;
+        }
+        case stUInt64:
+        {
+            str <<
+                "m_buff" << _item->name << " = htobe64(_" << _item->name << ");\n"
+                "paramValues[" << _index << "] = (const char*)(&m_buff" << _item->name << ");\n"
+                "paramLengths[" << _index << "] = sizeof(m_buff" << _item->name << ");\n"
+                "paramFormats[" << _index << "] = PQ_RESULT_FORMAT_BINARY;";
+            break;
+        }
+        case stFloat:
+        case stDouble:
+        case stUFloat:
+        case stUDouble:
 
         case stTimeStamp:
         case stTime:
@@ -353,12 +377,20 @@ std::string PostgreSQLGenerator::getReadValue(SQLStatementTypes _type, const Lis
     switch(_item->type)
     {
         case stInt:
+            str << "m_" << _item->name << " = (int32_t)(ntohl(*((int32_t*)PQgetvalue(_parent->m_" << getStmtType(_type) << "Stmt.get(), _parent->m_rowNum, " << _index << "))));";
+            break;
         case stUInt:
             str << "m_" << _item->name << " = ntohl(*((int32_t*)PQgetvalue(_parent->m_" << getStmtType(_type) << "Stmt.get(), _parent->m_rowNum, " << _index << ")));";
             break;
 
         case stInt64:
+            str << "m_" << _item->name << " = (int32_t)(be64toh(*((int32_t*)PQgetvalue(_parent->m_" << getStmtType(_type) << "Stmt.get(), _parent->m_rowNum, " << _index << "))));";
+            break;
+            
         case stUInt64:
+            str << "m_" << _item->name << " = be64toh(*((int32_t*)PQgetvalue(_parent->m_" << getStmtType(_type) << "Stmt.get(), _parent->m_rowNum, " << _index << ")));";
+            break;
+            
         case stFloat:
         case stDouble:
         case stUFloat:
