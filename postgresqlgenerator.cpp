@@ -302,16 +302,25 @@ std::string PostgreSQLGenerator::getBind(SQLStatementTypes /*_type*/, const List
 {
     std::stringstream str;
 
-        switch(_item->type)
+    switch(_item->type)
     {
         case stInt:
-        case stInt64:
         case stUInt:
+        case stInt64:
         case stUInt64:
         case stFloat:
         case stDouble:
         case stUFloat:
         case stUDouble:
+        {
+            str <<
+                "m_buff" << _item->name << " = htonl(_" << _item->name << ");\n"
+                "paramValues[" << _index << "] = reinterpret_cast<const char*>(&m_buff" << _item->name << ");\n"
+                "paramLengths[" << _index << "] = sizeof(m_buff" << _item->name << ");\n"
+                "paramFormats[" << _index << "] = PQ_RESULT_FORMAT_BINARY;";
+            break;
+        }
+
         case stTimeStamp:
         case stTime:
         case stDate:
@@ -322,7 +331,7 @@ std::string PostgreSQLGenerator::getBind(SQLStatementTypes /*_type*/, const List
         {
             str <<
                 "paramValues[" << _index << "] = _" << _item->name << ";\n"
-                "paramLengths[" << _index << "] = strlen(_" << _item->name << ");\n"
+                "paramLengths[" << _index << "] = 0;\n"
                 "paramFormats[" << _index << "] = PQ_RESULT_FORMAT_TEXT;";
             break;
         }
@@ -332,8 +341,6 @@ std::string PostgreSQLGenerator::getBind(SQLStatementTypes /*_type*/, const List
             FATAL(__FILE__  << ':' << __LINE__ << ": Invalid param type: '" << _item->name << "': " << _item->type);
             break;
     }
-
-
 
     return str.str();
 }
@@ -436,11 +443,52 @@ void PostgreSQLGenerator::addInBuffers(SQLStatementTypes /*_type*/, TemplateDict
     }
 }
 
-void PostgreSQLGenerator::addOutBuffers(SQLStatementTypes /*_type*/, TemplateDictionary *_subDict, const AbstractElements* /*_elements*/)
+void PostgreSQLGenerator::addOutBuffers(SQLStatementTypes /*_type*/, TemplateDictionary *_subDict, const AbstractElements* _elements)
 {
     TemplateDictionary *buffDict = _subDict->AddSectionDictionary(tpl_STMT_OUT_FIELDS_BUFFERS);
-    buffDict->SetValue(tpl_BUFFER_DECLARE, "int m_rowNum;\nint m_rowCount;");
-    buffDict->SetValue(tpl_BUFFER_INITIALIZE, "m_rowNum = -1;\nm_rowCount = -1;");
+    
+    std::stringstream decl, init;
+    
+    decl << "int m_rowNum;\nint m_rowCount;";
+    init << "m_rowNum = -1;\nm_rowCount = -1;";
+    
+    ListElements::const_iterator it = _elements->input.begin(), end = _elements->input.end();
+    for(; it != end; it++)
+    {
+        switch(it->type)
+        {
+            case stInt:
+            case stUInt:
+            case stInt64:
+            case stUInt64:
+            case stFloat:
+            case stDouble:
+            case stUFloat:
+            case stUDouble:
+            {
+                decl << "int m_buff" << it->name << ";\n";
+                init << "m_buff" << it->name << " = 0;\n";
+                break;
+            }
+
+            case stTimeStamp:
+            case stTime:
+            case stDate:
+                FATAL(__FILE__  << ':' << __LINE__ << ": Invalid param type: '" << it->name << "': " << it->type);
+                break;
+
+            case stText:
+                break;
+
+            case stBlob:
+            default:
+                FATAL(__FILE__  << ':' << __LINE__ << ": Invalid param type: '" << it->name << "': " << it->type);
+                break;
+        }
+    }
+    
+    buffDict->SetValue(tpl_BUFFER_DECLARE, decl.str());
+    buffDict->SetValue(tpl_BUFFER_INITIALIZE, init.str());
 }
 
 }
