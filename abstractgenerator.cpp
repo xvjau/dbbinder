@@ -258,7 +258,7 @@ std::string sqlTypeToName(SQLTypes _type)
     return std::string("stUnknown");
 }
 
-AbstractGenerator* AbstractGenerator::s_generator = 0;
+AbstractGenerator* AbstractGenerator::s_generator = NULL;
 AbstractGenerator* AbstractGenerator::getGenerator(const std::string & _type)
 {
     if ( s_generator )
@@ -326,7 +326,7 @@ AbstractGenerator* AbstractGenerator::getGenerator(const std::string & _type)
 
 AbstractGenerator::AbstractGenerator():
         m_connected(false),
-        m_dict(0)
+        m_dict(NULL)
 {
 }
 
@@ -647,7 +647,7 @@ void AbstractGenerator::generate()
 
 void AbstractGenerator::loadDatabase()
 {
-    TemplateDictionary *subDict = 0;
+    TemplateDictionary *subDict = NULL;
     _dbParams::iterator it;
     for(it = m_dbParams.begin(); it != m_dbParams.end(); ++it)
     {
@@ -719,7 +719,7 @@ bool AbstractGenerator::loadXMLDatabase(const std::string& _path)
         XMLElementPtr xml = xmlFile.FirstChildElement("xml");
 
         XMLElementPtr lang;
-        XMLNodePtr node = 0;
+        XMLNodePtr node = NULL;
         while( node = xml->IterateChildren( "lang", node ))
         {
             lang = node->ToElement();
@@ -732,12 +732,12 @@ bool AbstractGenerator::loadXMLDatabase(const std::string& _path)
                     XMLNodePtr node, subnode;
                     std::string str;
 
-                    node = 0;
+                    node = NULL;
                     while( node = lang->IterateChildren( "includes", node ))
                     {
                         m_dict->ShowSection( tpl_DBENGINE_INCLUDES );
 
-                        subnode = 0;
+                        subnode = NULL;
                         while( subnode = node->IterateChildren( "file", subnode ))
                         {
                             subDict = m_dict->AddSectionDictionary( tpl_DBENGINE_INCLUDES );
@@ -753,7 +753,7 @@ bool AbstractGenerator::loadXMLDatabase(const std::string& _path)
                         }
                     }
 
-                    node = 0;
+                    node = NULL;
                     while( node = lang->IterateChildren( "global_functions", node ))
                     {
                         m_dict->ShowSection( tpl_EXTRA_HEADERS );
@@ -767,13 +767,13 @@ bool AbstractGenerator::loadXMLDatabase(const std::string& _path)
                         }
                     }
 
-                    node = 0;
+                    node = NULL;
                     while( node = lang->IterateChildren( "extra_headers", node ))
                     {
                         m_dict->ShowSection( tpl_EXTRA_HEADERS );
 
 
-                        subnode = 0;
+                        subnode = NULL;
                         while( subnode = node->IterateChildren( "define", subnode ))
                         {
                             subDict = m_dict->AddSectionDictionary( tpl_EXTRA_HEADERS );
@@ -781,7 +781,7 @@ bool AbstractGenerator::loadXMLDatabase(const std::string& _path)
                             GET_TEXT_OR_ATTR_SET_TMPL( str, elem, "code", subDict, tpl_EXTRA_HEADERS_HEADER);
                         }
 
-                        subnode = 0;
+                        subnode = NULL;
                         while( subnode = node->IterateChildren( "type", subnode ))
                         {
                             subDict = m_dict->AddSectionDictionary( tpl_EXTRA_HEADERS );
@@ -789,7 +789,7 @@ bool AbstractGenerator::loadXMLDatabase(const std::string& _path)
                             GET_TEXT_OR_ATTR_SET_TMPL( str, elem, "code", subDict, tpl_EXTRA_HEADERS_TYPE);
                         }
 
-                        subnode = 0;
+                        subnode = NULL;
                         while( subnode = node->IterateChildren( "member", subnode ))
                         {
                             subDict = m_dict->AddSectionDictionary( tpl_EXTRA_HEADERS );
@@ -798,10 +798,10 @@ bool AbstractGenerator::loadXMLDatabase(const std::string& _path)
                         }
                     }
 
-                    node = 0;
+                    node = NULL;
                     while( node = lang->IterateChildren( "types", node ))
                     {
-                        subnode = 0;
+                        subnode = NULL;
                         while( subnode = node->IterateChildren( subnode ))
                         {
                             if ( subnode->Value() == "connection" )
@@ -836,7 +836,7 @@ bool AbstractGenerator::loadXMLDatabase(const std::string& _path)
                         }
                     }
 
-                    node = 0;
+                    node = NULL;
                     while( node = lang->IterateChildren( "connect", node ))
                     {
                         m_dict->SetValue(tpl_DBENGINE_CONNECT, parseStringVariables(node->ToElement()->GetText()));

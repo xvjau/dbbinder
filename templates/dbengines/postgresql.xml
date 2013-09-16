@@ -12,6 +12,8 @@
                 #define PQ_RESULT_FORMAT_BINARY 1
                 #endif
 
+                #ifndef PQ_RESULT_CLASS
+                #define PQ_RESULT_CLASS
                 class PQResult
                 {
                 private:
@@ -32,8 +34,9 @@
                         m_res = _res;
                     }
                 };
+                #endif // PQ_RESULT_CLASS
 
-                #define CHECK_ERROR(PQRESULT, CONN, STATUS, STR) ASSERT_MSG(PQresultStatus(PQRESULT.get()) == STATUS, STR << PQerrorMessage(CONN));
+                #define CHECK_ERROR(PQRESULT, CONN, STATUS, STR) do { ASSERT_MSG(PQresultStatus(PQRESULT.get()) == STATUS, STR << PQerrorMessage(CONN)); } while(false)
                 ]]>
             </function>
         </global_functions>
@@ -66,8 +69,24 @@
             </destroy>
             <prepare>
                 <![CDATA[
-                m_selectStmt = PQprepare(m_conn, "%SELECT_NAME%", s_selectSQL, s_selectSQL_len, 0);
-                CHECK_ERROR(m_selectStmt, m_conn, PGRES_COMMAND_OK, "PostgreSQL: Error peraring:\n" << s_selectSQL << "\n" << PQerrorMessage(m_conn));
+                {
+                    static bool __static_%SELECT_NAME%_status = false;
+                    if(!__static_%SELECT_NAME%_status)
+                    {
+                        m_selectStmt = PQprepare(m_conn, "%SELECT_NAME%", s_selectSQL, s_selectSQL_len, 0);
+                        
+                        if (PQresultStatus(m_selectStmt.get()) != PGRES_COMMAND_OK)
+                        {
+                            PQResult res = PQdescribePrepared(m_conn, "%SELECT_NAME%");
+                            if (PQresultStatus(res.get()) != PGRES_COMMAND_OK)
+                                CHECK_ERROR(m_selectStmt, m_conn, PGRES_COMMAND_OK, "PostgreSQL: Error peraring:\n" << s_selectSQL << "\n" << PQerrorMessage(m_conn));
+                            else
+                                __static_%SELECT_NAME%_status = true;
+                        }
+                        else
+                            __static_%SELECT_NAME%_status = true;
+                    }
+                }
                 ]]>
             </prepare>
             <fetch>
