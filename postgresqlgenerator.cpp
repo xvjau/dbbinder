@@ -201,7 +201,7 @@ PGTypePair getPgTypes(SQLTypes _type)
         case stText:
             return PGTypePair( "string", VARCHAROID );
         case stBlob:
-            return PGTypePair( "string", TEXTOID );
+            return PGTypePair( "shared_pointer< std::vector<char> >", TEXTOID );
         default:
             FATAL(__FILE__  << ':' << __LINE__ << ": Invalide field type: " << _type);
     }
@@ -249,8 +249,9 @@ std::string getStmtType(SQLStatementTypes _type)
     };
 }
 
-PostgreSQLGenerator::PostgreSQLGenerator()
-: AbstractGenerator(), m_conn(0)
+PostgreSQLGenerator::PostgreSQLGenerator(): 
+    AbstractGenerator(), 
+    m_conn(NULL)
 {
     m_dbengine = "postgresql";
 }

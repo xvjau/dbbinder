@@ -54,8 +54,9 @@ void mysqlCheckStmtErr( MYSQL_STMT *_stmt, int _status )
     }
 }
 
-MySQLGenerator::MySQLGenerator()
-: AbstractGenerator(), m_conn(0)
+MySQLGenerator::MySQLGenerator(): 
+    AbstractGenerator(), 
+    m_conn(NULL)
 {
     m_dbengine = "mysql";
 
@@ -83,7 +84,7 @@ bool MySQLGenerator::checkConnection()
         READ_PARAM(password);
         READ_PARAM(port);
 
-        m_conn = mysql_init(0);
+        m_conn = mysql_init(NULL);
 
         if ( !mysql_real_connect(m_conn, host.c_str(), user.c_str(), password.c_str(), db.c_str(),
                                 atoi( port.c_str() ), 0, CLIENT_COMPRESS | CLIENT_MULTI_RESULTS) )
