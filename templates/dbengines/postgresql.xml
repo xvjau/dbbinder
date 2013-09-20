@@ -69,30 +69,10 @@
             <destroy>
             </destroy>
             <prepare>
-                <![CDATA[
-                {
-                    static bool __static_%SELECT_NAME%_status = false;
-                    if(!__static_%SELECT_NAME%_status)
-                    {
-                        m_selectStmt = PQprepare(m_conn, "%SELECT_NAME%", s_selectSQL, s_selectSQL_len, 0);
-                        
-                        if (PQresultStatus(m_selectStmt.get()) != PGRES_COMMAND_OK)
-                        {
-                            PQResult res = PQdescribePrepared(m_conn, "%SELECT_NAME%");
-                            if (PQresultStatus(res.get()) != PGRES_COMMAND_OK)
-                                CHECK_ERROR(m_selectStmt, m_conn, PGRES_COMMAND_OK, "PostgreSQL: Error peraring:\n" << s_selectSQL << "\n" << PQerrorMessage(m_conn));
-                            else
-                                __static_%SELECT_NAME%_status = true;
-                        }
-                        else
-                            __static_%SELECT_NAME%_status = true;
-                    }
-                }
-                ]]>
             </prepare>
             <fetch>
                 <![CDATA[
-                if(++m_rowNum <= m_rowCount)
+                if(++m_rowNum < m_rowCount)
                 {
                     m_currentRow.reset( new _row_type( this ));
                     return true;
@@ -106,8 +86,23 @@
             </fetch>
             <execute>
                 <![CDATA[
-                m_selectStmt = PQexecPrepared(m_conn, "%SELECT_NAME%", 1, paramValues, paramLengths, paramFormats, PQ_RESULT_FORMAT_BINARY);
-                CHECK_ERROR(m_selectStmt, m_conn, PGRES_TUPLES_OK, "PostgreSQL: Error executing:\n" << s_selectSQL << "\n" << PQerrorMessage(m_conn));
+                {
+                    bool retry = true;
+                    DO_RETRY:
+                    m_selectStmt = PQexecPrepared(m_conn, "%SELECT_NAME%", 1, paramValues, paramLengths, paramFormats, PQ_RESULT_FORMAT_BINARY);
+                    if (PQresultStatus(m_selectStmt.get()) != PGRES_TUPLES_OK)
+                    {
+                        if (retry)
+                        {
+                            retry = false;
+                            m_selectStmt = PQprepare(m_conn, "dologin", s_selectSQL, s_selectSQL_len, 0);
+                            CHECK_ERROR(m_selectStmt, m_conn, PGRES_COMMAND_OK, "PostgreSQL: Error preparing:\n" << s_selectSQL << "\n" << PQerrorMessage(m_conn));
+                            goto DO_RETRY;
+                        }
+                        CHECK_ERROR(m_selectStmt, m_conn, PGRES_TUPLES_OK, "PostgreSQL: Error executing:\n" << s_selectSQL << "\n" << PQerrorMessage(m_conn));
+                    }
+                }
+                
                 m_rowCount = PQntuples(m_selectStmt.get());
                 m_rowNum = -1;
                 ]]>
