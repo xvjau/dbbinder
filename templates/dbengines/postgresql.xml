@@ -95,7 +95,7 @@
                         if (retry)
                         {
                             retry = false;
-                            m_selectStmt = PQprepare(m_conn, "dologin", s_selectSQL, s_selectSQL_len, 0);
+                            m_selectStmt = PQprepare(m_conn, "%SELECT_NAME%", s_selectSQL, s_selectSQL_len, 0);
                             CHECK_ERROR(m_selectStmt, m_conn, PGRES_COMMAND_OK, "PostgreSQL: Error preparing:\n" << s_selectSQL << "\n" << PQerrorMessage(m_conn));
                             goto DO_RETRY;
                         }
