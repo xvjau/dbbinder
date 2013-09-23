@@ -118,15 +118,25 @@
             <destroy>
             </destroy>
             <prepare>
-                <![CDATA[
-                m_insertStmt = PQprepare(m_conn, "%INSERT_NAME%", s_insertSQL, s_insertSQL_len, 0);
-                CHECK_ERROR(m_insertStmt, m_conn, PGRES_COMMAND_OK, "PostgreSQL: Error peraring:\n" << s_insertSQL << "\n" << PQerrorMessage(m_conn));
-                ]]>
             </prepare>
             <execute>
                 <![CDATA[
-                m_insertStmt = PQexecPrepared(m_conn, "%INSERT_NAME%", 1, paramValues, paramLengths, paramFormats, PQ_RESULT_FORMAT_BINARY);
-                CHECK_ERROR(m_insertStmt, m_conn, PGRES_TUPLES_OK, "PostgreSQL: Error executing:\n" << s_selectSQL << "\n" << PQerrorMessage(m_conn));
+                {
+                    bool retry = true;
+                    DO_RETRY:
+                    m_insertStmt = PQexecPrepared(m_conn, "%INSERT_NAME%", 1, paramValues, paramLengths, paramFormats, PQ_RESULT_FORMAT_BINARY);
+                    if (PQresultStatus(m_insertStmt.get()) != PGRES_COMMAND_OK)
+                    {
+                        if (retry)
+                        {
+                            retry = false;
+                            m_insertStmt = PQprepare(m_conn, "%INSERT_NAME%", s_insertSQL, s_insertSQL_len, 0);
+                            CHECK_ERROR(m_insertStmt, m_conn, PGRES_COMMAND_OK, "PostgreSQL: Error preparing:\n" << s_insertSQL << "\n" << PQerrorMessage(m_conn));
+                            goto DO_RETRY;
+                        }
+                        CHECK_ERROR(m_insertStmt, m_conn, PGRES_COMMAND_OK, "PostgreSQL: Error executing:\n" << s_insertSQL << "\n" << PQerrorMessage(m_conn));
+                    }
+                }
                 ]]>
             </execute>
             <reset>
@@ -140,15 +150,25 @@
             <destroy>
             </destroy>
             <prepare>
-                <![CDATA[
-                m_updateStmt = PQprepare(m_conn, "%UPDATE_NAME%", s_updateSQL, s_updateSQL_len, 0);
-                CHECK_ERROR(m_updateStmt, m_conn, PGRES_COMMAND_OK, "PostgreSQL: Error peraring:\n" << s_updateSQL << "\n" << PQerrorMessage(m_conn));
-                ]]>
             </prepare>
             <execute>
                 <![CDATA[
-                m_updateStmt = PQexecPrepared(m_conn, "%UPDATE_NAME%", 1, paramValues, paramLengths, paramFormats, PQ_RESULT_FORMAT_BINARY);
-                CHECK_ERROR(m_updateStmt, m_conn, PGRES_TUPLES_OK, "PostgreSQL: Error executing:\n" << s_selectSQL << "\n" << PQerrorMessage(m_conn));
+                {
+                    bool retry = true;
+                    DO_RETRY:
+                    m_updateStmt = PQexecPrepared(m_conn, "%UPDATE_NAME%", 1, paramValues, paramLengths, paramFormats, PQ_RESULT_FORMAT_BINARY);
+                    if (PQresultStatus(m_updateStmt.get()) != PGRES_COMMAND_OK)
+                    {
+                        if (retry)
+                        {
+                            retry = false;
+                            m_updateStmt = PQprepare(m_conn, "%UPDATE_NAME%", s_updateSQL, s_updateSQL_len, 0);
+                            CHECK_ERROR(m_updateStmt, m_conn, PGRES_COMMAND_OK, "PostgreSQL: Error preparing:\n" << s_updateSQL << "\n" << PQerrorMessage(m_conn));
+                            goto DO_RETRY;
+                        }
+                        CHECK_ERROR(m_updateStmt, m_conn, PGRES_COMMAND_OK, "PostgreSQL: Error executing:\n" << s_updateSQL << "\n" << PQerrorMessage(m_conn));
+                    }
+                }
                 ]]>
             </execute>
             <reset>
@@ -162,15 +182,25 @@
             <destroy>
             </destroy>
             <prepare>
-                <![CDATA[
-                m_deleteStmt = PQprepare(m_conn, "%DELETE_NAME%", s_deleteSQL, s_deleteSQL_len, 0);
-                CHECK_ERROR(m_deleteStmt, m_conn, PGRES_COMMAND_OK, "PostgreSQL: Error peraring:\n" << s_deleteSQL << "\n" << PQerrorMessage(m_conn));
-                ]]>
             </prepare>
             <execute>
                 <![CDATA[
-                m_deleteStmt = PQexecPrepared(m_conn, "%DELETE_NAME%", 1, paramValues, paramLengths, paramFormats, PQ_RESULT_FORMAT_BINARY);
-                CHECK_ERROR(m_deleteStmt, m_conn, PGRES_TUPLES_OK, "PostgreSQL: Error executing:\n" << s_selectSQL << "\n" << PQerrorMessage(m_conn));
+                {
+                    bool retry = true;
+                    DO_RETRY:
+                    m_deleteStmt = PQexecPrepared(m_conn, "%UPDATE_NAME%", 1, paramValues, paramLengths, paramFormats, PQ_RESULT_FORMAT_BINARY);
+                    if (PQresultStatus(m_deleteStmt.get()) != PGRES_COMMAND_OK)
+                    {
+                        if (retry)
+                        {
+                            retry = false;
+                            m_deleteStmt = PQprepare(m_conn, "%UPDATE_NAME%", s_deleteSQL, s_deleteSQL_len, 0);
+                            CHECK_ERROR(m_deleteStmt, m_conn, PGRES_COMMAND_OK, "PostgreSQL: Error preparing:\n" << s_deleteSQL << "\n" << PQerrorMessage(m_conn));
+                            goto DO_RETRY;
+                        }
+                        CHECK_ERROR(m_deleteStmt, m_conn, PGRES_COMMAND_OK, "PostgreSQL: Error executing:\n" << s_deleteSQL << "\n" << PQerrorMessage(m_conn));
+                    }
+                }
                 ]]>
             </execute>
             <reset>
